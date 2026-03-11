@@ -14,6 +14,12 @@ Static portfolio site built with React + TypeScript + Vite, served by Express in
 - `pnpm check` — TypeScript type check
 - `pnpm format` — Prettier formatting
 
+## Language
+
+- **Code comments** — Write in Hebrew
+- **PR titles and descriptions** — Write in Hebrew
+- **Commit messages** — English (Git convention)
+
 ## Changelog Requirement
 
 **After every task that modifies the codebase, you MUST update `CHANGELOG.md` at the project root.**
