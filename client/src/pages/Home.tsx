@@ -30,7 +30,7 @@ export default function Home() {
       title: "AI Code Analyzer",
       description: "Machine learning tool for analyzing code quality and suggesting improvements. Built with Python, TensorFlow, and React.",
       tech: ["Python", "TensorFlow", "React", "FastAPI"],
-      image: "https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-2_1771100624000_na1fn_cHJvamVjdC1jb2Rpbmc.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTJfMTc3MTEwMDYyNDAwMF9uYTFmbl9jSEp2YW1WamRDMWpiMlJwYm1jLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzE5MjAsaF8xOTIwL2Zvcm1hdCx3ZWJwL3F1YWxpdHkscV84MCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=cczxpmQLFghuYIWKnZTrKQCqvReB6IBdYFIRByU7Hi1v5Exr1aR8Xen2kpCUCq5MMWievn8JzYNg6Ad2q3yB8W~AUPgTXWX8ibEOvwqE4KH8eKHurtheh5Rd1N5tY9KboAHKxonjgkNEGiuNW6dW5S8Z6kbWvwIaa24UDUbqmxocLDFep6G3biufpG7QFCiHibFBeLYXw9XcRtWTq7v9tuuMzDIY~tF9hgsU3-amHyJGPrfiKq70XvtYoWjv3a9vOlSvffjfy3VhGpSv3KBkfLpwpLF16044-RSpmVHrxQ~al5-4uhVnJfIymw70z27P72Vq6C5nDFuDrzQ8AsDEUA__",
+      image: "",
       demo: "#",
       repo: "#"
     },
@@ -38,7 +38,7 @@ export default function Home() {
       title: "Open Source Contributor",
       description: "Active contributor to major open-source projects including React, TypeScript, and Node.js ecosystem tools.",
       tech: ["TypeScript", "Git", "GitHub Actions", "Jest"],
-      image: "https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-3_1771100621000_na1fn_cHJvamVjdC1vcGVuc291cmNl.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTNfMTc3MTEwMDYyMTAwMF9uYTFmbl9jSEp2YW1WamRDMXZjR1Z1YzI5MWNtTmwucG5nP3gtb3NzLXByb2Nlc3M9aW1hZ2UvcmVzaXplLHdfMTkyMCxoXzE5MjAvZm9ybWF0LHdlYnAvcXVhbGl0eSxxXzgwIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzk4NzYxNjAwfX19XX0_&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=ErGpckQQbsoshaSqNCPzUEwxiOPUpwplKm93FpmakQIA8Hx0PG-5z9pucdaEl94hKphl7Ehhk68cFoSU9BwNBgpAwpvAkOhjoZHzeh5oPwjLOrQGR1pJD3MzeFh3mcDIYayI4qjeg0P7nCZuArC~0lY4aY8l0~ztMUKrAfSRDmWprvN3hfps9ppNBDx1EVFvZM0923qXFc94mwEmJtLR~avC7shQMeYulVbD8~Nb9FZPNyWbgPYChSGJDBDNjvRQTV-MupqFAZ5MWguFi30e-J-rGuMXs7k42rpWd0kqKwqSP7FiL2iW5LBNP1pT~mB-B3qrZ1q9RUbsM0mXdDmySQ__",
+      image: "",
       demo: "#",
       repo: "#"
     },
@@ -46,7 +46,7 @@ export default function Home() {
       title: "Full-Stack Web Platform",
       description: "Scalable web application with real-time features, microservices architecture, and modern DevOps practices.",
       tech: ["Next.js", "PostgreSQL", "Docker", "AWS"],
-      image: "https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-4_1771100634000_na1fn_cHJvamVjdC13ZWJhcHA.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTRfMTc3MTEwMDYzNDAwMF9uYTFmbl9jSEp2YW1WamRDMTNaV0poY0hBLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzE5MjAsaF8xOTIwL2Zvcm1hdCx3ZWJwL3F1YWxpdHkscV84MCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=h222YWmfmv~0z1a3Cs6jDp2vcSGYPX7-nhWhWl30VB9nZf-IiFq9twYEYuLsrE6PUmkP70tGUJxVeMJk6nFax5SA0BXIqiPq3GM-1xDASCUy4IGkkI-NKD-8vt5oG9L-iuRgxvFyPZtYqFJ9hQhhQnq-X4I6JAVJpNk0W6wOhp0yNMDn0glkvbRrJvlKceAPvat3Ls768J3vXh84YCDPrKXt3cOHKV26Av8QrhOOE0YHtq82jOSv7zj63TJkexqAnfEMjLUICASGULVFW41POLGrjJBgVrMYyMRFcN07bG1-q-WthtaPJHwj38Nsc2VVHeudqCikyBCf4p6PxBZhww__",
+      image: "",
       demo: "#",
       repo: "#"
     }
@@ -81,13 +81,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section 
+      <section
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
-        style={{
-          backgroundImage: `url('https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-1_1771100628000_na1fn_aGVyby10ZXJtaW5hbC1iZw.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTFfMTc3MTEwMDYyODAwMF9uYTFmbl9hR1Z5YnkxMFpYSnRhVzVoYkMxaVp3LnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzE5MjAsaF8xOTIwL2Zvcm1hdCx3ZWJwL3F1YWxpdHkscV84MCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=k3yJSTBDdb5QOu52Tqx6EMqb2JWdsa~Zuk6wUMEm3cIKHg5dAF1Pn78Tc-nbQnlFqI5hv6WCWX4GYD0vVYY7aNmQrtsWI15sxscxR5zSUAXtMeAGSaqLFG7gDXBFJ1hVAlX0uIuXqJs6DqQu75k-raQ90ug7hr5LiVXYRz5QxLndMfxuHXDfiMZs8mIegiXC3UhzE9U5YAs4~8BGAHA8H8O8mqLeHz0GzniXM2gnZ32y6itvEmcqUuoRKYlCHZgYemBvCYTOmUXw6YSN1L7IV4l6j0DGDfLu4ZlTICEoX3qkv~J1mJbK7QHdnGo66Gg-QiWmiF01cLNOwsFFqH1MMw__')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
       >
         <div className="absolute inset-0 bg-background/80" />
         
@@ -182,12 +177,16 @@ export default function Home() {
                   <div className="terminal-dot border-destructive" />
                 </div>
                 
-                <div className="aspect-video overflow-hidden bg-muted">
-                  <img 
-                    src={project.image} 
-                    alt={project.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
+                <div className="aspect-video overflow-hidden bg-muted flex items-center justify-center">
+                  {project.image ? (
+                    <img
+                      src={project.image}
+                      alt={project.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  ) : (
+                    <Code2 className="h-12 w-12 text-primary/30" />
+                  )}
                 </div>
                 
                 <div className="p-6">
@@ -236,13 +235,8 @@ export default function Home() {
       </section>
 
       {/* Skills Matrix Section */}
-      <section 
+      <section
         className="py-20 relative"
-        style={{
-          backgroundImage: `url('https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-5_1771100635000_na1fn_c2tpbGxzLWFic3RyYWN0.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTVfMTc3MTEwMDYzNTAwMF9uYTFmbl9jMnRwYkd4ekxXRmljM1J5WVdOMC5wbmc~eC1vc3MtcHJvY2Vzcz1pbWFnZS9yZXNpemUsd18xOTIwLGhfMTkyMC9mb3JtYXQsd2VicC9xdWFsaXR5LHFfODAiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTg3NjE2MDB9fX1dfQ__&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=HO4Ce07djAsVaW5MipFbUtvt9PuVJkZCX6rco1gFB8FoQAi5YBSVBFuUt~iGkjrI8L~nrI1g~1ZRYGloe-m-4TLeekdSW3Jq6HWaADiAatSa3Qkq6fuiAG~w1cyA3he18tXR-mS9n1NpfW3i~hYjZmbe06hELM-ROAYPOCXCx-ajst13PD8HSnddZcZ2m6JOcq9wyQoeujn91Cijx3mF3K3mJQ13cvG6z6IliNZDy1bcDZ40bqp6um5NdebFFz0juGCh5JJt9yadN4tNkxDaiHbZNt1c1bUEenvqizQ-WYZTJEDq7zh1zQK2-F4TGwj~bMJrnA9NvNJcOhEp2~41Bg__')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
       >
         <div className="absolute inset-0 bg-background/90" />
         
