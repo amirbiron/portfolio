@@ -105,5 +105,5 @@ temp/
 *.sqlite
 *.sqlite3
 
-# Manus logs (legacy, can remove after full cleanup)
-.manus-logs/
+# Webdev artifacts (checkpoint zips, migrations, etc.)
+.webdev/
