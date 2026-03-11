@@ -74,7 +74,8 @@ export default function Home() {
       tech: ["Python", "HTML", "CSS", "Automation"],
       image: "",
       demo: "https://t.me/ai_business2U_bot",
-      repo: "#"
+      repo: "https://amirbiron.github.io/landing-page/",
+      repoLabel: "Landing Page"
     }
   ];
 
@@ -281,8 +282,8 @@ export default function Home() {
                         }
                       }}
                     >
-                      <Github className="mr-2 h-3 w-3" />
-                      Code
+                      {project.repoLabel ? <ExternalLink className="mr-2 h-3 w-3" /> : <Github className="mr-2 h-3 w-3" />}
+                      {project.repoLabel || "Code"}
                     </Button>
                   </div>
                 </div>
