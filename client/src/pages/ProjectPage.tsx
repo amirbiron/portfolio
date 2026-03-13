@@ -44,18 +44,23 @@ function MermaidDiagram({ chart }: { chart: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let cancelled = false;
     const renderDiagram = async () => {
-      if (!containerRef.current) return;
       const id = `mermaid-${Date.now()}`;
       try {
         const { svg } = await mermaid.render(id, chart);
-        containerRef.current.innerHTML = svg;
+        if (!cancelled && containerRef.current) {
+          containerRef.current.innerHTML = svg;
+        }
       } catch {
-        containerRef.current.innerHTML =
-          '<p class="text-destructive">שגיאה ברינדור הדיאגרמה</p>';
+        if (!cancelled && containerRef.current) {
+          containerRef.current.innerHTML =
+            '<p class="text-destructive">שגיאה ברינדור הדיאגרמה</p>';
+        }
       }
     };
     renderDiagram();
+    return () => { cancelled = true; };
   }, [chart]);
 
   return (
