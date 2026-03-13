@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { toast } from "sonner";
 import { useLocation, useParams } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import mermaid from "mermaid";
@@ -244,7 +245,7 @@ export default function ProjectPage() {
               variant="outline"
               className="border-accent text-accent hover:bg-accent/10"
               onClick={() => {
-                if (project.repo !== "#") window.open(project.repo, "_blank");
+                if (project.repo === "#") { toast.info("הקוד עדיין לא זמין"); } else { window.open(project.repo, "_blank"); }
               }}
             >
               {project.repoLabel ? (
@@ -442,7 +443,7 @@ export default function ProjectPage() {
               variant="outline"
               className="border-accent text-accent hover:bg-accent/10"
               onClick={() => {
-                if (project.repo !== "#") window.open(project.repo, "_blank");
+                if (project.repo === "#") { toast.info("הקוד עדיין לא זמין"); } else { window.open(project.repo, "_blank"); }
               }}
             >
               {project.repoLabel ? (
