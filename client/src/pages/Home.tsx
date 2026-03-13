@@ -10,10 +10,26 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Github, Mail, Download, ExternalLink, Code2, GitBranch, Cpu } from "lucide-react";
+import { Github, Mail, Download, ExternalLink, Code2, GitBranch, Cpu, User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import { motion } from "framer-motion";
+
+// קומפוננטת עזר לאנימציית כניסה בגלילה
+function FadeInSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.6, delay, ease: "easeOut" }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -122,7 +138,12 @@ export default function Home() {
         <div className="absolute inset-0 bg-background/80" />
         
         <div className="container relative z-10 text-center">
-          <div className="terminal-window max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="terminal-window max-w-4xl mx-auto"
+          >
             <div className="terminal-header">
               <div className="terminal-dot border-[#00ff41]" />
               <div className="terminal-dot border-[#00f5ff]" />
@@ -140,7 +161,7 @@ export default function Home() {
                 BOT DEVELOPER
               </h1>
               
-              <p className="text-lg md:text-xl text-foreground/90 mb-8 max-w-2xl">
+              <p dir="rtl" className="text-lg md:text-xl text-foreground/90 mb-8 max-w-2xl">
                 מפתח בוטים ופתרונות אוטומציה חכמה<br />
                 התמחות: טלגרם, ווטסאפ, פייתון
               </p>
@@ -191,30 +212,75 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-          </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* About Section */}
+      <section className="py-20 bg-card/50">
+        <div className="container max-w-4xl">
+          <FadeInSection>
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <User className="h-8 w-8 text-accent" />
+                <h2 className="text-3xl md:text-4xl font-bold text-accent neon-glow">
+                  $ whoami --verbose
+                </h2>
+              </div>
+            </div>
+          </FadeInSection>
+
+          <FadeInSection delay={0.15}>
+            <div className="terminal-window">
+              <div className="terminal-header">
+                <div className="terminal-dot border-primary" />
+                <div className="terminal-dot border-accent" />
+                <div className="terminal-dot border-destructive" />
+                <span className="text-sm text-muted-foreground ml-2">~/about.md</span>
+              </div>
+
+              <div dir="rtl" className="p-8 space-y-4 text-foreground/90 leading-relaxed">
+                <p>
+                  <span className="text-primary font-bold">{'>'}</span>{" "}
+                  התחלתי את המסע שלי בעולם הפיתוח מבוטים לטלגרם — למדתי לבד, ניסיתי, טעיתי, ושברתי דברים עד שהם עבדו. מאז בניתי{" "}
+                  <span className="text-primary font-bold">60+ בוטים</span>, ממשקי ווב, ומערכות אוטומציה.
+                </p>
+                <p>
+                  <span className="text-accent font-bold">{'>'}</span>{" "}
+                  מה שמניע אותי? אני אוהב לראות את התוצאה הסופית — ממשק מוכן עם עיצוב מרשים, מערכת שעובדת חלק, ולקוח מרוצה שאומר "וואו, זה בדיוק מה שרציתי".
+                </p>
+                <p>
+                  <span className="text-destructive font-bold">{'>'}</span>{" "}
+                  היום אני מתמחה ב-Python, בוטים (Telegram & WhatsApp), ופתרונות אוטומציה מקצה לקצה — מהרעיון ועד למוצר עובד.
+                </p>
+              </div>
+            </div>
+          </FadeInSection>
         </div>
       </section>
 
       {/* Projects Section */}
-      <section className="py-20 bg-card/50">
+      <section className="py-20">
         <div className="container">
-          <div className="mb-12">
-            <div className="flex items-center gap-3 mb-4">
-              <Code2 className="h-8 w-8 text-primary" />
-              <h2 className="text-3xl md:text-4xl font-bold text-primary neon-glow">
-                $ ls -la ./projects
-              </h2>
+          <FadeInSection>
+            <div className="mb-12">
+              <div className="flex items-center gap-3 mb-4">
+                <Code2 className="h-8 w-8 text-primary" />
+                <h2 className="text-3xl md:text-4xl font-bold text-primary neon-glow">
+                  $ ls -la ./projects
+                </h2>
+              </div>
+              <p dir="rtl" className="text-muted-foreground text-lg">
+                פרויקטים נבחרים שמציגים מומחיות טכנית ופתרון בעיות
+              </p>
             </div>
-            <p className="text-muted-foreground text-lg">
-              Featured projects showcasing technical expertise and problem-solving skills
-            </p>
-          </div>
-          
+          </FadeInSection>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project, idx) => (
-              <Card 
-                key={idx} 
-                className="terminal-window overflow-hidden group hover:scale-105 transition-all duration-300"
+              <FadeInSection key={idx} delay={idx * 0.1}>
+              <Card
+                className="terminal-window overflow-hidden group hover:scale-105 transition-all duration-300 h-full"
               >
                 <div className="terminal-header">
                   <div className="terminal-dot border-primary" />
@@ -240,7 +306,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold text-primary mb-2">
                     {project.title}
                   </h3>
-                  <p className="text-sm text-foreground/80 mb-4 leading-relaxed">
+                  <p dir="rtl" className="text-sm text-foreground/80 mb-4 leading-relaxed">
                     {project.description}
                   </p>
                   
@@ -288,6 +354,7 @@ export default function Home() {
                   </div>
                 </div>
               </Card>
+              </FadeInSection>
             ))}
           </div>
         </div>
@@ -305,21 +372,24 @@ export default function Home() {
         <div className="absolute inset-0 bg-background/90" />
         
         <div className="container relative z-10">
-          <div className="mb-12">
-            <div className="flex items-center gap-3 mb-4">
-              <Cpu className="h-8 w-8 text-accent" />
-              <h2 className="text-3xl md:text-4xl font-bold text-accent neon-glow">
-                $ cat skills.json
-              </h2>
+          <FadeInSection>
+            <div className="mb-12">
+              <div className="flex items-center gap-3 mb-4">
+                <Cpu className="h-8 w-8 text-accent" />
+                <h2 className="text-3xl md:text-4xl font-bold text-accent neon-glow">
+                  $ cat skills.json
+                </h2>
+              </div>
+              <p dir="rtl" className="text-muted-foreground text-lg">
+                שליטה טכנית לאורך כל מחסנית הפיתוח
+              </p>
             </div>
-            <p className="text-muted-foreground text-lg">
-              Technical proficiency across the full development stack
-            </p>
-          </div>
-          
+          </FadeInSection>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {skills.map((skill, idx) => (
-              <div key={idx} className="terminal-window">
+              <FadeInSection key={idx} delay={idx * 0.1}>
+              <div className="terminal-window h-full">
                 <div className="terminal-header">
                   <div className="terminal-dot border-primary" />
                   <div className="terminal-dot border-accent" />
@@ -358,6 +428,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+              </FadeInSection>
             ))}
           </div>
         </div>
@@ -366,23 +437,25 @@ export default function Home() {
       {/* Blog Section */}
       <section className="py-20 bg-card/50">
         <div className="container">
-          <div className="mb-12">
-            <div className="flex items-center gap-3 mb-4">
-              <GitBranch className="h-8 w-8 text-destructive" />
-              <h2 className="text-3xl md:text-4xl font-bold text-destructive neon-glow">
-                $ git log --blog
-              </h2>
+          <FadeInSection>
+            <div className="mb-12">
+              <div className="flex items-center gap-3 mb-4">
+                <GitBranch className="h-8 w-8 text-destructive" />
+                <h2 className="text-3xl md:text-4xl font-bold text-destructive neon-glow">
+                  $ git log --blog
+                </h2>
+              </div>
+              <p dir="rtl" className="text-muted-foreground text-lg">
+                מאמרים טכניים ותובנות מעולם הפיתוח
+              </p>
             </div>
-            <p className="text-muted-foreground text-lg">
-              Technical articles and insights from the development trenches
-            </p>
-          </div>
-          
+          </FadeInSection>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {blogPosts.map((post, idx) => (
-              <Card 
-                key={idx}
-                className="terminal-window hover:scale-105 transition-all duration-300 cursor-pointer"
+              <FadeInSection key={idx} delay={idx * 0.1}>
+              <Card
+                className="terminal-window hover:scale-105 transition-all duration-300 cursor-pointer h-full"
                 onClick={() => {
                   if (post.slug) {
                     setLocation(`/blog/${post.slug}`);
@@ -397,8 +470,8 @@ export default function Home() {
                   <div className="terminal-dot border-destructive" />
                 </div>
                 
-                <div className="p-6">
-                  <div className="text-xs text-accent mb-2 font-mono">
+                <div dir="rtl" className="p-6">
+                  <div dir="ltr" className="text-xs text-accent mb-2 font-mono">
                     {post.date}
                   </div>
                   <h3 className="text-lg font-bold text-primary mb-3 leading-tight">
@@ -409,6 +482,7 @@ export default function Home() {
                   </p>
                 </div>
               </Card>
+              </FadeInSection>
             ))}
           </div>
         </div>
@@ -417,6 +491,7 @@ export default function Home() {
       {/* Contact Section */}
       <section id="contact" className="py-20">
         <div className="container max-w-3xl">
+          <FadeInSection>
           <div className="mb-12">
             <div className="flex items-center gap-3 mb-4">
               <Mail className="h-8 w-8 text-primary" />
@@ -424,11 +499,13 @@ export default function Home() {
                 $ ./contact.sh
               </h2>
             </div>
-            <p className="text-muted-foreground text-lg">
-              Let's collaborate on your next project
+            <p dir="rtl" className="text-muted-foreground text-lg">
+              בואו נשתף פעולה על הפרויקט הבא שלכם
             </p>
           </div>
-          
+          </FadeInSection>
+
+          <FadeInSection delay={0.15}>
           <div className="terminal-window">
             <div className="terminal-header">
               <div className="terminal-dot border-primary" />
@@ -486,6 +563,7 @@ export default function Home() {
               </div>
             </form>
           </div>
+          </FadeInSection>
         </div>
       </section>
 
