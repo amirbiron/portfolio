@@ -152,12 +152,12 @@ export default function Home() {
             </div>
             
             <div dir="rtl" className="p-8 md:p-12">
-              <div dir="ltr" className="mb-6">
+              <div dir="ltr" className="mb-6 text-left">
                 <span className="text-primary text-sm">$</span>
                 <span className="text-muted-foreground text-sm ml-2">whoami</span>
               </div>
               
-              <h1 dir="ltr" className="text-4xl md:text-6xl font-bold text-primary neon-glow mb-4 cursor-blink">
+              <h1 dir="ltr" className="text-4xl md:text-6xl font-bold text-primary neon-glow mb-4 cursor-blink text-left">
                 BOT DEVELOPER
               </h1>
               
