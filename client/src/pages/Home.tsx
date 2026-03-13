@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Github, Mail, Download, ExternalLink, Code2, GitBranch, Cpu, User } from "lucide-react";
+import { Github, Mail, Download, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -52,6 +52,7 @@ export default function Home() {
 
   const projects = [
     {
+      slug: "codekeeper",
       title: "CodeKeeper",
       description: "בוט טלגרם לגיבוי ריפוזיטורי + אתר למפתחים לשמירת קוד",
       tech: ["Python", "Telegram Bot API", "GitHub API", "MongoDB"],
@@ -60,6 +61,7 @@ export default function Home() {
       repo: "https://github.com/amirbiron/CodeBot"
     },
     {
+      slug: "modularbot",
       title: "ModularBot",
       description: "בוט ליצירת בוטים בטלגרם - שולחים טוקן ותיאור, ותוך 10 דקות יש לכם בוט חדש מוכן לשימוש",
       tech: ["Python", "Telegram Bot API", "AI Integration", "Automation"],
@@ -68,6 +70,7 @@ export default function Home() {
       repo: "https://github.com/amirbiron/Modular_Bot_V2"
     },
     {
+      slug: "markdownbot",
       title: "MarkdownBot",
       description: "בוט שמלמד מארקדאון בצורה מהנה - תרגילים אינטראקטיביים ללמידת סינטקס מארקדאון בטלגרם",
       tech: ["Python", "Telegram Bot API", "Gamification", "Interactive Learning"],
@@ -76,6 +79,7 @@ export default function Home() {
       repo: "https://github.com/amirbiron/MarkdownBot"
     },
     {
+      slug: "fb-leads-scanner",
       title: "FB Leads Scanner",
       description: "בוט שסורק קבוצות פייסבוק ושולח לך פוסטים שאתה מחשיב ללידים + פאנל ווב לניהול",
       tech: ["Python", "HTML", "CSS", "Automation"],
@@ -85,6 +89,7 @@ export default function Home() {
       repo: "#"
     },
     {
+      slug: "ai-business-bot",
       title: "AI Business Bot",
       description: "בוט שלומד את העסק שלך, עונה ללקוחות 24/7, ומציע תורים אוטומטית + פאנל ווב לניהול",
       tech: ["Python", "HTML", "CSS", "Automation"],
@@ -322,9 +327,18 @@ export default function Home() {
                   </div>
                   
                   <div className="flex gap-3">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="flex-1 bg-primary/20 text-primary border border-primary hover:bg-primary hover:text-primary-foreground"
+                      onClick={() => setLocation(`/project/${project.slug}`)}
+                    >
+                      <ArrowLeft className="mr-2 h-3 w-3" />
+                      Details
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-accent text-accent hover:bg-accent/10"
                       onClick={() => {
                         if (project.demo === "#") {
                           toast.info("Demo link - Feature coming soon");
@@ -335,21 +349,6 @@ export default function Home() {
                     >
                       <ExternalLink className="mr-2 h-3 w-3" />
                       {project.demoLabel || "Demo"}
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="flex-1 border-accent text-accent hover:bg-accent/10"
-                      onClick={() => {
-                        if (project.repo === "#") {
-                          toast.info("Repo link - Feature coming soon");
-                        } else {
-                          window.open(project.repo, "_blank");
-                        }
-                      }}
-                    >
-                      {project.repoLabel ? <ExternalLink className="mr-2 h-3 w-3" /> : <Github className="mr-2 h-3 w-3" />}
-                      {project.repoLabel || "Code"}
                     </Button>
                   </div>
                 </div>
