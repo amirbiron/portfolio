@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Github, Mail, Download, ExternalLink, Code2, GitBranch, Cpu, User } from "lucide-react";
+import { Github, Mail, Download, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
+import { projects } from "@/lib/projects";
 
 // קומפוננטת עזר לאנימציית כניסה בגלילה
 function FadeInSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
@@ -50,50 +51,6 @@ export default function Home() {
     setMessage("");
   };
 
-  const projects = [
-    {
-      title: "CodeKeeper",
-      description: "בוט טלגרם לגיבוי ריפוזיטורי + אתר למפתחים לשמירת קוד",
-      tech: ["Python", "Telegram Bot API", "GitHub API", "MongoDB"],
-      image: "https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-2_1771100624000_na1fn_cHJvamVjdC1jb2Rpbmc.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTJfMTc3MTEwMDYyNDAwMF9uYTFmbl9jSEp2YW1WamRDMWpiMlJwYm1jLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzE5MjAsaF8xOTIwL2Zvcm1hdCx3ZWJwL3F1YWxpdHkscV84MCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=cczxpmQLFghuYIWKnZTrKQCqvReB6IBdYFIRByU7Hi1v5Exr1aR8Xen2kpCUCq5MMWievn8JzYNg6Ad2q3yB8W~AUPgTXWX8ibEOvwqE4KH8eKHurtheh5Rd1N5tY9KboAHKxonjgkNEGiuNW6dW5S8Z6kbWvwIaa24UDUbqmxocLDFep6G3biufpG7QFCiHibFBeLYXw9XcRtWTq7v9tuuMzDIY~tF9hgsU3-amHyJGPrfiKq70XvtYoWjv3a9vOlSvffjfy3VhGpSv3KBkfLpwpLF16044-RSpmVHrxQ~al5-4uhVnJfIymw70z27P72Vq6C5nDFuDrzQ8AsDEUA__",
-      demo: "https://code-keeper-webapp.onrender.com",
-      repo: "https://github.com/amirbiron/CodeBot"
-    },
-    {
-      title: "ModularBot",
-      description: "בוט ליצירת בוטים בטלגרם - שולחים טוקן ותיאור, ותוך 10 דקות יש לכם בוט חדש מוכן לשימוש",
-      tech: ["Python", "Telegram Bot API", "AI Integration", "Automation"],
-      image: "https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-3_1771100621000_na1fn_cHJvamVjdC1vcGVuc291cmNl.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTNfMTc3MTEwMDYyMTAwMF9uYTFmbl9jSEp2YW1WamRDMXZjR1Z1YzI5MWNtTmwucG5nP3gtb3NzLXByb2Nlc3M9aW1hZ2UvcmVzaXplLHdfMTkyMCxoXzE5MjAvZm9ybWF0LHdlYnAvcXVhbGl0eSxxXzgwIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzk4NzYxNjAwfX19XX0_&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=ErGpckQQbsoshaSqNCPzUEwxiOPUpwplKm93FpmakQIA8Hx0PG-5z9pucdaEl94hKphl7Ehhk68cFoSU9BwNBgpAwpvAkOhjoZHzeh5oPwjLOrQGR1pJD3MzeFh3mcDIYayI4qjeg0P7nCZuArC~0lY4aY8l0~ztMUKrAfSRDmWprvN3hfps9ppNBDx1EVFvZM0923qXFc94mwEmJtLR~avC7shQMeYulVbD8~Nb9FZPNyWbgPYChSGJDBDNjvRQTV-MupqFAZ5MWguFi30e-J-rGuMXs7k42rpWd0kqKwqSP7FiL2iW5LBNP1pT~mB-B3qrZ1q9RUbsM0mXdDmySQ__",
-      demo: "https://t.me/ModularBot_V2_bot",
-      repo: "https://github.com/amirbiron/Modular_Bot_V2"
-    },
-    {
-      title: "MarkdownBot",
-      description: "בוט שמלמד מארקדאון בצורה מהנה - תרגילים אינטראקטיביים ללמידת סינטקס מארקדאון בטלגרם",
-      tech: ["Python", "Telegram Bot API", "Gamification", "Interactive Learning"],
-      image: "https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-4_1771100634000_na1fn_cHJvamVjdC13ZWJhcHA.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTRfMTc3MTEwMDYzNDAwMF9uYTFmbl9jSEp2YW1WamRDMTNaV0poY0hBLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzE5MjAsaF8xOTIwL2Zvcm1hdCx3ZWJwL3F1YWxpdHkscV84MCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=h222YWmfmv~0z1a3Cs6jDp2vcSGYPX7-nhWhWl30VB9nZf-IiFq9twYEYuLsrE6PUmkP70tGUJxVeMJk6nFax5SA0BXIqiPq3GM-1xDASCUy4IGkkI-NKD-8vt5oG9L-iuRgxvFyPZtYqFJ9hQhhQnq-X4I6JAVJpNk0W6wOhp0yNMDn0glkvbRrJvlKceAPvat3Ls768J3vXh84YCDPrKXt3cOHKV26Av8QrhOOE0YHtq82jOSv7zj63TJkexqAnfEMjLUICASGULVFW41POLGrjJBgVrMYyMRFcN07bG1-q-WthtaPJHwj38Nsc2VVHeudqCikyBCf4p6PxBZhww__",
-      demo: "https://t.me/markdown_trainer_bot",
-      repo: "https://github.com/amirbiron/MarkdownBot"
-    },
-    {
-      title: "FB Leads Scanner",
-      description: "בוט שסורק קבוצות פייסבוק ושולח לך פוסטים שאתה מחשיב ללידים + פאנל ווב לניהול",
-      tech: ["Python", "HTML", "CSS", "Automation"],
-      image: "",
-      demo: "https://amirbiron.github.io/Landing_FB_Lids/",
-      demoLabel: "Landing Page",
-      repo: "#"
-    },
-    {
-      title: "AI Business Bot",
-      description: "בוט שלומד את העסק שלך, עונה ללקוחות 24/7, ומציע תורים אוטומטית + פאנל ווב לניהול",
-      tech: ["Python", "HTML", "CSS", "Automation"],
-      image: "",
-      demo: "https://t.me/ai_business2U_bot",
-      repo: "https://amirbiron.github.io/landing-page/",
-      repoLabel: "Landing Page"
-    }
-  ];
 
   const skills = [
     { category: "Languages", items: ["Python", "JavaScript/TypeScript", "SQL"], level: 95 },
@@ -322,9 +279,18 @@ export default function Home() {
                   </div>
                   
                   <div className="flex gap-3">
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="flex-1 bg-primary/20 text-primary border border-primary hover:bg-primary hover:text-primary-foreground"
+                      onClick={() => setLocation(`/project/${project.slug}`)}
+                    >
+                      <ArrowLeft className="mr-2 h-3 w-3" />
+                      Details
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-accent text-accent hover:bg-accent/10"
                       onClick={() => {
                         if (project.demo === "#") {
                           toast.info("Demo link - Feature coming soon");
@@ -335,21 +301,6 @@ export default function Home() {
                     >
                       <ExternalLink className="mr-2 h-3 w-3" />
                       {project.demoLabel || "Demo"}
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      className="flex-1 border-accent text-accent hover:bg-accent/10"
-                      onClick={() => {
-                        if (project.repo === "#") {
-                          toast.info("Repo link - Feature coming soon");
-                        } else {
-                          window.open(project.repo, "_blank");
-                        }
-                      }}
-                    >
-                      {project.repoLabel ? <ExternalLink className="mr-2 h-3 w-3" /> : <Github className="mr-2 h-3 w-3" />}
-                      {project.repoLabel || "Code"}
                     </Button>
                   </div>
                 </div>
