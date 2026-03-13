@@ -151,8 +151,8 @@ export default function Home() {
               <span className="text-sm text-muted-foreground ml-2">~/portfolio/home</span>
             </div>
             
-            <div className="p-8 md:p-12 text-left">
-              <div className="mb-6">
+            <div dir="rtl" className="p-8 md:p-12">
+              <div dir="ltr" className="mb-6">
                 <span className="text-primary text-sm">$</span>
                 <span className="text-muted-foreground text-sm ml-2">whoami</span>
               </div>
@@ -166,7 +166,7 @@ export default function Home() {
                 התמחות: טלגרם, ווטסאפ, פייתון
               </p>
               
-              <div className="flex flex-wrap gap-3 mb-8">
+              <div dir="ltr" className="flex flex-wrap gap-3 mb-8">
                 <span className="px-4 py-2 bg-primary/20 border border-primary text-primary text-sm">
                   Python
                 </span>
@@ -184,8 +184,8 @@ export default function Home() {
                 </span>
               </div>
               
-              <div className="flex flex-wrap gap-4">
-                <Button 
+              <div dir="ltr" className="flex flex-wrap gap-4">
+                <Button
                   className="bg-primary text-primary-foreground hover:bg-primary/90 neon-border transition-all hover:scale-105"
                   onClick={() => window.open('https://github.com/amirbiron', '_blank')}
                 >
