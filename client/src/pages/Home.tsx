@@ -161,7 +161,7 @@ export default function Home() {
                 BOT DEVELOPER
               </h1>
               
-              <p className="text-lg md:text-xl text-foreground/90 mb-8 max-w-2xl">
+              <p dir="rtl" className="text-lg md:text-xl text-foreground/90 mb-8 max-w-2xl">
                 מפתח בוטים ופתרונות אוטומציה חכמה<br />
                 התמחות: טלגרם, ווטסאפ, פייתון
               </p>
@@ -239,7 +239,7 @@ export default function Home() {
                 <span className="text-sm text-muted-foreground ml-2">~/about.md</span>
               </div>
 
-              <div className="p-8 space-y-4 text-foreground/90 leading-relaxed">
+              <div dir="rtl" className="p-8 space-y-4 text-foreground/90 leading-relaxed">
                 <p>
                   <span className="text-primary font-bold">{'>'}</span>{" "}
                   התחלתי את המסע שלי בעולם הפיתוח מבוטים לטלגרם — למדתי לבד, ניסיתי, טעיתי, ושברתי דברים עד שהם עבדו. מאז בניתי{" "}
@@ -270,8 +270,8 @@ export default function Home() {
                   $ ls -la ./projects
                 </h2>
               </div>
-              <p className="text-muted-foreground text-lg">
-                Featured projects showcasing technical expertise and problem-solving skills
+              <p dir="rtl" className="text-muted-foreground text-lg">
+                פרויקטים נבחרים שמציגים מומחיות טכנית ופתרון בעיות
               </p>
             </div>
           </FadeInSection>
@@ -306,7 +306,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold text-primary mb-2">
                     {project.title}
                   </h3>
-                  <p className="text-sm text-foreground/80 mb-4 leading-relaxed">
+                  <p dir="rtl" className="text-sm text-foreground/80 mb-4 leading-relaxed">
                     {project.description}
                   </p>
                   
@@ -380,8 +380,8 @@ export default function Home() {
                   $ cat skills.json
                 </h2>
               </div>
-              <p className="text-muted-foreground text-lg">
-                Technical proficiency across the full development stack
+              <p dir="rtl" className="text-muted-foreground text-lg">
+                שליטה טכנית לאורך כל מחסנית הפיתוח
               </p>
             </div>
           </FadeInSection>
@@ -389,7 +389,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {skills.map((skill, idx) => (
               <FadeInSection key={idx} delay={idx * 0.1}>
-              <div className="terminal-window">
+              <div className="terminal-window h-full">
                 <div className="terminal-header">
                   <div className="terminal-dot border-primary" />
                   <div className="terminal-dot border-accent" />
@@ -445,8 +445,8 @@ export default function Home() {
                   $ git log --blog
                 </h2>
               </div>
-              <p className="text-muted-foreground text-lg">
-                Technical articles and insights from the development trenches
+              <p dir="rtl" className="text-muted-foreground text-lg">
+                מאמרים טכניים ותובנות מעולם הפיתוח
               </p>
             </div>
           </FadeInSection>
@@ -455,7 +455,7 @@ export default function Home() {
             {blogPosts.map((post, idx) => (
               <FadeInSection key={idx} delay={idx * 0.1}>
               <Card
-                className="terminal-window hover:scale-105 transition-all duration-300 cursor-pointer"
+                className="terminal-window hover:scale-105 transition-all duration-300 cursor-pointer h-full"
                 onClick={() => {
                   if (post.slug) {
                     setLocation(`/blog/${post.slug}`);
@@ -470,8 +470,8 @@ export default function Home() {
                   <div className="terminal-dot border-destructive" />
                 </div>
                 
-                <div className="p-6">
-                  <div className="text-xs text-accent mb-2 font-mono">
+                <div dir="rtl" className="p-6">
+                  <div dir="ltr" className="text-xs text-accent mb-2 font-mono">
                     {post.date}
                   </div>
                   <h3 className="text-lg font-bold text-primary mb-3 leading-tight">
@@ -499,8 +499,8 @@ export default function Home() {
                 $ ./contact.sh
               </h2>
             </div>
-            <p className="text-muted-foreground text-lg">
-              Let's collaborate on your next project
+            <p dir="rtl" className="text-muted-foreground text-lg">
+              בואו נשתף פעולה על הפרויקט הבא שלכם
             </p>
           </div>
           </FadeInSection>
