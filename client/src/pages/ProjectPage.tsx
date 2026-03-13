@@ -18,10 +18,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import mermaid from "mermaid";
 import { projects } from "@/lib/projects";
 
-// אתחול Mermaid עם ערכת נושא כהה
-mermaid.initialize({
+// הגדרות Mermaid לערכת נושא כהה
+const mermaidConfig = {
   startOnLoad: false,
-  theme: "dark",
+  theme: "dark" as const,
   themeVariables: {
     primaryColor: "#00ff41",
     primaryTextColor: "#e0e0e0",
@@ -37,7 +37,7 @@ mermaid.initialize({
     titleColor: "#00ff41",
     edgeLabelBackground: "#1a1a2e",
   },
-});
+};
 
 
 // קומפוננטת רינדור Mermaid
@@ -47,6 +47,8 @@ function MermaidDiagram({ chart }: { chart: string }) {
   useEffect(() => {
     let cancelled = false;
     const renderDiagram = async () => {
+      // אתחול לפני כל רינדור כדי לא לדרוס הגדרות גלובליות
+      mermaid.initialize(mermaidConfig);
       const id = `mermaid-${Date.now()}`;
       try {
         const { svg } = await mermaid.render(id, chart);
@@ -77,14 +79,14 @@ function ScreenshotGallery({ images }: { images: string[] }) {
   const [selected, setSelected] = useState<number | null>(null);
 
   const goNext = useCallback(() => {
-    if (selected === null) return;
-    setSelected((selected + 1) % images.length);
-  }, [selected, images.length]);
+    setSelected((prev) => (prev === null ? null : (prev + 1) % images.length));
+  }, [images.length]);
 
   const goPrev = useCallback(() => {
-    if (selected === null) return;
-    setSelected((selected - 1 + images.length) % images.length);
-  }, [selected, images.length]);
+    setSelected((prev) =>
+      prev === null ? null : (prev - 1 + images.length) % images.length,
+    );
+  }, [images.length]);
 
   // מקשי מקלדת לניווט
   useEffect(() => {
