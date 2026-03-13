@@ -157,7 +157,7 @@ export default function Home() {
                 <span className="text-muted-foreground text-sm ml-2">whoami</span>
               </div>
               
-              <h1 className="text-4xl md:text-6xl font-bold text-primary neon-glow mb-4 cursor-blink">
+              <h1 dir="ltr" className="text-4xl md:text-6xl font-bold text-primary neon-glow mb-4 cursor-blink">
                 BOT DEVELOPER
               </h1>
               
