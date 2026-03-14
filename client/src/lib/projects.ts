@@ -31,7 +31,7 @@ export const projects: ProjectData[] = [
     description: "בוט טלגרם לגיבוי ריפוזיטורי + אתר למפתחים לשמירת קוד",
     subtitle: "בוט טלגרם + אפליקציית ווב לגיבוי ושמירת קוד",
     fullDescription:
-      "CodeKeeper (Codely) הוא פלטפורמה מלאה לניהול קוד — בוט טלגרם שמאפשר לשמור קטעי קוד, לגבות ריפוזיטורי מ-GitHub, לחפש בקוד, ולנהל קבצים גדולים. כולל אפליקציית ווב עם דשבורד, דפדפן ריפוזיטורי, ספריית snippets קהילתית, ומערכת Bookmarks.",
+      "CodeKeeper (קודלי) היא פלטפורמה מלאה לניהול קוד — בוט טלגרם שמאפשר לשמור קטעי קוד, לגבות ריפוזיטורי מ-GitHub,ליצור ריפו חדש ע\"י העלאת קובץ ZIP ולחפש בקוד. כולל אפליקציית ווב עם דשבורד, דפדפן ריפוזיטורי, ספריית snippets קהילתית ועוד כלים למפתחים.",
     tech: [
       "Python",
       "Flask",
@@ -49,6 +49,8 @@ export const projects: ProjectData[] = [
     screenshots: [
       "/projects/Screenshot_20260313_202612_Telegram.jpg",
       "/projects/Screenshot_20260313_202856_Telegram.jpg",
+      "/projects/Screenshot_20260313_203519_Chrome.jpg",
+      "/projects/Screenshot_20260313_203916_Chrome.jpg",
     ],
     mermaidDiagram: `graph TB
     subgraph Clients["לקוחות"]
@@ -109,12 +111,16 @@ export const projects: ProjectData[] = [
       "מערכת Observability מלאה — Prometheus, Grafana, Sentry, Jaeger",
     ],
     features: [
-      "שמירת קוד וקטעי Snippet דרך טלגרם",
-      "גיבוי אוטומטי של ריפוזיטורי GitHub",
-      "דפדפן ריפוזיטורי מלא באפליקציית הווב",
+      "תצוגת מארקדאון מלאה לקבצי מארקדאון",
+      "תפריט תוכן עניינים צף אוטומטי לקבצי מארקדאון",
+      "פתקים דביקים עם אפשרות ליצירת תזכורות פוש",
+      "מערכת סימניות",
       "חיפוש סמנטי בקוד עם AI",
-      "ספריית Snippets קהילתית",
-      "ייצוא ל-Google Drive ו-Pastebin",
+      "דשבורד עם הסטוריית פעולות אחרונות ועוד",
+      "בונה ערכות נושא מובנה לממשק",
+      "מערכת \"האוספים שלי\" לשמירת קטעי קוד לפי קטגוריות",
+      "ייצוא קטעי קוד ל-Gist ו-Pastebin",
+      "גיבוי אוטומטי ל-Google Drive",
     ],
   },
   {
@@ -211,7 +217,7 @@ export const projects: ProjectData[] = [
       "בוט שמלמד מארקדאון בצורה מהנה - תרגילים אינטראקטיביים ללמידת סינטקס מארקדאון בטלגרם",
     subtitle: "בוט אינטראקטיבי ללימוד Markdown עם תרגילים וגיימיפיקציה",
     fullDescription:
-      "MarkdownBot מלמד Markdown בצורה מהנה — 15+ שיעורים, אימונים ממוקדים לפי נושא, סנדבוקס לרינדור Markdown לתמונה, מערכת Gamification עם ניקוד ורמות, וספריית תבניות קהילתית. כולל גם אפליקציית ווב (Markdown Academy) עם מדריכים אינטראקטיביים.",
+      "MarkdownBot מלמד Markdown בצורה מהנה — 43 שיעורים, אימונים ממוקדים לפי נושא, סנדבוקס לרינדור Markdown לתמונה, מערכת Gamification עם ניקוד ורמות, וספריית תבניות קהילתית. כולל גם אפליקציית ווב (Markdown Academy) עם מדריכים אינטראקטיביים.",
     tech: [
       "Node.js",
       "Telegram Bot API",
@@ -242,7 +248,7 @@ export const projects: ProjectData[] = [
         TrainingMode["Training Mode - Challenges"]
     end
     subgraph LessonEngine["Lesson Engine"]
-        Lessons["15+ Lessons"]
+        Lessons["43 Lessons"]
         Quiz["Quiz System"]
     end
     subgraph RenderEngine["Render Engine"]
@@ -282,7 +288,7 @@ export const projects: ProjectData[] = [
       "מערכת תבניות קהילתית עם אישור אדמין",
     ],
     features: [
-      "15+ שיעורים אינטראקטיביים עם חידונים",
+      "43 שיעורים אינטראקטיביים עם חידונים",
       "סנדבוקס — שליחת Markdown ורינדור לתמונה",
       "אימונים ממוקדים לפי נושא (טבלאות, לינקים, Mermaid...)",
       "מערכת ניקוד ורמות (Beginner → Master)",
@@ -309,8 +315,6 @@ export const projects: ProjectData[] = [
     screenshots: [
       "/projects/Screenshot_20260313_213118_Chrome.jpg",
       "/projects/Screenshot_20260313_213141_Chrome.jpg",
-      "/projects/Screenshot_20260313_203519_Chrome.jpg",
-      "/projects/Screenshot_20260313_203916_Chrome.jpg",
     ],
     mermaidDiagram: `graph TB
     subgraph Users["משתמשים"]
