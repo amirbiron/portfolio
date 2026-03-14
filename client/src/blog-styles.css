@@ -30,6 +30,7 @@ div.prose pre {
   padding: 1.5rem !important;
   border-radius: 0.5rem !important;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.8) !important;
+  overflow-x: auto !important;
 }
 /* מוודא שגם הקוד בפנים לא מקבל רקע מוזר */
 .prose pre code {
@@ -37,6 +38,7 @@ div.prose pre {
   padding: 0 !important;
   border-radius: 0 !important;
   color: inherit !important;
+  border: none !important;
 }
 
 .prose p {
