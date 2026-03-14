@@ -118,6 +118,14 @@
   text-align: left;
 }
 
+/* כותרת בלוק קוד (שפה + כפתורי העתק/הורד) — הפיכת כיוון */
+.prose pre > div:first-child {
+  direction: ltr;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
 /* טבלאות — יישור RTL */
 .prose table {
   width: 100%;

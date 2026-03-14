@@ -119,12 +119,7 @@ def verify_telegram_auth(auth_data: dict) -> bool:
 3. בנוסף, בודקים שה-\`auth_date\` לא ישן מדי (עד שעה) — כדי למנוע replay attacks.
 **למה SHA256 של ה-token ולא ה-token עצמו?** כי טלגרם רוצים שה-secret יהיה באורך קבוע (32 bytes) ולא תלוי באורך ה-token.
 ### דרך 2: Token חד-פעמי מהבוט
-לפעמים ה-Login Widget לא מתאים — למשל, כשהמשתמש כבר נמצא בשיחה עם הבוט ורוצה לעבור ל-Web App בלחיצה. בשביל זה יש מסלול שני:
-
-1. משתמש שולח לבוט "אני רוצה להיכנס ל-Web App"
-2. הבוט שומר ב-DB טוקן חד-פעמי (תקף 5 דקות)
-3. הבוט שולח למשתמש קישור אישי עם הטוקן
-4. המשתמש לוחץ → Web App מוצא את הטוקן, מוודא תוקף, מוחק (חד-פעמי!), ויוצר session
+לפעמים ה-Login Widget לא מתאים — למשל, כשהמשתמש כבר נמצא בשיחה עם הבוט ורוצה לעבור ל-Web App בלחיצה. בשביל זה יש מסלול שני — הבוט יוצר טוקן חד-פעמי (תקף 5 דקות), שולח קישור אישי, וה-Web App מוודא תוקף ומוחק אחרי שימוש.
 
 קוד יצירת ה-token בבוט:
 \`\`\`python
@@ -177,8 +172,6 @@ def token_auth():
 - **Hash ולא random** — ה-token נגזר מ-\`user_id + timestamp + secret\`, מה שמקשה על ניחוש.
 ---
 ## שילוב של הכל ביחד
-הנה תמונת המצב המלאה — שלושה רכיבים מרכזיים:
-
 1. **אימות** — המשתמש מזדהה דרך טלגרם (widget או token מהבוט).
 2. **Session** — ה-Web App שומר session ל-30 יום, אז לא צריך להתחבר כל פעם.
 3. **סנכרון** — אין. שני הצדדים עובדים על אותו DB, דרך אותה שכבת Repository, עם cache invalidation אחרי כל כתיבה.
@@ -206,9 +199,6 @@ def token_auth():
     content: `> הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.
 ---
 ## הארכיטקטורה — מבט על
-
-הזרימה: **WhatsApp API** → **Webhook Handler** (FastAPI) → **State Machine** (מנוע שיחה) → **Service Layer** (לוגיקה עסקית) → **PostgreSQL** + **Celery/Redis** (משימות רקע).
-
 ה-webhook מקבל הודעה, ה-State Machine מחליט באיזה שלב של השיחה נמצא המשתמש, השירותים מבצעים את הלוגיקה, וההודעות החוזרות נשלחות אסינכרונית. פשוט ברעיון, מורכב בביצוע.
 ---
 ## 1. קבלת הודעות — Webhook Handler
@@ -478,15 +468,6 @@ class OutboxService:
         ))
         # אין commit כאן — ה-commit קורה יחד עם הפעולה העסקית
 \`\`\`
-**הזרימה:**
-
-1. פעולה עסקית + הכנסת הודעה ל-outbox → **commit אטומי**
-2. Celery worker שולף הודעות pending
-3. שולח ל-WhatsApp
-4. הצלחה → סימון sent
-5. כישלון → retry עם exponential backoff (2s, 4s, 8s... עד שעה)
-6. מיצוי retries → Dead Letter Queue (לטיפול ידני)
-
 \`\`\`python
 def _calculate_backoff(retry_count: int, base: int = 2, max_seconds: int = 3600) -> int:
     """Exponential backoff עם תקרה"""
@@ -646,15 +627,6 @@ if price is not None:
 \`\`\`
 
 כלל: בכל ערך מספרי שאפס הוא ערך תקין — \`is not None\`, לא \`if value\`.
----
-## מבנה פרויקט מומלץ
-
-- **\`api/webhooks/\`** — קבלת הודעות
-- **\`core/\`** — config (Pydantic Settings), validation + סניטציה, exceptions עם קודים, circuit breaker, middleware (Correlation ID, Rate Limit, Logging)
-- **\`db/models/\`** — מודלים (SQLAlchemy)
-- **\`domain/services/\`** — messaging (Provider pattern), outbox_service (Transactional Outbox)
-- **\`state_machine/\`** — states (enums + מפת מעברים), manager (ניהול state ו-context), handlers (handler לכל זרימה)
-- **\`workers/tasks.py\`** — Celery workers לעיבוד רקע
 ---
 ## סיכום — 10 עקרונות לבוט WhatsApp שעובד
 1. **תחזיר 200 מיד** — WhatsApp לא מחכה. עבד ברקע
@@ -893,7 +865,10 @@ export default function BlogPost() {
 
               {/* Content with Markdown rendering */}
               <div className="prose prose-invert max-w-none">
-                <Streamdown>{post.content}</Streamdown>
+                <Streamdown>{
+                  // הוספת שורה ריקה אחרי כל סגירת בלוק קוד — מונע פרסור שגוי של Streamdown
+                  post.content.replace(/```\n(?!\n)/g, '```\n\n')
+                }</Streamdown>
               </div>
             </div>
           </div>
