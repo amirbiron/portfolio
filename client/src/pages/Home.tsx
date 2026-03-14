@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Github, Mail, Download, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft } from "lucide-react";
+import { Github, Mail, Download, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -36,19 +36,32 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [contactStatus, setContactStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // יצירת mailto link
-    const subject = encodeURIComponent("פנייה מאתר הפורטפוליו");
-    const body = encodeURIComponent(`שלום,\n\n${message}\n\nבברכה,\n${email}`);
-    const mailtoLink = `mailto:amirbiron@gmail.com?subject=${subject}&body=${body}`;
-    
-    window.open(mailtoLink, '_blank');
-    toast.success("ההודעה נשלחה! אני אחזור אליך בקרוב");
-    setEmail("");
-    setMessage("");
+    setContactStatus("sending");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, message }),
+      });
+
+      if (!res.ok) throw new Error("Failed to send");
+
+      setContactStatus("success");
+      toast.success("ההודעה נשלחה! אני אחזור אליך בקרוב");
+      setEmail("");
+      setMessage("");
+      // איפוס הסטטוס אחרי 4 שניות
+      setTimeout(() => setContactStatus("idle"), 4000);
+    } catch {
+      setContactStatus("error");
+      toast.error("שגיאה בשליחה. אפשר לנסות שוב או ליצור קשר בטלגרם.");
+      setTimeout(() => setContactStatus("idle"), 4000);
+    }
   };
 
 
@@ -509,14 +522,15 @@ export default function Home() {
               </div>
               
               <div className="flex gap-4">
-                <Button 
+                <Button
                   type="submit"
-                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
+                  disabled={contactStatus === "sending"}
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 neon-border disabled:opacity-50"
                 >
-                  <Mail className="mr-2 h-4 w-4" />
-                  Send Message
+                  <Send className="mr-2 h-4 w-4" />
+                  {contactStatus === "sending" ? "> SENDING..." : contactStatus === "success" ? "> SENT!" : "> Send Message"}
                 </Button>
-                <Button 
+                <Button
                   type="button"
                   variant="outline"
                   className="border-accent text-accent hover:bg-accent/10"
@@ -526,6 +540,16 @@ export default function Home() {
                   Download CV
                 </Button>
               </div>
+              {contactStatus === "success" && (
+                <p className="text-primary text-sm font-mono animate-in fade-in">
+                  <span className="text-accent">[System]:</span> Transmission complete. Message delivered to secure channel.
+                </p>
+              )}
+              {contactStatus === "error" && (
+                <p className="text-destructive text-sm font-mono animate-in fade-in">
+                  <span className="text-accent">[System]:</span> Transmission failed. Try again or use Telegram directly.
+                </p>
+              )}
             </form>
           </div>
           </FadeInSection>
