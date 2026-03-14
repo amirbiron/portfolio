@@ -311,7 +311,7 @@ export const projects: ProjectData[] = [
       "SQLite",
       "Telegram Bot API",
     ],
-    image: "",
+    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/fb-leads-scanner-YyVXVKwyqsGwG9UZCVeERV.webp",
     screenshots: [
       "/projects/Screenshot_20260313_213118_Chrome.jpg",
       "/projects/Screenshot_20260313_213141_Chrome.jpg",
@@ -401,7 +401,7 @@ export const projects: ProjectData[] = [
       "SQLite",
       "Telegram Bot API",
     ],
-    image: "",
+    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/ai-business-bot-n5bkLYBJ6Xz5GCL2gLyvfN.webp",
     screenshots: [
       "/projects/Screenshot_20260313_215842_Telegram.jpg",
       "/projects/Screenshot_20260313_213735_Chrome.jpg",

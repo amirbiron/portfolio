@@ -1,3 +1,17 @@
+## [2026-03-14] הוספת תמונות כרטיס לפרויקטים AI Business Bot ו-FB Leads Scanner
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) הוספת URL לשדה `image` בשני הפרויקטים
+
+**פירוט:**
+לשני הפרויקטים שהיו ללא תמונת כרטיס (שדה `image` ריק) נוספו תמונות מ-CloudFront:
+- **FB Leads Scanner** — `https://d2xsxph8kpxj0f.cloudfront.net/.../fb-leads-scanner-....webp`
+- **AI Business Bot** — `https://d2xsxph8kpxj0f.cloudfront.net/.../ai-business-bot-....webp`
+
+התמונות מוצגות בכרטיסי הפרויקטים בדף הבית במקום ה-placeholder (אייקון Code2).
+
+---
+
 ## [2026-03-14] שדרוג טופס יצירת קשר — שליחה דרך Telegram במקום mailto
 
 **קבצים שהשתנו:**
