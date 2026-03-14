@@ -21,23 +21,21 @@
 }
 
 .prose pre {
-  background-color: rgba(0, 20, 0, 0.4);
+  background: var(--muted);
   padding: 1.5rem;
   border-radius: 8px;
   overflow-x: auto;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border: 1px solid var(--border);
   margin: 1.5rem 0;
-  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .prose pre code {
-  background: transparent;
+  background: none;
   padding: 0;
   border: none;
-  color: #22c55e;
+  color: var(--foreground);
   font-size: 0.875rem;
   line-height: 1.7;
-  text-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
 }
 
 .prose p {

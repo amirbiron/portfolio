@@ -54,7 +54,7 @@ export default function Home() {
 
   const skills = [
     { category: "Languages", items: ["Python", "JavaScript/TypeScript", "SQL"], level: 95 },
-    { category: "Backend", items: ["Node.js", "Flask", "FastAPI", "MongoDB", "PostgreSQL", "Redis"], level: 90 },
+    { category: "Backend", items: ["Flask", "FastAPI", "MongoDB", "PostgreSQL", "Redis"], level: 90 },
     { category: "Bots & APIs", items: ["Telegram Bot API", "WhatsApp API (WPP, PyWa)", "Facebook Graph API"], level: 95 },
     { category: "Frontend", items: ["PWA", "HTML/CSS", "CSS Variables"], level: 80 },
     { category: "DevOps", items: ["Docker", "Prometheus", "Grafana", "Sentry", "GitHub Actions"], level: 85 }
