@@ -24,22 +24,7 @@ const blogPosts = {
 הפתרון הנאיבי — לסנכרן בין שני מסדי נתונים נפרדים — הוא מתכון לצרות: race conditions, קונפליקטים, ונתונים שלא מסתנכרנים.
 ### הפתרון: Single Source of Truth
 הרעיון פשוט: **שני הצדדים (בוט ו-Web App) קוראים וכותבים לאותו מסד נתונים בדיוק**.
-\`\`\`
-┌──────────────┐       ┌──────────────┐
-│  Telegram    │       │   Web App    │
-│    Bot       │       │   (Flask)    │
-└──────┬───────┘       └──────┬───────┘
-       │                      │
-       │    ┌────────────┐    │
-       └───►│  MongoDB   │◄───┘
-            │ (Shared DB)│
-            └─────┬──────┘
-                  │
-          ┌───────┴────────┐
-          │  Repository    │
-          │  Layer         │
-          └────────────────┘
-\`\`\`
+
 אין שום "סנכרון" — כי אין מה לסנכרן. יש מסד נתונים אחד, ושכבת Repository אחת שמבצעת את כל הפעולות.
 ### איך זה נראה בפועל
 שכבת ה-Repository חושפת פונקציה אחת לשמירה — \`save_code_snippet\`. גם הבוט וגם ה-Web App משתמשים בה:
@@ -135,15 +120,12 @@ def verify_telegram_auth(auth_data: dict) -> bool:
 **למה SHA256 של ה-token ולא ה-token עצמו?** כי טלגרם רוצים שה-secret יהיה באורך קבוע (32 bytes) ולא תלוי באורך ה-token.
 ### דרך 2: Token חד-פעמי מהבוט
 לפעמים ה-Login Widget לא מתאים — למשל, כשהמשתמש כבר נמצא בשיחה עם הבוט ורוצה לעבור ל-Web App בלחיצה. בשביל זה יש מסלול שני:
-\`\`\`
-משתמש → בוט: "אני רוצה להיכנס ל-Web App"
-בוט → DB: שומר token חד-פעמי (תקף 5 דקות)
-בוט → משתמש: קישור אישי עם ה-token
-משתמש → Web App: לוחץ על הקישור
-Web App → DB: מוצא את ה-token, מוודא תוקף
-Web App → DB: מוחק את ה-token (חד-פעמי!)
-Web App: יוצר session למשתמש
-\`\`\`
+
+1. משתמש שולח לבוט "אני רוצה להיכנס ל-Web App"
+2. הבוט שומר ב-DB טוקן חד-פעמי (תקף 5 דקות)
+3. הבוט שולח למשתמש קישור אישי עם הטוקן
+4. המשתמש לוחץ → Web App מוצא את הטוקן, מוודא תוקף, מוחק (חד-פעמי!), ויוצר session
+
 קוד יצירת ה-token בבוט:
 \`\`\`python
 import hashlib
@@ -195,27 +177,8 @@ def token_auth():
 - **Hash ולא random** — ה-token נגזר מ-\`user_id + timestamp + secret\`, מה שמקשה על ניחוש.
 ---
 ## שילוב של הכל ביחד
-הנה תמונת המצב המלאה:
-\`\`\`
-                        ┌─────────────────────────┐
-                        │      Telegram Login      │
-                        │    Widget (HMAC auth)     │
-                        └───────────┬─────────────┘
-                                    │
-┌──────────┐   token    ┌───────────▼─────────────┐
-│ Telegram │──────────► │       Web App           │
-│   Bot    │            │    (Flask + Session)     │
-└────┬─────┘            └───────────┬─────────────┘
-     │                              │
-     │   ┌──────────────────────┐   │
-     └──►│    MongoDB           │◄──┘
-         │  ┌────────────────┐  │
-         │  │  code_snippets │  │  ◄── שני הצדדים קוראים/כותבים
-         │  │  users         │  │
-         │  │  webapp_tokens │  │  ◄── טוקנים חד-פעמיים
-         │  └────────────────┘  │
-         └──────────────────────┘
-\`\`\`
+הנה תמונת המצב המלאה — שלושה רכיבים מרכזיים:
+
 1. **אימות** — המשתמש מזדהה דרך טלגרם (widget או token מהבוט).
 2. **Session** — ה-Web App שומר session ל-30 יום, אז לא צריך להתחבר כל פעם.
 3. **סנכרון** — אין. שני הצדדים עובדים על אותו DB, דרך אותה שכבת Repository, עם cache invalidation אחרי כל כתיבה.
@@ -243,22 +206,8 @@ def token_auth():
     content: `> הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.
 ---
 ## הארכיטקטורה — מבט על
-\`\`\`
-WhatsApp API (Cloud / Gateway)
-         │
-         ▼
-   Webhook Handler (FastAPI)
-         │
-         ▼
-   State Machine (מנוע שיחה)
-         │
-         ▼
-   Service Layer (לוגיקה עסקית)
-         │
-         ▼
-   PostgreSQL ◄──► Celery + Redis
-   (נתונים)        (משימות רקע)
-\`\`\`
+
+הזרימה: **WhatsApp API** → **Webhook Handler** (FastAPI) → **State Machine** (מנוע שיחה) → **Service Layer** (לוגיקה עסקית) → **PostgreSQL** + **Celery/Redis** (משימות רקע).
 
 ה-webhook מקבל הודעה, ה-State Machine מחליט באיזה שלב של השיחה נמצא המשתמש, השירותים מבצעים את הלוגיקה, וההודעות החוזרות נשלחות אסינכרונית. פשוט ברעיון, מורכב בביצוע.
 ---
@@ -530,14 +479,13 @@ class OutboxService:
         # אין commit כאן — ה-commit קורה יחד עם הפעולה העסקית
 \`\`\`
 **הזרימה:**
-\`\`\`
-1. פעולה עסקית + הכנסת הודעה ל-outbox → commit אטומי
+
+1. פעולה עסקית + הכנסת הודעה ל-outbox → **commit אטומי**
 2. Celery worker שולף הודעות pending
 3. שולח ל-WhatsApp
 4. הצלחה → סימון sent
 5. כישלון → retry עם exponential backoff (2s, 4s, 8s... עד שעה)
 6. מיצוי retries → Dead Letter Queue (לטיפול ידני)
-\`\`\`
 
 \`\`\`python
 def _calculate_backoff(retry_count: int, base: int = 2, max_seconds: int = 3600) -> int:
@@ -700,25 +648,13 @@ if price is not None:
 כלל: בכל ערך מספרי שאפס הוא ערך תקין — \`is not None\`, לא \`if value\`.
 ---
 ## מבנה פרויקט מומלץ
-\`\`\`
-app/
-├── api/webhooks/            # קבלת הודעות
-├── core/
-│   ├── config.py            # הגדרות (Pydantic Settings)
-│   ├── validation.py        # ולידציה + סניטציה
-│   ├── exceptions.py        # שגיאות מותאמות עם קודים
-│   ├── circuit_breaker.py   # הגנה על APIs חיצוניים
-│   └── middleware.py        # Correlation ID, Rate Limit, Logging
-├── db/models/               # מודלים (SQLAlchemy)
-├── domain/services/
-│   ├── messaging/           # Provider pattern לשליחת הודעות
-│   └── outbox_service.py    # Transactional Outbox
-├── state_machine/
-│   ├── states.py            # State enums + מפת מעברים
-│   ├── manager.py           # ניהול state ו-context
-│   └── handlers.py          # Handler לכל זרימה
-└── workers/tasks.py         # Celery workers לעיבוד רקע
-\`\`\`
+
+- **\`api/webhooks/\`** — קבלת הודעות
+- **\`core/\`** — config (Pydantic Settings), validation + סניטציה, exceptions עם קודים, circuit breaker, middleware (Correlation ID, Rate Limit, Logging)
+- **\`db/models/\`** — מודלים (SQLAlchemy)
+- **\`domain/services/\`** — messaging (Provider pattern), outbox_service (Transactional Outbox)
+- **\`state_machine/\`** — states (enums + מפת מעברים), manager (ניהול state ו-context), handlers (handler לכל זרימה)
+- **\`workers/tasks.py\`** — Celery workers לעיבוד רקע
 ---
 ## סיכום — 10 עקרונות לבוט WhatsApp שעובד
 1. **תחזיר 200 מיד** — WhatsApp לא מחכה. עבד ברקע
