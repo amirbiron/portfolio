@@ -15,8 +15,7 @@ const blogPosts = {
   "telegram-bot-webapp-sync": {
     title: "סנכרון בזמן אמת בין Telegram Bot ל-Web App — ואיך מאמתים משתמשים בצורה מאובטחת",
     date: "10-02-2026",
-    content: `# סנכרון בזמן אמת בין Telegram Bot ל-Web App — ואיך מאמתים משתמשים בצורה מאובטחת
-> איך דואגים שמה שמשתמש עושה ב-Web App יופיע מיד בבוט, ולהיפך?
+    content: `> איך דואגים שמה שמשתמש עושה ב-Web App יופיע מיד בבוט, ולהיפך?
 > ואיך מוודאים שרק מי שמחובר בטלגרם יוכל להיכנס ל-Web App?
 ---
 ## חלק 1: סנכרון — "מקור אמת אחד"
@@ -79,6 +78,7 @@ cache.invalidate_user_cache(snippet.user_id)
 cache.invalidate_user_cache(user_id)
 cache.invalidate_file_related(file_id=str(file_name), user_id=user_id)
 \`\`\`
+
 ככה, גם אם הבוט שמר קובץ חדש ו-Web App שולף רשימת קבצים שנייה אחר כך — הרשימה תהיה עדכנית, כי ה-cache כבר התנקה.
 ---
 ## חלק 2: אימות — "בוא נוודא שזה באמת אתה"
@@ -234,13 +234,13 @@ def token_auth():
 | אימות Web App | Telegram Login Widget + Token חד-פעמי | שתי דרכי כניסה, אבטחה מובנית |
 | Cache | Invalidation אחרי כל כתיבה | עדכניות מובטחת |
 | Session | Flask session, 30 יום | חוויית משתמש חלקה |
+
 הגישה הזאת עובדת מצוין כשיש לכם שירות אחד (בוט) ו-Web App שעובדים על אותם נתונים. זה יותר פשוט ממה שנדמה — ובדיוק בגלל הפשטות, זה עובד אמין.`
   },
   "whatsapp-bot-python-guide": {
     title: "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי",
     date: "14-03-2026",
-    content: `# איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי
-> הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.
+    content: `> הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.
 ---
 ## הארכיטקטורה — מבט על
 \`\`\`
@@ -259,6 +259,7 @@ WhatsApp API (Cloud / Gateway)
    PostgreSQL ◄──► Celery + Redis
    (נתונים)        (משימות רקע)
 \`\`\`
+
 ה-webhook מקבל הודעה, ה-State Machine מחליט באיזה שלב של השיחה נמצא המשתמש, השירותים מבצעים את הלוגיקה, וההודעות החוזרות נשלחות אסינכרונית. פשוט ברעיון, מורכב בביצוע.
 ---
 ## 1. קבלת הודעות — Webhook Handler
@@ -318,6 +319,7 @@ def verify_signature(request: Request, body: bytes) -> bool:
     ).hexdigest()
     return hmac.compare_digest(f"sha256={expected}", signature)
 \`\`\`
+
 בלי אימות, כל אחד יכול לשלוח בקשות ל-webhook שלכם ולגרום לבוט לבצע פעולות.
 ---
 ## 2. מנוע השיחה — State Machine
@@ -536,11 +538,13 @@ class OutboxService:
 5. כישלון → retry עם exponential backoff (2s, 4s, 8s... עד שעה)
 6. מיצוי retries → Dead Letter Queue (לטיפול ידני)
 \`\`\`
+
 \`\`\`python
 def _calculate_backoff(retry_count: int, base: int = 2, max_seconds: int = 3600) -> int:
     """Exponential backoff עם תקרה"""
     return min(base * (2 ** retry_count), max_seconds)
 \`\`\`
+
 **למה לא לשלוח ישירות?** כי זה מעכב את התגובה למשתמש, ואם השליחה נכשלת אחרי שה-DB כבר עודכן — אין דרך לדעת. Outbox מבטיח: אם הפעולה נשמרה, ההודעה **תישלח** — גם אם לוקח כמה ניסיונות.
 ---
 ## 5. פעולות מקביליות — Row-Level Locking
@@ -601,6 +605,7 @@ class WebhookRateLimitMiddleware:
     """Sliding window: 100 בקשות ל-60 שניות, לפי IP"""
     # מחזיר 429 + Retry-After header + correlation ID
 \`\`\`
+
 בלי rate limiting, תוקף יכול להציף את ה-webhook שלכם ולגרום ל-DoS.
 ---
 ## 7. Middleware Stack
@@ -675,6 +680,7 @@ else:
     logger.warning("תפקיד לא מוכר", extra_data={"role": user.role})
     return unknown_role_response()
 \`\`\`
+
 כשמוסיפים תפקיד חדש ושוכחים לעדכן \`else\` — הבאג שקט ומתגלה רק כשמשתמש עם התפקיד החדש מדווח שמשהו לא עובד.
 ---
 ## 10. בדיקת None — המלכודת הכי שקטה
@@ -690,6 +696,7 @@ if user.latitude is not None:
 if price is not None:
     apply_discount(price)
 \`\`\`
+
 כלל: בכל ערך מספרי שאפס הוא ערך תקין — \`is not None\`, לא \`if value\`.
 ---
 ## מבנה פרויקט מומלץ
@@ -876,6 +883,9 @@ locks_col.create_index("expiresAt", expireAfterSeconds=0)
   }
 };
 
+// רשימת כל הסלאגים לניווט בין בלוגים
+const blogSlugs = Object.keys(blogPosts) as Array<keyof typeof blogPosts>;
+
 export default function BlogPost() {
   const [, params] = useRoute("/blog/:slug");
   const [, setLocation] = useLocation();
@@ -886,6 +896,9 @@ export default function BlogPost() {
 
   const slug = params?.slug || "";
   const post = blogPosts[slug as keyof typeof blogPosts];
+
+  // בלוגים אחרים להצעה בתחתית
+  const otherBlogs = blogSlugs.filter((s) => s !== slug);
 
   if (!post) {
     return (
@@ -950,6 +963,51 @@ export default function BlogPost() {
           </div>
         </div>
       </article>
+
+      {/* Footer — Back to Portfolio + הצעות לבלוגים אחרים */}
+      <footer className="py-12 border-t border-border">
+        <div className="container max-w-4xl">
+          {/* הצעות לבלוגים אחרים */}
+          {otherBlogs.length > 0 && (
+            <div className="mb-8">
+              <p className="text-sm text-muted-foreground mb-4 text-center font-mono">$ ls ./more-posts</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {otherBlogs.map((otherSlug) => (
+                  <button
+                    key={otherSlug}
+                    onClick={() => {
+                      setLocation(`/blog/${otherSlug}`);
+                      window.scrollTo(0, 0);
+                    }}
+                    className="terminal-window text-right p-4 hover:scale-[1.02] transition-all duration-200 cursor-pointer"
+                  >
+                    <div className="terminal-header mb-2">
+                      <div className="terminal-dot border-primary" />
+                      <div className="terminal-dot border-accent" />
+                      <div className="terminal-dot border-destructive" />
+                      <span className="text-xs text-muted-foreground ml-2">{otherSlug}.md</span>
+                    </div>
+                    <h3 className="text-sm font-bold text-primary leading-tight" dir="rtl">
+                      {blogPosts[otherSlug].title}
+                    </h3>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-center">
+            <Button
+              variant="ghost"
+              onClick={() => setLocation("/")}
+              className="text-primary hover:text-primary/80"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Portfolio
+            </Button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

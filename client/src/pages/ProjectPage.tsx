@@ -234,7 +234,7 @@ export default function ProjectPage() {
             onClick={() => setLocation("/")}
           >
             <ArrowRight className="ml-2 h-4 w-4" />
-            חזרה לפורטפוליו
+            Back to Portfolio
           </Button>
           <div className="flex gap-3">
             <Button
@@ -427,40 +427,65 @@ export default function ProjectPage() {
 
       {/* Footer CTA */}
       <section className="py-12 border-t border-border">
-        <div className="container max-w-5xl flex flex-col md:flex-row items-center justify-between gap-4">
-          <Button
-            variant="ghost"
-            className="text-primary"
-            onClick={() => setLocation("/")}
-          >
-            <ArrowRight className="ml-2 h-4 w-4" />
-            חזרה לפורטפוליו
-          </Button>
-          <div className="flex gap-3">
+        <div className="container max-w-5xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
             <Button
-              className="bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
-              onClick={() => {
-                if (project.demo !== "#") window.open(project.demo, "_blank");
-              }}
+              variant="ghost"
+              className="text-primary"
+              onClick={() => setLocation("/")}
             >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              {project.demoLabel || "Demo"}
+              <ArrowRight className="ml-2 h-4 w-4" />
+              Back to Portfolio
             </Button>
-            <Button
-              variant="outline"
-              className="border-accent text-accent hover:bg-accent/10"
-              onClick={() => {
-                if (project.repo === "#") { toast.info("הקוד עדיין לא זמין"); } else { window.open(project.repo, "_blank"); }
-              }}
-            >
-              {project.repoLabel ? (
+            <div className="flex gap-3">
+              <Button
+                className="bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
+                onClick={() => {
+                  if (project.demo !== "#") window.open(project.demo, "_blank");
+                }}
+              >
                 <ExternalLink className="mr-2 h-4 w-4" />
-              ) : (
-                <Github className="mr-2 h-4 w-4" />
-              )}
-              {project.repoLabel || "Code"}
-            </Button>
+                {project.demoLabel || "Demo"}
+              </Button>
+              <Button
+                variant="outline"
+                className="border-accent text-accent hover:bg-accent/10"
+                onClick={() => {
+                  if (project.repo === "#") { toast.info("הקוד עדיין לא זמין"); } else { window.open(project.repo, "_blank"); }
+                }}
+              >
+                {project.repoLabel ? (
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                ) : (
+                  <Github className="mr-2 h-4 w-4" />
+                )}
+                {project.repoLabel || "Code"}
+              </Button>
+            </div>
           </div>
+
+          {/* הצעה לפרויקט הבא */}
+          {(() => {
+            const currentIdx = projects.findIndex((p) => p.slug === params.slug);
+            const nextProject = projects[(currentIdx + 1) % projects.length];
+            if (!nextProject || nextProject.slug === params.slug) return null;
+            return (
+              <div className="flex justify-center">
+                <button
+                  onClick={() => {
+                    setLocation(`/project/${nextProject.slug}`);
+                    window.scrollTo(0, 0);
+                  }}
+                  className="terminal-window p-4 hover:scale-[1.02] transition-all duration-200 cursor-pointer max-w-md w-full"
+                >
+                  <p className="text-xs text-muted-foreground font-mono mb-2 text-center">$ cd ../next-project</p>
+                  <h3 className="text-sm font-bold text-primary text-center">
+                    {nextProject.title}
+                  </h3>
+                </button>
+              </div>
+            );
+          })()}
         </div>
       </section>
     </div>

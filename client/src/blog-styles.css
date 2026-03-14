@@ -30,12 +30,23 @@
 }
 
 .prose pre code {
-  background: none;
-  padding: 0;
-  border: none;
-  color: #e2e8f0;
+  background: none !important;
+  padding: 0 !important;
+  border: none !important;
+  color: #e2e8f0 !important;
   font-size: 0.875rem;
   line-height: 1.7;
+}
+
+/* קוד בתוך pre — כולל spans שנוצרים מ-Streamdown */
+.prose pre code * {
+  color: #e2e8f0 !important;
+}
+
+/* קוד ללא שפה (דיאגרמות, מבנים) — טקסט בהיר */
+.prose pre:not([class*="language-"]) code,
+.prose pre:not([class*="language-"]) code * {
+  color: #e2e8f0 !important;
 }
 
 .prose p {
@@ -116,4 +127,27 @@
 .prose pre {
   direction: ltr;
   text-align: left;
+}
+
+/* טבלאות — יישור RTL */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+
+.prose th, .prose td {
+  text-align: right;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+}
+
+.prose th {
+  background: var(--muted);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.prose td {
+  color: var(--foreground);
 }

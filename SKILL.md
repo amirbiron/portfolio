@@ -393,7 +393,7 @@ $ echo "© 2026 Your Name. Built with React + Tailwind"
 
 Each project gets a detailed page with these sections:
 
-1. **Header** — Back button + Demo/Code buttons
+1. **Header** — "Back to Portfolio" button (in English) + Demo/Code buttons
 2. **Hero** — Title (neon-glow), subtitle, full description, tech tags
 3. **Screenshots** — `$ ls ./screenshots` heading, grid gallery (2/3/4 columns responsive), lightbox with keyboard navigation (Escape, Arrow keys)
 4. **Features & Challenges** — 2-column grid of terminal windows:
@@ -418,17 +418,20 @@ Each project gets a detailed page with these sections:
      },
    };
    ```
-6. **Footer CTA** — Back button + Demo/Code buttons
+6. **Footer CTA** — "Back to Portfolio" button (English) + Demo/Code buttons + "Next Project" suggestion card (cycles through projects list)
 
 ---
 
 ## Blog Post Page (`/blog/:slug`)
 
 - Terminal-styled article container
-- Header with date and title
-- Markdown content rendered via Streamdown
-- Custom prose styling for dark theme (code blocks, blockquotes, links)
-- Back button
+- Header with "Back to Portfolio" button and date/title
+- Markdown content rendered via Streamdown (note: do NOT duplicate the title as `# Title` in the markdown content — the title is already rendered in the h1 tag)
+- Custom prose styling for dark theme (code blocks, blockquotes, links, tables with RTL alignment)
+- **Important:** ensure blank lines between code block closings (\`\`\`) and the next paragraph, otherwise text may be parsed incorrectly
+- Footer with:
+  - Suggestions to read other blog posts (grid of terminal-styled cards)
+  - "Back to Portfolio" button
 
 ---
 
