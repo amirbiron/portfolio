@@ -108,7 +108,7 @@ export default function TestimonialPage() {
 
                 {/* כיתוב מתחת לתמונה */}
                 <p className="text-xs text-muted-foreground font-mono mt-3 text-center">
-                  <span className="text-accent">[Source]:</span> {testimonial.clientName} — {testimonial.role}
+                  <span className="text-accent">[Source]:</span> {testimonial.clientName}{testimonial.role ? ` — ${testimonial.role}` : ""}
                 </p>
               </div>
             </div>

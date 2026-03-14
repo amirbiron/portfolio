@@ -387,11 +387,13 @@ export default function Home() {
                     {/* פרטי הלקוח */}
                     <div className="mb-4">
                       <p className="text-xs text-primary font-mono">
-                        — {testimonial.clientName}
+                        &gt; {testimonial.clientName}
                       </p>
-                      <p className="text-xs text-muted-foreground font-mono">
-                        {testimonial.role}
-                      </p>
+                      {testimonial.role && (
+                        <p className="text-xs text-muted-foreground font-mono">
+                          {testimonial.role}
+                        </p>
+                      )}
                     </div>
 
                     {/* כפתור פתיחה */}

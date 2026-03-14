@@ -19,10 +19,10 @@ export interface TestimonialData {
 export const testimonials: TestimonialData[] = [
   {
     slug: "routine-app",
-    clientName: "לקוחה — אתר סדר יום למשפחות",
-    role: "בעלת פרויקט",
+    clientName: "[מיזם חברתי] | אתר שגרה לזמני חירום",
+    role: "",
     shortQuote:
-      "אמיר לקח את הרעיון שלי והפך אותו לאתר שעונה בדיוק על מה שדמיינתי... העבודה הייתה מהירה, נעימה ומקצועית. ממליצה בחום!",
+      "אמיר לקח את הרעיון שלי והפך אותו לאתר שעונה בדיוק על מה שדמיינתי\u2026 העבודה הייתה מהירה, נעימה ומקצועית. ממליצה בחום!",
     screenshot: "/testimonials/feedback-routine-app.png",
     fileName: "client_feedback_001.png",
   },
