@@ -1,3 +1,21 @@
+## [2026-03-14] החלפת פוסט בלוג — סנכרון Telegram Bot ו-Web App במקום Broadcast
+
+**קבצים שהשתנו:**
+- `client/src/pages/BlogPost.tsx` — (שונה) הוחלף הפוסט `telegram-broadcast-rate-limiting` בפוסט חדש `telegram-bot-webapp-sync`
+- `client/src/pages/Home.tsx` — (שונה) עדכון כותרת, תקציר ו-slug של כרטיס הבלוג
+
+**פירוט:**
+הפוסט הישן "איך לשלוח הודעה לאלפי משתמשים בלי שטלגרם יחסום אתכם" (Rate Limiting ו-Broadcast) הוחלף בפוסט חדש לגמרי:
+
+- **כותרת חדשה:** "סנכרון בזמן אמת בין Telegram Bot ל-Web App — ואיך מאמתים משתמשים בצורה מאובטחת"
+- **Slug חדש:** `telegram-bot-webapp-sync` (במקום `telegram-broadcast-rate-limiting`)
+- **תוכן** — שני חלקים עיקריים:
+  1. **סנכרון** — Single Source of Truth עם MongoDB משותף, שכבת Repository אחידה, cache invalidation
+  2. **אימות** — Telegram Login Widget עם אימות HMAC-SHA256, וטוקן חד-פעמי מהבוט עם תפוגה של 5 דקות
+- כולל דיאגרמות ארכיטקטורה, דוגמאות קוד Python (Flask + MongoDB), וטיפים למימוש
+
+---
+
 ## [2026-03-14] תיקוני עיצוב ו-UX בעמודי בלוג
 
 **קבצים שהשתנו:**

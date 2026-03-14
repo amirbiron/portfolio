@@ -74,10 +74,10 @@ export default function Home() {
       slug: "distributed-lock-mongo"
     },
     {
-      title: "איך לשלוח הודעה לאלפי משתמשים בלי שטלגרם יחסום אתכם",
+      title: "סנכרון בזמן אמת בין Telegram Bot ל-Web App — ואיך מאמתים משתמשים בצורה מאובטחת",
       date: "10-02-2026",
-      excerpt: "אחת הבעיות הכי נפוצות בבוטים היא ה-Broadcast. איך לעדכן אלפי משתמשים בלי להיחסם? מנגנון שליחה חכם עם Rate Limiting ו-RetryAfter.",
-      slug: "telegram-broadcast-rate-limiting"
+      excerpt: "איך דואגים שמה שמשתמש עושה ב-Web App יופיע מיד בבוט, ולהיפך? ואיך מוודאים שרק מי שמחובר בטלגרם יוכל להיכנס ל-Web App?",
+      slug: "telegram-bot-webapp-sync"
     }
   ];
 
