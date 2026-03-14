@@ -1,3 +1,50 @@
+## [2026-03-14] הוספת תמונות כרטיס לפרויקטים AI Business Bot ו-FB Leads Scanner
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) הוספת URL לשדה `image` בשני הפרויקטים
+
+**פירוט:**
+לשני הפרויקטים שהיו ללא תמונת כרטיס (שדה `image` ריק) נוספו תמונות מ-CloudFront:
+- **FB Leads Scanner** — `https://d2xsxph8kpxj0f.cloudfront.net/.../fb-leads-scanner-....webp`
+- **AI Business Bot** — `https://d2xsxph8kpxj0f.cloudfront.net/.../ai-business-bot-....webp`
+
+התמונות מוצגות בכרטיסי הפרויקטים בדף הבית במקום ה-placeholder (אייקון Code2).
+
+---
+
+## [2026-03-14] שדרוג טופס יצירת קשר — שליחה דרך Telegram במקום mailto
+
+**קבצים שהשתנו:**
+- `server/index.ts` — (שונה) הוספת endpoint `POST /api/contact` שמפרקסי ל-Telegram Bot API
+- `client/src/pages/Home.tsx` — (שונה) החלפת mailto ב-fetch לשרת + UI עם סטטוסים
+
+**פירוט:**
+טופס יצירת הקשר שונה מגישת mailto (שפותחת אפליקציית מייל) לשליחה ישירה דרך Telegram Bot API:
+
+### שרת (server/index.ts)
+- נוסף `express.json()` middleware לפרסור JSON
+- נוסף endpoint `POST /api/contact` שמקבל `email` ו-`message`, ושולח הודעה מפורמטת ב-Markdown ל-Telegram דרך Bot API
+- הטוקן וה-Chat ID נקראים ממשתני סביבה: `TELEGRAM_BOT_TOKEN` ו-`TELEGRAM_CHAT_ID`
+- טיפול בשגיאות: 400 לחוסר שדות, 500 לחוסר קונפיגורציה, 502 לכשל בשליחה
+
+### לקוח (Home.tsx)
+- `handleContactSubmit` שונה מ-`mailto:` ל-`fetch("/api/contact", ...)` עם async/await
+- נוסף state `contactStatus` עם 4 מצבים: `idle`, `sending`, `success`, `error`
+- הכפתור משנה טקסט לפי הסטטוס: `> Send Message` → `> SENDING...` → `> SENT!`
+- הכפתור מושבת בזמן שליחה (`disabled`)
+- נוספו שורות סטטוס בסגנון טרמינל מתחת לכפתורים:
+  - הצלחה (ירוק): `[System]: Transmission complete. Message delivered to secure channel.`
+  - שגיאה (ורוד): `[System]: Transmission failed. Try again or use Telegram directly.`
+- הסטטוס מתאפס אחרי 4 שניות
+- אייקון הכפתור שונה מ-Mail ל-Send
+
+### הגדרה נדרשת
+יש להגדיר 2 משתני סביבה בשרת:
+- `TELEGRAM_BOT_TOKEN` — טוקן של בוט טלגרם (מ-BotFather)
+- `TELEGRAM_CHAT_ID` — מזהה הצ'אט שאליו ישלחו ההודעות
+
+---
+
 ## [2026-03-14] הוספת תמונת פרופיל לסקשן אודות
 
 **קבצים שהשתנו:**
