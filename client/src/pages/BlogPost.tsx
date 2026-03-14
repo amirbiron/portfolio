@@ -198,7 +198,6 @@ def token_auth():
     date: "14-03-2026",
     content: `> הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.
 ---
-## הארכיטקטורה — מבט על
 ה-webhook מקבל הודעה, ה-State Machine מחליט באיזה שלב של השיחה נמצא המשתמש, השירותים מבצעים את הלוגיקה, וההודעות החוזרות נשלחות אסינכרונית. פשוט ברעיון, מורכב בביצוע.
 ---
 ## 1. קבלת הודעות — Webhook Handler
@@ -866,8 +865,11 @@ export default function BlogPost() {
               {/* Content with Markdown rendering */}
               <div className="prose prose-invert max-w-none">
                 <Streamdown>{
-                  // הוספת שורה ריקה אחרי כל סגירת בלוק קוד — מונע פרסור שגוי של Streamdown
-                  post.content.replace(/```\n(?!\n)/g, '```\n\n')
+                  post.content
+                    // שורה ריקה אחרי סגירת בלוק קוד — מונע פרסור שגוי
+                    .replace(/```\n(?!\n)/g, '```\n\n')
+                    // שורה ריקה לפני --- — מונע setext heading (טקסט + --- = h2)
+                    .replace(/([^\n])\n---/g, '$1\n\n---')
                 }</Streamdown>
               </div>
             </div>
