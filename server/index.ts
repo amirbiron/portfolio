@@ -37,7 +37,11 @@ async function startServer() {
       return;
     }
 
-    const text = `🚀 *ליד חדש מהפורטפוליו!*\n\n📧 *מאת:* ${email}\n💬 *הודעה:* ${message}`;
+    // סניטציה של קלט משתמש כדי למנוע שבירת HTML parsing בטלגרם
+    const escapeHtml = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    const text = `🚀 <b>ליד חדש מהפורטפוליו!</b>\n\n📧 <b>מאת:</b> ${escapeHtml(email)}\n💬 <b>הודעה:</b> ${escapeHtml(message)}`;
 
     try {
       const tgRes = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -46,7 +50,7 @@ async function startServer() {
         body: JSON.stringify({
           chat_id: chatId,
           text,
-          parse_mode: "Markdown",
+          parse_mode: "HTML",
         }),
       });
 

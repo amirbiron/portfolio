@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Github, Mail, Download, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft, Send } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -37,9 +37,12 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [contactStatus, setContactStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // ביטול טיימר קודם כדי למנוע race condition
+    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
     setContactStatus("sending");
 
     try {
@@ -55,12 +58,11 @@ export default function Home() {
       toast.success("ההודעה נשלחה! אני אחזור אליך בקרוב");
       setEmail("");
       setMessage("");
-      // איפוס הסטטוס אחרי 4 שניות
-      setTimeout(() => setContactStatus("idle"), 4000);
+      resetTimerRef.current = setTimeout(() => setContactStatus("idle"), 4000);
     } catch {
       setContactStatus("error");
       toast.error("שגיאה בשליחה. אפשר לנסות שוב או ליצור קשר בטלגרם.");
-      setTimeout(() => setContactStatus("idle"), 4000);
+      resetTimerRef.current = setTimeout(() => setContactStatus("idle"), 4000);
     }
   };
 
