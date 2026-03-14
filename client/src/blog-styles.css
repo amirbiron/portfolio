@@ -30,17 +30,12 @@
 }
 
 .prose pre code {
-  background: none !important;
-  padding: 0 !important;
-  border: none !important;
-  color: #e2e8f0 !important;
+  background: none;
+  padding: 0;
+  border: none;
+  color: #e2e8f0;
   font-size: 0.875rem;
   line-height: 1.7;
-}
-
-/* כל spans שנוצרים מ-Streamdown בתוך בלוקי קוד */
-.prose pre code * {
-  color: #e2e8f0 !important;
 }
 
 .prose p {
