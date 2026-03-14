@@ -266,7 +266,7 @@ export default function Home() {
             {projects.map((project, idx) => (
               <FadeInSection key={idx} delay={idx * 0.1}>
               <Card
-                className="terminal-window overflow-hidden group hover:scale-105 transition-all duration-300 h-full"
+                className="terminal-window overflow-hidden group hover:scale-105 transition-all duration-300 h-full !py-0 !gap-0"
               >
                 <div className="terminal-header">
                   <div className="terminal-dot border-primary" />
@@ -435,7 +435,7 @@ export default function Home() {
             {blogPosts.map((post, idx) => (
               <FadeInSection key={idx} delay={idx * 0.1}>
               <Card
-                className="terminal-window hover:scale-105 transition-all duration-300 cursor-pointer h-full"
+                className="terminal-window hover:scale-105 transition-all duration-300 cursor-pointer h-full !py-0 !gap-0"
                 onClick={() => {
                   if (post.slug) {
                     setLocation(`/blog/${post.slug}`);
