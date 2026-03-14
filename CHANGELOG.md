@@ -1,17 +1,3 @@
-## [2026-03-14] תיקון עיצוב בלוקי קוד בבלוג — דריסת Tailwind Typography
-
-**קבצים שהשתנו:**
-- `client/src/blog-styles.css` — (שונה) החלפת סלקטורים וסגנונות של בלוקי pre/code
-
-**פירוט:**
-הוחלפו כללי ה-CSS של `.prose pre` ו-`.prose pre code` בגרסה חזקה יותר שדורסת את Tailwind Typography:
-- סלקטורים ספציפיים יותר: `.prose-invert pre`, `article .prose pre`, `div.prose pre`
-- שימוש ב-`!important` על כל המאפיינים כדי לוודא דריסה
-- רקע שחור עמוק (`#0d1117`), מסגרת ירוקה ניאון, וצל כהה
-- `.prose pre code` עם רקע שקוף ו-`color: inherit`
-
----
-
 ## [2026-03-14] הוספת Node.js לרשימת כישורי Backend
 
 **קבצים שהשתנו:**
