@@ -1,3 +1,42 @@
+## [2026-03-14] הוספת סקשן המלצות (Testimonials) עם דף פירוט לצילום מסך
+
+**קבצים שהשתנו:**
+- `client/src/lib/testimonials.ts` — (נוסף) מודל נתונים להמלצות עם ההמלצה הראשונה
+- `client/src/pages/TestimonialPage.tsx` — (נוסף) עמוד פירוט המלצה — מציג צילום מסך בסגנון טרמינל
+- `client/src/pages/Home.tsx` — (שונה) הוספת סקשן המלצות בין פרויקטים לכישורים
+- `client/src/App.tsx` — (שונה) הוספת route `/testimonial/:slug` עם lazy loading
+
+**פירוט:**
+
+### סקשן המלצות בדף הבית (Home.tsx)
+- כותרת בסגנון טרמינל: `$ cat testimonials.log` עם אייקון `MessageSquareQuote`
+- כותרת משנה: "מה הלקוחות אומרים"
+- כרטיסים בעיצוב `terminal-window` עם:
+  - שם קובץ ב-header (למשל `client_feedback_001.png`)
+  - ציטוט קצר ועוצמתי בגרשיים מעוצבות בצבע accent
+  - פרטי לקוח (שם + תפקיד)
+  - כפתור בסגנון: `Open_Attachment.exe` שמנווט לדף הפירוט
+- הסקשן ממוקם בין פרויקטים לכישורים, עם רקע `bg-card/50`
+
+### עמוד פירוט המלצה (TestimonialPage.tsx)
+- **לא מכיל כפילות של הטקסט!** במקום זה, מציג:
+  - חלון טרמינל עם שם הקובץ ב-header
+  - הודעות מערכת: `[System]: Fetching client_feedback_001.png... Success.` + `Rendering attachment... Done.`
+  - צילום המסך המקורי של ההמלצה (קליקבילי — נפתח ב-Lightbox)
+  - כיתוב מתחת: `[Source]: שם הלקוח — תפקיד`
+- Lightbox עם AnimatePresence (כמו בגלריית פרויקטים)
+- Lazy loaded עם Suspense
+
+### מודל נתונים (testimonials.ts)
+כל המלצה מכילה: `slug`, `clientName`, `role`, `shortQuote` (לכרטיס), `fullQuote` (טקסט מלא), `screenshot` (נתיב לתמונה), `fileName` (שם קובץ מוצג)
+
+### הוספת המלצה חדשה
+להוספת המלצה חדשה יש להוסיף אובייקט למערך `testimonials` ב-`testimonials.ts` ולהעלות את צילום המסך ל-`client/public/testimonials/`
+
+**חשוב:** יש להעלות את צילום המסך של ההמלצה הראשונה ל-`client/public/testimonials/feedback-routine-app.png`
+
+---
+
 ## [2026-03-14] תיקוני עיצוב בבלוגים, ניווט בין עמודים, ותיקון באגים ויזואליים
 
 **קבצים שהשתנו:**

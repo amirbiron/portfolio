@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import BlogPost from "./pages/BlogPost";
 
 const ProjectPage = lazy(() => import("./pages/ProjectPage"));
+const TestimonialPage = lazy(() => import("./pages/TestimonialPage"));
 
 
 // מחוון טעינה לדפים שנטענים באופן עצל
@@ -27,6 +28,11 @@ function Router() {
       <Route path={"/project/:slug"}>
         <Suspense fallback={<LazyFallback />}>
           <ProjectPage />
+        </Suspense>
+      </Route>
+      <Route path={"/testimonial/:slug"}>
+        <Suspense fallback={<LazyFallback />}>
+          <TestimonialPage />
         </Suspense>
       </Route>
       <Route path={"/blog/:slug"} component={BlogPost} />
