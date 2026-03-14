@@ -197,6 +197,20 @@ export default function Home() {
               </div>
 
               <div dir="rtl" className="p-8 space-y-4 text-foreground/90 leading-relaxed">
+                {/* תמונת פרופיל */}
+                <div dir="ltr" className="flex flex-col items-center mb-6">
+                  <div className="border border-primary/50 rounded p-1" style={{ boxShadow: "0 0 8px var(--primary)" }}>
+                    <img
+                      src="/developer_profile_sketch.png"
+                      alt="Developer Profile Sketch"
+                      className="w-48 h-48 object-cover rounded"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground font-mono mt-2">
+                    <span className="text-accent">[System]:</span> Rendering developer_profile_sketch.png... <span className="text-primary">Success.</span>
+                  </p>
+                </div>
+
                 <p>
                   <span className="text-primary font-bold">{'>'}</span>{" "}
                   התחלתי את המסע שלי בעולם הפיתוח מבוטים לטלגרם — למדתי לבד, ניסיתי, טעיתי, ושברתי דברים עד שהם עבדו. מאז בניתי{" "}
