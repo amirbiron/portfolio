@@ -1,3 +1,19 @@
+## [2026-03-14] שכתוב מלא של פוסט הבלוג על בוט WhatsApp
+
+**קבצים שהשתנו:**
+- `client/src/pages/BlogPost.tsx` — (שונה) החלפת תוכן הפוסט `whatsapp-bot-python-guide` + עדכון כותרת
+- `client/src/pages/Home.tsx` — (שונה) עדכון כותרת ותקציר של כרטיס הבלוג
+
+**פירוט:**
+הפוסט הקודם היה מדריך בסיסי לבניית בוט WhatsApp עם PyWa. הוחלף בפוסט מעמיק שמכסה ארכיטקטורת פרודקשן מלאה:
+
+- **כותרת חדשה:** "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי"
+- **תוכן חדש לגמרי** — 10 פרקים שמכסים: Webhook Handler עם idempotency, State Machine לניהול שיחות, Provider Pattern לשליחת הודעות, Transactional Outbox, Row-Level Locking, אבטחה (ולידציה, PII masking, rate limiting), Middleware Stack, טיפול בכפתורים ופורמטים, ניתוב לפי תפקידים, ובדיקת None
+- **דוגמאות קוד** — Python + FastAPI עם דפוסים כמו Circuit Breaker, exponential backoff, guard functions
+- **תקציר בדף הבית** עודכן בהתאם
+
+---
+
 ## [2026-03-14] עדכון תוכן פרויקטים — CodeKeeper, MarkdownBot, תיקון תמונות
 
 **קבצים שהשתנו:**
