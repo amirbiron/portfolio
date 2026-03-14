@@ -1,3 +1,20 @@
+## [2026-03-14] הוספת תמונת פרופיל לסקשן אודות
+
+**קבצים שהשתנו:**
+- `client/src/pages/Home.tsx` — (שונה) הוספת תמונת פרופיל בסקשן `$ whoami --verbose`
+- `client/public/developer_profile_sketch.png` — (נוסף) תמונת פרופיל סקיצה בעט כחול
+
+**פירוט:**
+נוספה תמונת פרופיל בתוך חלון הטרמינל של סקשן האודות, מעל הטקסט. התמונה מוצגת עם:
+- מסגרת דקה בצבע primary עם glow effect (box-shadow)
+- גודל 48x48 (w-48 h-48) עם object-cover ופינות מעוגלות
+- כיתוב בסגנון טרמינל מתחת: `[System]: Rendering developer_profile_sketch.png... Success.`
+- התמונה ממורכזת (flex items-center) עם dir="ltr" כדי שהכיתוב יישאר LTR
+
+**חשוב:** יש להעלות את קובץ התמונה ל-`client/public/developer_profile_sketch.png`
+
+---
+
 ## [2026-03-14] החלפת פוסט בלוג — סנכרון Telegram Bot ו-Web App במקום Broadcast
 
 **קבצים שהשתנו:**
