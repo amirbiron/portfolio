@@ -118,9 +118,13 @@
   text-align: left;
 }
 
-/* בלוקי קוד של Streamdown — כיוון LTR */
+/* בלוקי קוד של Streamdown — כיוון LTR + אות ראשונה גדולה בבאדג' שפה */
 .prose [data-code-block-container] {
   direction: ltr;
+}
+
+.prose [data-code-block-header] span {
+  text-transform: capitalize;
 }
 
 /* טבלאות — יישור RTL */
