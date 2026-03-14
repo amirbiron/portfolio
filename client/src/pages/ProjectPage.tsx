@@ -200,6 +200,11 @@ export default function ProjectPage() {
   const params = useParams<{ slug: string }>();
   const [, setLocation] = useLocation();
 
+  // גלילה לראש העמוד בכניסה
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [params.slug]);
+
   const project = projects.find((p) => p.slug === params.slug);
 
   if (!project) {
