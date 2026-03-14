@@ -1,3 +1,29 @@
+## [2026-03-14] עדכון כרטיס המלצה + תיקון באג RTL בשלוש נקודות + Escape ב-Lightbox
+
+**קבצים שהשתנו:**
+- `client/src/lib/testimonials.ts` — (שונה) עדכון clientName ו-role, הסרת fullQuote, תיקון שלוש נקודות
+- `client/src/pages/Home.tsx` — (שונה) שינוי סימן — ל-> בפרטי לקוח, הסתרת role ריק
+- `client/src/pages/TestimonialPage.tsx` — (שונה) הוספת Escape key ל-Lightbox, הסתרת role ריק
+
+**פירוט:**
+
+### עדכון פרטי ההמלצה (testimonials.ts)
+- `clientName` שונה מ-"לקוחה — אתר סדר יום למשפחות" ל-"[מיזם חברתי] | אתר שגרה לזמני חירום"
+- `role` רוקן (מחרוזת ריקה) — לא מוצג יותר
+- שדה `fullQuote` הוסר מה-interface ומהנתונים (לא היה בשימוש באף קומפוננטה)
+- שלוש נקודות `...` הוחלפו בתו ellipsis יחיד `…` (U+2026) כדי למנוע באג RTL שבו הנקודות זזות ונדבקות למילה הבאה
+
+### עדכון כרטיס בדף הבית (Home.tsx)
+- סימן `—` לפני שם הלקוח הוחלף ב-`>` (כסגנון טרמינל)
+- שורת `role` מוסתרת אם ריקה (תנאי על `testimonial.role`)
+
+### Escape key ב-Lightbox (TestimonialPage.tsx)
+- נוסף `useEffect` עם `keydown` listener שסוגר את ה-Lightbox בלחיצה על Escape
+- התנהגות זהה ל-Lightbox הקיים ב-`ProjectPage.tsx`
+- שורת role מוסתרת אם ריקה
+
+---
+
 ## [2026-03-14] הוספת סקשן המלצות (Testimonials) עם דף פירוט לצילום מסך
 
 **קבצים שהשתנו:**
@@ -28,7 +54,7 @@
 - Lazy loaded עם Suspense
 
 ### מודל נתונים (testimonials.ts)
-כל המלצה מכילה: `slug`, `clientName`, `role`, `shortQuote` (לכרטיס), `fullQuote` (טקסט מלא), `screenshot` (נתיב לתמונה), `fileName` (שם קובץ מוצג)
+כל המלצה מכילה: `slug`, `clientName`, `role`, `shortQuote` (לכרטיס), `screenshot` (נתיב לתמונה), `fileName` (שם קובץ מוצג)
 
 ### הוספת המלצה חדשה
 להוספת המלצה חדשה יש להוסיף אובייקט למערך `testimonials` ב-`testimonials.ts` ולהעלות את צילום המסך ל-`client/public/testimonials/`
