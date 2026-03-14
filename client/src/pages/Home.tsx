@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Github, Mail, Download, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft, Send } from "lucide-react";
+import { Github, Mail, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft, Send } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -69,7 +69,7 @@ export default function Home() {
 
   const skills = [
     { category: "Languages", items: ["Python", "JavaScript/TypeScript", "SQL"], level: 95 },
-    { category: "Backend", items: ["Flask", "FastAPI", "MongoDB", "PostgreSQL", "Redis"], level: 90 },
+    { category: "Backend", items: ["Node.js", "Flask", "FastAPI", "MongoDB", "PostgreSQL", "Redis"], level: 90 },
     { category: "Bots & APIs", items: ["Telegram Bot API", "WhatsApp API (WPP, PyWa)", "Facebook Graph API"], level: 95 },
     { category: "Frontend", items: ["PWA", "HTML/CSS", "CSS Variables"], level: 80 },
     { category: "DevOps", items: ["Docker", "Prometheus", "Grafana", "Sentry", "GitHub Actions"], level: 85 }
@@ -531,15 +531,6 @@ export default function Home() {
                 >
                   <Send className="mr-2 h-4 w-4" />
                   {contactStatus === "sending" ? "> SENDING..." : contactStatus === "success" ? "> SENT!" : "> Send Message"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="border-accent text-accent hover:bg-accent/10"
-                  onClick={() => toast.info("CV download - Feature coming soon")}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download CV
                 </Button>
               </div>
               {contactStatus === "success" && (

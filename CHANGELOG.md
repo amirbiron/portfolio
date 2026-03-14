@@ -1,3 +1,14 @@
+## [2026-03-14] הסרת כפתור Download CV והוספת Node.js לכישורי Backend
+
+**קבצים שהשתנו:**
+- `client/src/pages/Home.tsx` — (שונה) הסרת כפתור Download CV מטופס יצירת קשר, הוספת Node.js לרשימת כישורי Backend
+
+**פירוט:**
+1. הוסר כפתור "Download CV" מאזור טופס יצירת קשר (כולל ה-import של אייקון Download מ-lucide-react).
+2. נוסף "Node.js" כפריט ראשון ברשימת הכישורים של קטגוריית Backend (לפני Flask, FastAPI וכו').
+
+---
+
 ## [2026-03-14] הוספת תמונות כרטיס לפרויקטים AI Business Bot ו-FB Leads Scanner
 
 **קבצים שהשתנו:**
