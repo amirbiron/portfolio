@@ -10,12 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Github, Mail, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft, Send } from "lucide-react";
+import { Github, Mail, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft, Send, MessageSquareQuote } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { projects } from "@/lib/projects";
+import { testimonials } from "@/lib/testimonials";
 
 // קומפוננטת עזר לאנימציית כניסה בגלילה
 function FadeInSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
@@ -334,6 +335,78 @@ export default function Home() {
                   </div>
                 </div>
               </Card>
+              </FadeInSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-card/50">
+        <div className="container">
+          <FadeInSection>
+            <div className="mb-12">
+              <div className="flex items-center gap-3 mb-4">
+                <MessageSquareQuote className="h-8 w-8 text-accent" />
+                <h2 className="text-3xl md:text-4xl font-bold text-accent neon-glow">
+                  $ cat testimonials.log
+                </h2>
+              </div>
+              <p dir="rtl" className="text-muted-foreground text-lg">
+                מה הלקוחות אומרים
+              </p>
+            </div>
+          </FadeInSection>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, idx) => (
+              <FadeInSection key={idx} delay={idx * 0.1}>
+                <Card
+                  className="terminal-window overflow-hidden group hover:scale-105 transition-all duration-300 h-full !py-0 !gap-0 cursor-pointer"
+                  onClick={() => setLocation(`/testimonial/${testimonial.slug}`)}
+                >
+                  <div className="terminal-header">
+                    <div className="terminal-dot border-primary" />
+                    <div className="terminal-dot border-accent" />
+                    <div className="terminal-dot border-destructive" />
+                    <span className="text-xs text-muted-foreground ml-2">
+                      {testimonial.fileName}
+                    </span>
+                  </div>
+
+                  <div dir="rtl" className="p-6">
+                    {/* ציטוט קצר */}
+                    <div className="mb-4">
+                      <span className="text-accent text-lg leading-none">"</span>
+                      <p className="text-sm text-foreground/80 leading-relaxed inline">
+                        {testimonial.shortQuote}
+                      </p>
+                      <span className="text-accent text-lg leading-none">"</span>
+                    </div>
+
+                    {/* פרטי הלקוח */}
+                    <div className="mb-4">
+                      <p className="text-xs text-primary font-mono">
+                        — {testimonial.clientName}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {testimonial.role}
+                      </p>
+                    </div>
+
+                    {/* כפתור פתיחה */}
+                    <Button
+                      size="sm"
+                      className="w-full bg-accent/20 text-accent border border-accent hover:bg-accent hover:text-accent-foreground font-mono"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setLocation(`/testimonial/${testimonial.slug}`);
+                      }}
+                    >
+                      Open_Attachment.exe
+                    </Button>
+                  </div>
+                </Card>
               </FadeInSection>
             ))}
           </div>
