@@ -1,3 +1,26 @@
+## [2026-03-14] הוספת קובץ SKILL.md — מדריך לבניית פורטפוליו בסגנון Terminal Aesthetic
+
+**קבצים שהשתנו:**
+- `SKILL.md` — (נוסף) קובץ Skill מפורט שמלמד Claude לבנות פורטפוליו דומה
+
+**פירוט:**
+נוצר קובץ `SKILL.md` שמכיל הנחיות מלאות ל-Claude לבניית פורטפוליו חדש באותו סגנון עיצוב — Terminal Aesthetic / Cyberpunk Retro-Futuristic. הקובץ כולל:
+
+1. **Tech Stack** — רשימת כל הטכנולוגיות והפקג'ים הנדרשים (React 19, Tailwind 4, Framer Motion, wouter, shadcn/ui, Mermaid, Streamdown, Sonner)
+2. **Design System** — פלטת צבעים מלאה (matrix green, cyan, neon pink), טיפוגרפיה (JetBrains Mono), CSS effects (scanlines, neon-glow, cursor-blink, neon-border)
+3. **Terminal Window Component** — מבנה ה-CSS של חלון הטרמינל (header עם 3 dots, border, background)
+4. **כל הסקשנים בפירוט** — Hero, About, Projects, Skills Matrix, Blog, Contact, Footer — כולל מבנה HTML/JSX, classes, אנימציות, ודאטה מודלים
+5. **עמוד פרויקט מפורט** — גלריית צילומי מסך עם Lightbox, Features/Challenges, דיאגרמת Mermaid
+6. **עמוד בלוג** — רינדור Markdown בסגנון טרמינל
+7. **Responsive Design** — טבלת breakpoints ו-grid layouts
+8. **Contact Form** — הנחיה שהמשתמש צריך לחבר בעצמו (EmailJS, Formspree, Telegram Bot API, או Custom API)
+9. **הנחיות ליצירת תמונות** — פרומפטים מוכנים ל-Nano Banana בסגנון cyberpunk מותאם, כולל:
+   - Hero background, Skills background, Profile image
+   - תבנית פרומפט לכל סוג פרויקט (chatbot, data/scraping, dev tools, learning, builder)
+   - הנחיה ל-Claude להציג בסוף הפלט "Step 2 Card" עם כל הפרומפטים הממוספרים
+
+---
+
 ## [2026-03-14] הסרת כפתור Download CV והוספת Node.js לכישורי Backend
 
 **קבצים שהשתנו:**
