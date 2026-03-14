@@ -74,9 +74,9 @@ export default function Home() {
       slug: "telegram-broadcast-rate-limiting"
     },
     {
-      title: "בניית בוט WhatsApp עם Python - מדריך מעשי",
+      title: "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי",
       date: "2026-01-20",
-      excerpt: "איך לבנות בוט WhatsApp מתקדם עם PyWa ו-WPP. מדריך שלב אחר שלב לשליחת הודעות, טיפול במדיה ואוטומציות.",
+      excerpt: "הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.",
       slug: "whatsapp-bot-python-guide"
     }
   ];
