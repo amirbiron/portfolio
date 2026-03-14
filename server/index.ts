@@ -25,6 +25,16 @@ async function startServer() {
   const RATE_LIMIT_WINDOW_MS = 60_000;
   const RATE_LIMIT_MAX = 3;
 
+  // ניקוי רשומות ישנות כל 10 דקות
+  setInterval(() => {
+    const now = Date.now();
+    contactRateMap.forEach((timestamps, ip) => {
+      const active = timestamps.filter((t: number) => now - t < RATE_LIMIT_WINDOW_MS);
+      if (active.length === 0) contactRateMap.delete(ip);
+      else contactRateMap.set(ip, active);
+    });
+  }, 10 * 60_000);
+
   // שליחת הודעת יצירת קשר דרך טלגרם
   app.post("/api/contact", async (req, res) => {
     try {
