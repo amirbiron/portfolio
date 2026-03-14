@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Github,
   ExternalLink,
+  ArrowLeft,
   ArrowRight,
   ChevronLeft,
   ChevronRight,
@@ -233,7 +234,7 @@ export default function ProjectPage() {
             className="text-primary hover:text-primary/80"
             onClick={() => setLocation("/")}
           >
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Portfolio
           </Button>
           <div className="flex gap-3">
@@ -434,7 +435,7 @@ export default function ProjectPage() {
               className="text-primary"
               onClick={() => setLocation("/")}
             >
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Portfolio
             </Button>
             <div className="flex gap-3">
