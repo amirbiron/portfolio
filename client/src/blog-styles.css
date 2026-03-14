@@ -33,7 +33,7 @@
   background: none;
   padding: 0;
   border: none;
-  color: var(--foreground);
+  color: #e2e8f0;
   font-size: 0.875rem;
   line-height: 1.7;
 }
@@ -41,6 +41,7 @@
 .prose p {
   margin: 1.25rem 0;
   line-height: 1.8;
+  font-size: 0.925rem;
 }
 
 .prose h1, .prose h2, .prose h3, .prose h4 {
@@ -76,6 +77,7 @@
 .prose li {
   margin: 0.5rem 0;
   line-height: 1.8;
+  font-size: 0.925rem;
 }
 
 .prose a {
