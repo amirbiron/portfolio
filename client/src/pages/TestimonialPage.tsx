@@ -19,6 +19,16 @@ export default function TestimonialPage() {
     window.scrollTo(0, 0);
   }, [params.slug]);
 
+  // סגירת Lightbox במקש Escape
+  useEffect(() => {
+    if (!lightbox) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(false);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [lightbox]);
+
   const testimonial = testimonials.find((t) => t.slug === params.slug);
 
   if (!testimonial) {
