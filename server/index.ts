@@ -8,6 +8,8 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
+  // Render.com מריץ מאחורי reverse proxy — נדרש כדי לקבל IP אמיתי מ-X-Forwarded-For
+  app.set("trust proxy", 1);
   const server = createServer(app);
 
   app.use(express.json());
