@@ -892,7 +892,7 @@ export default function BlogPost() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [params?.slug]);
 
   const slug = params?.slug || "";
   const post = blogPosts[slug as keyof typeof blogPosts];
