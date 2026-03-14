@@ -428,7 +428,8 @@ Each project gets a detailed page with these sections:
 - Header with "Back to Portfolio" button and date/title
 - Markdown content rendered via Streamdown (note: do NOT duplicate the title as `# Title` in the markdown content — the title is already rendered in the h1 tag)
 - Custom prose styling for dark theme (code blocks, blockquotes, links, tables with RTL alignment)
-- **Important:** ensure blank lines between code block closings (\`\`\`) and the next paragraph, otherwise text may be parsed incorrectly
+- Code block headers: language label on the right, copy/download buttons on the left (flipped via `flex-direction: row-reverse`)
+- **Important:** The component auto-adds blank lines after code block closings via regex (`content.replace(/```\n(?!\n)/g, '```\n\n')`) to prevent Streamdown from misinterpreting paragraphs as headings. Do NOT use untagged code blocks for ASCII art diagrams — they render with nearly invisible text on the dark theme
 - Footer with:
   - Suggestions to read other blog posts (grid of terminal-styled cards)
   - "Back to Portfolio" button
