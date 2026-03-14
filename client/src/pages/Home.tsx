@@ -62,22 +62,22 @@ export default function Home() {
 
   const blogPosts = [
     {
+      title: "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי",
+      date: "14-03-2026",
+      excerpt: "הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.",
+      slug: "whatsapp-bot-python-guide"
+    },
+    {
       title: "Distributed Lock במונגו – פתרון ל-telegram.error.Conflict",
-      date: "2026-02-15",
+      date: "15-02-2026",
       excerpt: "בזמן האחרון נתקלתי בבעיה מעצבנת: הבוט שלי רץ על כמה אינסטנסים. הפתרון? מנגנון נעילה מבוזר (Distributed Lock) מבוסס MongoDB.",
       slug: "distributed-lock-mongo"
     },
     {
       title: "איך לשלוח הודעה לאלפי משתמשים בלי שטלגרם יחסום אתכם",
-      date: "2026-02-10",
+      date: "10-02-2026",
       excerpt: "אחת הבעיות הכי נפוצות בבוטים היא ה-Broadcast. איך לעדכן אלפי משתמשים בלי להיחסם? מנגנון שליחה חכם עם Rate Limiting ו-RetryAfter.",
       slug: "telegram-broadcast-rate-limiting"
-    },
-    {
-      title: "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי",
-      date: "2026-01-20",
-      excerpt: "הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.",
-      slug: "whatsapp-bot-python-guide"
     }
   ];
 

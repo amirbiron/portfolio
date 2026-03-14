@@ -4,6 +4,7 @@
  */
 
 import "../blog-styles.css";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useRoute, useLocation } from "wouter";
@@ -13,7 +14,7 @@ import { Streamdown } from 'streamdown';
 const blogPosts = {
   "telegram-broadcast-rate-limiting": {
     title: "איך לשלוח הודעה לאלפי משתמשים בלי שטלגרם יחסום אתכם 🛡️",
-    date: "2026-02-10",
+    date: "10-02-2026",
     content: `**📢 איך לשלוח הודעה לאלפי משתמשים בלי שטלגרם יחסום אתכם 🛡️**
 
 אחת הבעיות הכי נפוצות בבוטים היא ה-Broadcast. אתם רוצים לעדכן את כל המשתמשים על פיצ'ר חדש, מריצים לולאה מהירה, ובווום - טלגרם חוסמת את הבוט שלכם בגלל "Flood Wait".
@@ -100,13 +101,9 @@ async def send_broadcast(bot, message):
   },
   "whatsapp-bot-python-guide": {
     title: "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי",
-    date: "2026-01-20",
+    date: "14-03-2026",
     content: `# איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי
 > הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.
----
-## למה בוט WhatsApp?
-אפליקציה דורשת הורדה, הרשמה, ולמידה של ממשק חדש. בוט WhatsApp? המשתמש כבר שם. הוא שולח הודעה ומתחיל לעבוד. אין חיכוך, אין התקנה, אין onboarding.
-אבל "בוט פשוט שמגיב להודעות" ו"מוצר שרץ בפרודקשן" הם שני דברים שונים לגמרי. הפוסט הזה מכסה את הפער ביניהם.
 ---
 ## הארכיטקטורה — מבט על
 \`\`\`
@@ -596,7 +593,7 @@ app/
   },
   "distributed-lock-mongo": {
     title: "Distributed Lock במונגו – פתרון ל-telegram.error.Conflict",
-    date: "2026-02-15",
+    date: "15-02-2026",
     content: `**🔒 Distributed Lock במונגו – פתרון ל-telegram.error.Conflict**
 
 בזמן האחרון נתקלתי בבעיה מעצבנת: הבוט שלי רץ על כמה אינסטנסים. הפתרון? מנגנון נעילה מבוזר (Distributed Lock) מבוסס MongoDB.
@@ -745,7 +742,11 @@ locks_col.create_index("expiresAt", expireAfterSeconds=0)
 export default function BlogPost() {
   const [, params] = useRoute("/blog/:slug");
   const [, setLocation] = useLocation();
-  
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const slug = params?.slug || "";
   const post = blogPosts[slug as keyof typeof blogPosts];
 
@@ -795,8 +796,8 @@ export default function BlogPost() {
             
             <div className="p-8 md:p-12">
               {/* Meta */}
-              <div className="mb-8">
-                <div className="text-xs text-accent mb-2 font-mono">
+              <div className="mb-8" dir="rtl">
+                <div className="text-xs text-accent mb-2 font-mono" dir="ltr" style={{ textAlign: "right" }}>
                   {post.date}
                 </div>
                 <h1 className="text-3xl md:text-4xl font-bold text-primary neon-glow mb-4">
