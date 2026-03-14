@@ -26,4 +26,13 @@ export const testimonials: TestimonialData[] = [
     screenshot: "/testimonials/feedback-routine-app.png",
     fileName: "client_feedback_001.png",
   },
+  {
+    slug: "delivery-system",
+    clientName: "[לקוח עסקי] | מערכת ניהול משלוחים (WhatsApp & Telegram)",
+    role: "",
+    shortQuote:
+      "אני ממליץ בחום על אמיר חיים. אדם מקצועי, אמין ונעים לעבוד איתו\u2026 הוא מביא איתו יכולת מצוינת לפתור בעיות בצורה יעילה וחכמה.",
+    screenshot: "/testimonials/feedback-delivery-system.png",
+    fileName: "client_feedback_002.png",
+  },
 ];

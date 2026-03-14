@@ -1,3 +1,23 @@
+## [2026-03-14] הוספת המלצה שנייה (לקוח עסקי — מערכת ניהול משלוחים)
+
+**קבצים שהשתנו:**
+- `client/src/lib/testimonials.ts` — (שונה) הוספת המלצה שנייה למערך
+- `SKILL.md` — (שונה) הוספת תיעוד סקשן המלצות, עמוד פירוט המלצה, ועדכון routing
+
+**פירוט:**
+
+### המלצה חדשה (testimonials.ts)
+נוספה המלצה שנייה למערך `testimonials`:
+- **slug**: `delivery-system`
+- **clientName**: `[לקוח עסקי] | מערכת ניהול משלוחים (WhatsApp & Telegram)`
+- **shortQuote**: "אני ממליץ בחום על אמיר חיים. אדם מקצועי, אמין ונעים לעבוד איתו… הוא מביא איתו יכולת מצוינת לפתור בעיות בצורה יעילה וחכמה."
+- **fileName**: `client_feedback_002.png`
+- **screenshot**: `/testimonials/feedback-delivery-system.png`
+
+**חשוב:** יש להעלות את צילום המסך של ההמלצה ל-`client/public/testimonials/feedback-delivery-system.png`
+
+---
+
 ## [2026-03-14] עדכון כרטיס המלצה + תיקון באג RTL בשלוש נקודות + Escape ב-Lightbox
 
 **קבצים שהשתנו:**

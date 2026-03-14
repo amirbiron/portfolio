@@ -8,8 +8,9 @@
 
 This skill generates a full-featured developer portfolio site with:
 - Terminal-styled UI with scanlines and CRT glow effects
-- Responsive sections: Hero, About, Projects, Skills, Blog, Contact, Footer
+- Responsive sections: Hero, About, Projects, Testimonials, Skills, Blog, Contact, Footer
 - Individual project detail pages with screenshot gallery, features/challenges, and Mermaid architecture diagrams
+- Testimonial detail pages with full-size screenshot in lightbox
 - Blog pages with markdown rendering
 - Scroll-triggered animations (Framer Motion)
 - Contact form (user connects their own backend service)
@@ -171,6 +172,7 @@ Terminal header always has 3 dots:
 <Router>
   <Route path="/" component={Home} />
   <Route path="/project/:slug" component={ProjectPage} />
+  <Route path="/testimonial/:slug" component={TestimonialPage} />
   <Route path="/blog/:slug" component={BlogPost} />
   <Route component={NotFound} />
 </Router>
@@ -299,7 +301,55 @@ interface ProjectData {
 
 ---
 
-### 4. Skills Matrix Section
+### 4. Testimonials Section
+
+Client testimonials displayed as terminal-styled cards with links to full-page screenshot views.
+
+**Structure:**
+- Section heading: `MessageSquareQuote` icon + `$ cat testimonials.log` (primary colored, neon-glow)
+- Subtitle: "מה הלקוחות אומרים"
+- Background: `bg-card/50`
+- Grid: responsive card layout
+- Each card is a `terminal-window` with staggered fade-in
+
+**Testimonial Card Structure:**
+```
+┌─ Terminal Header (3 dots + fileName) ─────┐
+│ dir="rtl"                                  │
+│ "Short quote text here"                    │
+│ (accent-colored quotation marks)           │
+│                                            │
+│ > [Client Type] | Project Name             │
+│                                            │
+│ [Open_Attachment.exe]                      │
+└────────────────────────────────────────────┘
+```
+
+- Quote text uses inline `<p>` wrapped in accent-colored quotation mark `<span>`s
+- Client info line starts with `>` (terminal style), rendered in `text-primary font-mono`
+- `role` field is conditionally rendered (hidden if empty string)
+- Button navigates to `/testimonial/:slug`
+
+**Testimonial Data Model:**
+```ts
+interface TestimonialData {
+  slug: string;
+  clientName: string;      // e.g. "[לקוח עסקי] | מערכת ניהול משלוחים"
+  role: string;            // empty string = hidden
+  shortQuote: string;      // short quote for card display
+  screenshot: string;      // path to screenshot image
+  fileName: string;        // displayed in terminal header
+}
+```
+
+**Important — RTL text:**
+- Use Unicode ellipsis `…` (U+2026) instead of `...` in Hebrew text to avoid RTL rendering bugs where dots shift into adjacent characters.
+
+**Placeholder:** Generate 2-3 sample testimonial entries with placeholder data.
+
+---
+
+### 5. Skills Matrix Section
 
 2-column grid of skill categories with progress bars, over a background image.
 
@@ -329,7 +379,7 @@ const skills = [
 
 ---
 
-### 5. Blog Section
+### 6. Blog Section
 
 3-column grid of blog post cards.
 
@@ -351,7 +401,7 @@ const skills = [
 
 ---
 
-### 6. Contact Section
+### 7. Contact Section
 
 Terminal-styled contact form.
 
@@ -378,7 +428,7 @@ Terminal-styled contact form.
 
 ---
 
-### 7. Footer
+### 8. Footer
 
 Simple footer with copyright and social links.
 
@@ -419,6 +469,34 @@ Each project gets a detailed page with these sections:
    };
    ```
 6. **Footer CTA** — "Back to Portfolio" button (English) + Demo/Code buttons + "Next Project" suggestion card (cycles through projects list)
+
+---
+
+## Testimonial Detail Page (`/testimonial/:slug`)
+
+Each testimonial gets a full-page view showing the original recommendation screenshot.
+
+**Structure:**
+1. **Header** — "Back to Portfolio" button
+2. **Terminal window** with `~/testimonials/{fileName}` header
+3. **System messages:**
+   - `[System]: Fetching {fileName}... Success.`
+   - `[System]: Rendering attachment... Done.`
+4. **Screenshot** — Full-width image, clickable to open lightbox
+5. **Caption** — `[Source]: {clientName}` (with `— {role}` appended if role is non-empty)
+6. **Footer** — "Back to Portfolio" button
+
+**Lightbox:**
+- AnimatePresence with scale + fade animation
+- Click outside image to close
+- **Escape key** closes the lightbox (keydown listener, same pattern as ProjectPage)
+- Image uses `max-h-[90vh] max-w-[90vw] object-contain`
+
+**Scroll behavior:** `useEffect` with `window.scrollTo(0, 0)` on slug change.
+
+**Lazy loaded** via `React.lazy` + `Suspense` in App.tsx.
+
+**Important:** Upload testimonial screenshots to `public/testimonials/` (e.g., `feedback-routine-app.png`, `feedback-delivery-system.png`).
 
 ---
 
