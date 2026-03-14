@@ -628,7 +628,6 @@ if price is not None:
 
 כלל: בכל ערך מספרי שאפס הוא ערך תקין — \`is not None\`, לא \`if value\`.
 ---
----
 ## סיכום — 10 עקרונות לבוט WhatsApp שעובד
 1. **תחזיר 200 מיד** — WhatsApp לא מחכה. עבד ברקע
 2. **Idempotency** — WhatsApp שולח retries. מנע כפילויות ב-DB
