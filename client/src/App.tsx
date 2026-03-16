@@ -10,6 +10,7 @@ import BlogPost from "./pages/BlogPost";
 
 const ProjectPage = lazy(() => import("./pages/ProjectPage"));
 const TestimonialPage = lazy(() => import("./pages/TestimonialPage"));
+const AskAI = lazy(() => import("./pages/AskAI"));
 
 
 // מחוון טעינה לדפים שנטענים באופן עצל
@@ -25,6 +26,11 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/project/codekeeper/ask-ai"}>
+        <Suspense fallback={<LazyFallback />}>
+          <AskAI />
+        </Suspense>
+      </Route>
       <Route path={"/project/:slug"}>
         <Suspense fallback={<LazyFallback />}>
           <ProjectPage />

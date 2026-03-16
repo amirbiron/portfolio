@@ -1,10 +1,39 @@
 import express from "express";
 import { createServer } from "http";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
+import { GoogleGenAI } from "@google/genai";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// rate limiter משותף — מונע כפילות קוד בין endpoints
+function createRateLimiter(maxRequests: number, windowMs: number) {
+  const map = new Map<string, number[]>();
+
+  // ניקוי רשומות ישנות כל 10 דקות
+  setInterval(() => {
+    const now = Date.now();
+    map.forEach((timestamps, ip) => {
+      const active = timestamps.filter((t: number) => now - t < windowMs);
+      if (active.length === 0) map.delete(ip);
+      else map.set(ip, active);
+    });
+  }, 10 * 60_000);
+
+  return {
+    // מחזיר true אם הבקשה חסומה
+    check(ip: string): boolean {
+      const now = Date.now();
+      const timestamps = (map.get(ip) ?? []).filter((t) => now - t < windowMs);
+      if (timestamps.length >= maxRequests) return true;
+      timestamps.push(now);
+      map.set(ip, timestamps);
+      return false;
+    },
+  };
+}
 
 async function startServer() {
   const app = express();
@@ -22,20 +51,8 @@ async function startServer() {
 
   app.use(express.static(staticPath));
 
-  // rate limiting פשוט לפי IP — מקסימום 3 בקשות לדקה
-  const contactRateMap = new Map<string, number[]>();
-  const RATE_LIMIT_WINDOW_MS = 60_000;
-  const RATE_LIMIT_MAX = 3;
-
-  // ניקוי רשומות ישנות כל 10 דקות
-  setInterval(() => {
-    const now = Date.now();
-    contactRateMap.forEach((timestamps, ip) => {
-      const active = timestamps.filter((t: number) => now - t < RATE_LIMIT_WINDOW_MS);
-      if (active.length === 0) contactRateMap.delete(ip);
-      else contactRateMap.set(ip, active);
-    });
-  }, 10 * 60_000);
+  const contactLimiter = createRateLimiter(3, 60_000);
+  const aiLimiter = createRateLimiter(10, 60_000);
 
   // שליחת הודעת יצירת קשר דרך טלגרם
   app.post("/api/contact", async (req, res) => {
@@ -47,17 +64,10 @@ async function startServer() {
       }
 
       // rate limiting לפי IP
-      const ip = req.ip ?? "unknown";
-      const now = Date.now();
-      const timestamps = (contactRateMap.get(ip) ?? []).filter(
-        (t) => now - t < RATE_LIMIT_WINDOW_MS,
-      );
-      if (timestamps.length >= RATE_LIMIT_MAX) {
+      if (contactLimiter.check(req.ip ?? "unknown")) {
         res.status(429).json({ error: "Too many requests. Try again later." });
         return;
       }
-      timestamps.push(now);
-      contactRateMap.set(ip, timestamps);
 
       const token = process.env.TELEGRAM_BOT_TOKEN;
       const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -101,6 +111,111 @@ async function startServer() {
     } catch (err) {
       console.error("Telegram send error:", err);
       res.status(502).json({ error: "Failed to send message" });
+    }
+  });
+
+  // --- AI Agent endpoint עבור CodeKeeper ---
+
+  // טעינת מסמך הידע פעם אחת בעת עליית השרת
+  let knowledgeDoc = "";
+  try {
+    const docsPath = path.resolve(__dirname, "..", "docs", "CodeBot_Features_Summary.md");
+    knowledgeDoc = fs.readFileSync(docsPath, "utf-8");
+  } catch {
+    console.warn("Warning: CodeBot knowledge doc not found, AI agent will have limited knowledge");
+  }
+
+  const SYSTEM_PROMPT = `אתה סוכן AI המייצג את אמיר, מפתח Full-Stack ומערכות מורכבות. תפקידך הוא לענות למגייסים וללקוחות פוטנציאליים על פרויקט הדגל של אמיר: CodeBot.
+כשאתה נשאל על הפרויקט, השתמש במסמך התיעוד המצורף, אך פעל לפי הכללים הבאים:
+* אל תעתיק רשימות ארוכות: אם מישהו שואל 'אילו פיצ'רים יש בבוט?', תן לו 3-4 פיצ'רים מרכזיים (כמו חיפוש מתקדם, אינטגרציה עם GitHub, ולוח ה-Kanban), והצע לו לשאול על נושאים ספציפיים (למשל: 'תרצה לשמוע על הארכיטקטורה או על כלי ה-AI?').
+* הדגש את החשיבה ה'שורשית': כשאתה מתאר פתרון, תסביר למה אמיר בחר בו. למשל, 'אמיר השתמש ב-Redis כדי להבטיח זמני תגובה מהירים למערכת החיפוש', או 'אמיר בנה ארכיטקטורת CI/CD מלאה עם GitHub Actions כדי להבטיח יציבות'.
+* התאם את התשובה לקהל:
+  - אם השאלה טכנית (למשל 'איזה מסד נתונים יש?'), פרט על MongoDB, Motor אסינכרוני, והאינדקסים.
+  - אם השאלה עסקית/מוצרית (למשל 'מי קהל היעד?'), דבר על ה-Onboarding המקיף, ה-Live Preview, ומערכת ההרשאות.
+* תמיד שמור על טון מקצועי, צנוע אבל בטוח בעצמו (כמו אמיר).
+* ענה בעברית אלא אם השאלה נשאלה באנגלית.
+* שמור על תשובות קצרות וממוקדות — עד 3-4 פסקאות. הצע לשאול שאלת המשך.
+
+מסמך תיעוד הפרויקט:
+${knowledgeDoc}`;
+
+  // אתחול הקליינט פעם אחת בעליית השרת
+  const geminiApiKey = process.env.GEMINI_API_KEY;
+  const ai = geminiApiKey ? new GoogleGenAI({ apiKey: geminiApiKey }) : null;
+  if (!ai) {
+    console.warn("Warning: GEMINI_API_KEY not set, AI agent will be unavailable");
+  }
+
+  const MAX_MESSAGE_LENGTH = 2000;
+  const MAX_HISTORY_LENGTH = 20;
+
+  app.post("/api/ask-ai", async (req, res) => {
+    try {
+      if (!req.body) {
+        res.status(400).json({ error: "Request body is required" });
+        return;
+      }
+
+      // rate limiting
+      if (aiLimiter.check(req.ip ?? "unknown")) {
+        res.status(429).json({ error: "Too many requests. Try again later." });
+        return;
+      }
+
+      if (!ai) {
+        res.status(500).json({ error: "AI service not configured" });
+        return;
+      }
+
+      const { message, history } = req.body;
+      if (!message || typeof message !== "string") {
+        res.status(400).json({ error: "Message is required" });
+        return;
+      }
+
+      // הגבלת אורך הודעה בודדת
+      if (message.length > MAX_MESSAGE_LENGTH) {
+        res.status(400).json({ error: "Message too long" });
+        return;
+      }
+
+      // ולידציה והגבלת היסטוריית שיחה
+      let validatedHistory: { role: string; content: string }[] = [];
+      if (Array.isArray(history)) {
+        validatedHistory = history
+          .slice(-MAX_HISTORY_LENGTH)
+          .filter(
+            (msg: unknown): msg is { role: string; content: string } =>
+              typeof msg === "object" &&
+              msg !== null &&
+              typeof (msg as Record<string, unknown>).role === "string" &&
+              typeof (msg as Record<string, unknown>).content === "string" &&
+              ((msg as Record<string, unknown>).role === "user" || (msg as Record<string, unknown>).role === "assistant") &&
+              ((msg as Record<string, unknown>).content as string).length <= MAX_MESSAGE_LENGTH,
+          );
+      }
+
+      // בניית היסטוריית שיחה ל-Gemini
+      const chatHistory = validatedHistory.map((msg) => ({
+        role: msg.role === "user" ? ("user" as const) : ("model" as const),
+        parts: [{ text: msg.content }],
+      }));
+
+      const chat = ai.chats.create({
+        model: "gemini-2.5-flash",
+        history: chatHistory,
+        config: {
+          systemInstruction: SYSTEM_PROMPT,
+        },
+      });
+
+      const result = await chat.sendMessage({ message });
+      const response = result.text ?? "";
+
+      res.json({ response });
+    } catch (err) {
+      console.error("AI agent error:", err);
+      res.status(502).json({ error: "Failed to get AI response" });
     }
   });
 
