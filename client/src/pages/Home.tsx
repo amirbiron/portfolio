@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Github, Mail, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft, Send, MessageSquareQuote } from "lucide-react";
+import { Github, Mail, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft, Send, MessageSquareQuote, Bot } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -308,30 +308,45 @@ export default function Home() {
                     ))}
                   </div>
                   
-                  <div className="flex gap-3">
-                    <Button
-                      size="sm"
-                      className="flex-1 bg-primary/20 text-primary border border-primary hover:bg-primary hover:text-primary-foreground"
-                      onClick={() => setLocation(`/project/${project.slug}`)}
-                    >
-                      <ArrowLeft className="mr-2 h-3 w-3" />
-                      Details
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 border-accent text-accent hover:bg-accent/10"
-                      onClick={() => {
-                        if (project.demo === "#") {
-                          toast.info("Demo link - Feature coming soon");
-                        } else {
-                          window.open(project.demo, "_blank");
-                        }
-                      }}
-                    >
-                      <ExternalLink className="mr-2 h-3 w-3" />
-                      {project.demoLabel || "Demo"}
-                    </Button>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-3">
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-primary/20 text-primary border border-primary hover:bg-primary hover:text-primary-foreground"
+                        onClick={() => setLocation(`/project/${project.slug}`)}
+                      >
+                        <ArrowLeft className="mr-2 h-3 w-3" />
+                        Details
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 border-accent text-accent hover:bg-accent/10"
+                        onClick={() => {
+                          if (project.demo === "#") {
+                            toast.info("Demo link - Feature coming soon");
+                          } else {
+                            window.open(project.demo, "_blank");
+                          }
+                        }}
+                      >
+                        <ExternalLink className="mr-2 h-3 w-3" />
+                        {project.demoLabel || "Demo"}
+                      </Button>
+                    </div>
+                    {project.slug === "codekeeper" && (
+                      <Button
+                        size="sm"
+                        className="w-full bg-accent/20 text-accent border border-accent hover:bg-accent hover:text-accent-foreground font-mono"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLocation("/project/codekeeper/ask-ai");
+                        }}
+                      >
+                        <Bot className="mr-2 h-3 w-3" />
+                        Ask AI about CodeKeeper
+                      </Button>
+                    )}
                   </div>
                 </div>
               </Card>

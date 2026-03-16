@@ -1,3 +1,42 @@
+## [2026-03-16] הוספת סוכן AI לפרויקט CodeKeeper
+
+**קבצים שהשתנו:**
+- `client/src/pages/AskAI.tsx` — (נוסף) עמוד צ'אט עם סוכן AI על פרויקט CodeKeeper
+- `server/index.ts` — (שונה) הוספת endpoint `POST /api/ask-ai` עם Gemini 2.5 Flash
+- `client/src/App.tsx` — (שונה) הוספת route `/project/codekeeper/ask-ai` עם lazy loading
+- `client/src/pages/ProjectPage.tsx` — (שונה) הוספת כפתור "Ask AI" בעמוד CodeKeeper (header + footer)
+- `client/src/pages/Home.tsx` — (שונה) הוספת כפתור "Ask AI about CodeKeeper" בכרטיס CodeKeeper בדף הבית
+- `package.json` — (שונה) הוספת תלות `@google/generative-ai`
+- `docs/CodeBot_Features_Summary.md` — (נוסף) מסמך ידע מפורט על CodeKeeper (ה-knowledge base של הסוכן)
+
+**פירוט:**
+
+### סוכן AI — עמוד צ'אט (AskAI.tsx)
+- עמוד צ'אט בסגנון טרמינל עם היסטוריית שיחה
+- הודעת פתיחה עם הצעות לשאלות ("מה הפרויקט עושה?", "איזה טכנולוגיות?", "מה האתגר הגדול ביותר?")
+- שליחה עם Enter, תמיכה ב-Shift+Enter לשורות חדשות
+- אנימציות כניסה (Framer Motion) להודעות
+- אינדיקטור טעינה בזמן המתנה לתשובה
+- עיצוב: הודעות משתמש בירוק, תשובות AI בחלון טרמינל
+
+### שרת — API Endpoint (server/index.ts)
+- `POST /api/ask-ai` — מקבל `message` ו-`history` (היסטוריית שיחה)
+- משתמש ב-Gemini 2.5 Flash דרך `@google/generative-ai`
+- טוען את `docs/CodeBot_Features_Summary.md` כ-knowledge base
+- System Prompt מפורט שמנחה את הסוכן: לא להעתיק רשימות ארוכות, להדגיש חשיבה שורשית, להתאים לקהל (טכני/עסקי), טון מקצועי וצנוע
+- Rate limiting: 10 בקשות לדקה לכל IP
+
+### כפתורי "Ask AI"
+- בעמוד CodeKeeper (header + footer): כפתור "Ask AI" / "Ask AI about CodeKeeper"
+- בכרטיס CodeKeeper בדף הבית: כפתור "Ask AI about CodeKeeper" מתחת לכפתורי Details ו-Demo
+- הכפתורים מופיעים **רק** בפרויקט CodeKeeper (תנאי `project.slug === "codekeeper"`)
+
+### הגדרה נדרשת
+יש להגדיר משתנה סביבה בשרת:
+- `GEMINI_API_KEY` — מפתח API של Google Gemini
+
+---
+
 ## [2026-03-16] הוספת קובץ README.md
 
 **קבצים שהשתנו:**

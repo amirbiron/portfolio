@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Bot,
 } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { toast } from "sonner";
@@ -263,6 +264,16 @@ export default function ProjectPage() {
               )}
               {project.repoLabel || "Code"}
             </Button>
+            {project.slug === "codekeeper" && (
+              <Button
+                size="sm"
+                className="bg-accent/20 text-accent border border-accent hover:bg-accent hover:text-accent-foreground"
+                onClick={() => setLocation("/project/codekeeper/ask-ai")}
+              >
+                <Bot className="mr-2 h-3 w-3" />
+                Ask AI
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -462,6 +473,15 @@ export default function ProjectPage() {
                 )}
                 {project.repoLabel || "Code"}
               </Button>
+              {project.slug === "codekeeper" && (
+                <Button
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 neon-border"
+                  onClick={() => setLocation("/project/codekeeper/ask-ai")}
+                >
+                  <Bot className="mr-2 h-4 w-4" />
+                  Ask AI about CodeKeeper
+                </Button>
+              )}
             </div>
           </div>
 

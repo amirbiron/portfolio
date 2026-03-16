@@ -1,7 +1,9 @@
 import express from "express";
 import { createServer } from "http";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -101,6 +103,103 @@ async function startServer() {
     } catch (err) {
       console.error("Telegram send error:", err);
       res.status(502).json({ error: "Failed to send message" });
+    }
+  });
+
+  // --- AI Agent endpoint עבור CodeKeeper ---
+  const AI_RATE_LIMIT_MAX = 10;
+  const AI_RATE_LIMIT_WINDOW_MS = 60_000;
+  const aiRateMap = new Map<string, number[]>();
+
+  // ניקוי רשומות ישנות כל 10 דקות
+  setInterval(() => {
+    const now = Date.now();
+    aiRateMap.forEach((timestamps, ip) => {
+      const active = timestamps.filter((t: number) => now - t < AI_RATE_LIMIT_WINDOW_MS);
+      if (active.length === 0) aiRateMap.delete(ip);
+      else aiRateMap.set(ip, active);
+    });
+  }, 10 * 60_000);
+
+  // טעינת מסמך הידע פעם אחת בעת עליית השרת
+  let knowledgeDoc = "";
+  try {
+    const docsPath = process.env.NODE_ENV === "production"
+      ? path.resolve(__dirname, "..", "docs", "CodeBot_Features_Summary.md")
+      : path.resolve(__dirname, "..", "docs", "CodeBot_Features_Summary.md");
+    knowledgeDoc = fs.readFileSync(docsPath, "utf-8");
+  } catch {
+    console.warn("Warning: CodeBot knowledge doc not found, AI agent will have limited knowledge");
+  }
+
+  const SYSTEM_PROMPT = `אתה סוכן AI המייצג את אמיר, מפתח Full-Stack ומערכות מורכבות. תפקידך הוא לענות למגייסים וללקוחות פוטנציאליים על פרויקט הדגל של אמיר: CodeBot.
+כשאתה נשאל על הפרויקט, השתמש במסמך התיעוד המצורף, אך פעל לפי הכללים הבאים:
+* אל תעתיק רשימות ארוכות: אם מישהו שואל 'אילו פיצ'רים יש בבוט?', תן לו 3-4 פיצ'רים מרכזיים (כמו חיפוש מתקדם, אינטגרציה עם GitHub, ולוח ה-Kanban), והצע לו לשאול על נושאים ספציפיים (למשל: 'תרצה לשמוע על הארכיטקטורה או על כלי ה-AI?').
+* הדגש את החשיבה ה'שורשית': כשאתה מתאר פתרון, תסביר למה אמיר בחר בו. למשל, 'אמיר השתמש ב-Redis כדי להבטיח זמני תגובה מהירים למערכת החיפוש', או 'אמיר בנה ארכיטקטורת CI/CD מלאה עם GitHub Actions כדי להבטיח יציבות'.
+* התאם את התשובה לקהל:
+  - אם השאלה טכנית (למשל 'איזה מסד נתונים יש?'), פרט על MongoDB, Motor אסינכרוני, והאינדקסים.
+  - אם השאלה עסקית/מוצרית (למשל 'מי קהל היעד?'), דבר על ה-Onboarding המקיף, ה-Live Preview, ומערכת ההרשאות.
+* תמיד שמור על טון מקצועי, צנוע אבל בטוח בעצמו (כמו אמיר).
+* ענה בעברית אלא אם השאלה נשאלה באנגלית.
+* שמור על תשובות קצרות וממוקדות — עד 3-4 פסקאות. הצע לשאול שאלת המשך.
+
+מסמך תיעוד הפרויקט:
+${knowledgeDoc}`;
+
+  app.post("/api/ask-ai", async (req, res) => {
+    try {
+      if (!req.body) {
+        res.status(400).json({ error: "Request body is required" });
+        return;
+      }
+
+      // rate limiting
+      const ip = req.ip ?? "unknown";
+      const now = Date.now();
+      const timestamps = (aiRateMap.get(ip) ?? []).filter(
+        (t) => now - t < AI_RATE_LIMIT_WINDOW_MS,
+      );
+      if (timestamps.length >= AI_RATE_LIMIT_MAX) {
+        res.status(429).json({ error: "Too many requests. Try again later." });
+        return;
+      }
+      timestamps.push(now);
+      aiRateMap.set(ip, timestamps);
+
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        console.error("Missing GEMINI_API_KEY env var");
+        res.status(500).json({ error: "AI service not configured" });
+        return;
+      }
+
+      const { message, history } = req.body;
+      if (!message || typeof message !== "string") {
+        res.status(400).json({ error: "Message is required" });
+        return;
+      }
+
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+      // בניית היסטוריית שיחה ל-Gemini
+      const chatHistory = (history ?? []).map((msg: { role: string; content: string }) => ({
+        role: msg.role === "user" ? "user" : "model",
+        parts: [{ text: msg.content }],
+      }));
+
+      const chat = model.startChat({
+        history: chatHistory,
+        systemInstruction: SYSTEM_PROMPT,
+      });
+
+      const result = await chat.sendMessage(message);
+      const response = result.response.text();
+
+      res.json({ response });
+    } catch (err) {
+      console.error("AI agent error:", err);
+      res.status(502).json({ error: "Failed to get AI response" });
     }
   });
 
