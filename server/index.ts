@@ -8,6 +8,33 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// rate limiter משותף — מונע כפילות קוד בין endpoints
+function createRateLimiter(maxRequests: number, windowMs: number) {
+  const map = new Map<string, number[]>();
+
+  // ניקוי רשומות ישנות כל 10 דקות
+  setInterval(() => {
+    const now = Date.now();
+    map.forEach((timestamps, ip) => {
+      const active = timestamps.filter((t: number) => now - t < windowMs);
+      if (active.length === 0) map.delete(ip);
+      else map.set(ip, active);
+    });
+  }, 10 * 60_000);
+
+  return {
+    // מחזיר true אם הבקשה חסומה
+    check(ip: string): boolean {
+      const now = Date.now();
+      const timestamps = (map.get(ip) ?? []).filter((t) => now - t < windowMs);
+      if (timestamps.length >= maxRequests) return true;
+      timestamps.push(now);
+      map.set(ip, timestamps);
+      return false;
+    },
+  };
+}
+
 async function startServer() {
   const app = express();
   // Render.com מריץ מאחורי reverse proxy — נדרש כדי לקבל IP אמיתי מ-X-Forwarded-For
@@ -24,20 +51,8 @@ async function startServer() {
 
   app.use(express.static(staticPath));
 
-  // rate limiting פשוט לפי IP — מקסימום 3 בקשות לדקה
-  const contactRateMap = new Map<string, number[]>();
-  const RATE_LIMIT_WINDOW_MS = 60_000;
-  const RATE_LIMIT_MAX = 3;
-
-  // ניקוי רשומות ישנות כל 10 דקות
-  setInterval(() => {
-    const now = Date.now();
-    contactRateMap.forEach((timestamps, ip) => {
-      const active = timestamps.filter((t: number) => now - t < RATE_LIMIT_WINDOW_MS);
-      if (active.length === 0) contactRateMap.delete(ip);
-      else contactRateMap.set(ip, active);
-    });
-  }, 10 * 60_000);
+  const contactLimiter = createRateLimiter(3, 60_000);
+  const aiLimiter = createRateLimiter(10, 60_000);
 
   // שליחת הודעת יצירת קשר דרך טלגרם
   app.post("/api/contact", async (req, res) => {
@@ -49,17 +64,10 @@ async function startServer() {
       }
 
       // rate limiting לפי IP
-      const ip = req.ip ?? "unknown";
-      const now = Date.now();
-      const timestamps = (contactRateMap.get(ip) ?? []).filter(
-        (t) => now - t < RATE_LIMIT_WINDOW_MS,
-      );
-      if (timestamps.length >= RATE_LIMIT_MAX) {
+      if (contactLimiter.check(req.ip ?? "unknown")) {
         res.status(429).json({ error: "Too many requests. Try again later." });
         return;
       }
-      timestamps.push(now);
-      contactRateMap.set(ip, timestamps);
 
       const token = process.env.TELEGRAM_BOT_TOKEN;
       const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -107,19 +115,6 @@ async function startServer() {
   });
 
   // --- AI Agent endpoint עבור CodeKeeper ---
-  const AI_RATE_LIMIT_MAX = 10;
-  const AI_RATE_LIMIT_WINDOW_MS = 60_000;
-  const aiRateMap = new Map<string, number[]>();
-
-  // ניקוי רשומות ישנות כל 10 דקות
-  setInterval(() => {
-    const now = Date.now();
-    aiRateMap.forEach((timestamps, ip) => {
-      const active = timestamps.filter((t: number) => now - t < AI_RATE_LIMIT_WINDOW_MS);
-      if (active.length === 0) aiRateMap.delete(ip);
-      else aiRateMap.set(ip, active);
-    });
-  }, 10 * 60_000);
 
   // טעינת מסמך הידע פעם אחת בעת עליית השרת
   let knowledgeDoc = "";
@@ -152,17 +147,10 @@ ${knowledgeDoc}`;
       }
 
       // rate limiting
-      const ip = req.ip ?? "unknown";
-      const now = Date.now();
-      const timestamps = (aiRateMap.get(ip) ?? []).filter(
-        (t) => now - t < AI_RATE_LIMIT_WINDOW_MS,
-      );
-      if (timestamps.length >= AI_RATE_LIMIT_MAX) {
+      if (aiLimiter.check(req.ip ?? "unknown")) {
         res.status(429).json({ error: "Too many requests. Try again later." });
         return;
       }
-      timestamps.push(now);
-      aiRateMap.set(ip, timestamps);
 
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
