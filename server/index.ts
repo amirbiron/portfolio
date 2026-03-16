@@ -139,6 +139,16 @@ async function startServer() {
 מסמך תיעוד הפרויקט:
 ${knowledgeDoc}`;
 
+  // אתחול הקליינט פעם אחת בעליית השרת
+  const geminiApiKey = process.env.GEMINI_API_KEY;
+  const ai = geminiApiKey ? new GoogleGenAI({ apiKey: geminiApiKey }) : null;
+  if (!ai) {
+    console.warn("Warning: GEMINI_API_KEY not set, AI agent will be unavailable");
+  }
+
+  const MAX_MESSAGE_LENGTH = 2000;
+  const MAX_HISTORY_LENGTH = 20;
+
   app.post("/api/ask-ai", async (req, res) => {
     try {
       if (!req.body) {
@@ -152,9 +162,7 @@ ${knowledgeDoc}`;
         return;
       }
 
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        console.error("Missing GEMINI_API_KEY env var");
+      if (!ai) {
         res.status(500).json({ error: "AI service not configured" });
         return;
       }
@@ -166,14 +174,12 @@ ${knowledgeDoc}`;
       }
 
       // הגבלת אורך הודעה בודדת
-      const MAX_MESSAGE_LENGTH = 2000;
       if (message.length > MAX_MESSAGE_LENGTH) {
         res.status(400).json({ error: "Message too long" });
         return;
       }
 
       // ולידציה והגבלת היסטוריית שיחה
-      const MAX_HISTORY_LENGTH = 20;
       let validatedHistory: { role: string; content: string }[] = [];
       if (Array.isArray(history)) {
         validatedHistory = history
@@ -188,8 +194,6 @@ ${knowledgeDoc}`;
               ((msg as Record<string, unknown>).content as string).length <= MAX_MESSAGE_LENGTH,
           );
       }
-
-      const ai = new GoogleGenAI({ apiKey });
 
       // בניית היסטוריית שיחה ל-Gemini
       const chatHistory = validatedHistory.map((msg) => ({
