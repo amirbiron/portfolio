@@ -124,9 +124,7 @@ async function startServer() {
   // טעינת מסמך הידע פעם אחת בעת עליית השרת
   let knowledgeDoc = "";
   try {
-    const docsPath = process.env.NODE_ENV === "production"
-      ? path.resolve(__dirname, "..", "docs", "CodeBot_Features_Summary.md")
-      : path.resolve(__dirname, "..", "docs", "CodeBot_Features_Summary.md");
+    const docsPath = path.resolve(__dirname, "..", "docs", "CodeBot_Features_Summary.md");
     knowledgeDoc = fs.readFileSync(docsPath, "utf-8");
   } catch {
     console.warn("Warning: CodeBot knowledge doc not found, AI agent will have limited knowledge");
@@ -179,12 +177,36 @@ ${knowledgeDoc}`;
         return;
       }
 
+      // הגבלת אורך הודעה בודדת
+      const MAX_MESSAGE_LENGTH = 2000;
+      if (message.length > MAX_MESSAGE_LENGTH) {
+        res.status(400).json({ error: "Message too long" });
+        return;
+      }
+
+      // ולידציה והגבלת היסטוריית שיחה
+      const MAX_HISTORY_LENGTH = 20;
+      let validatedHistory: { role: string; content: string }[] = [];
+      if (Array.isArray(history)) {
+        validatedHistory = history
+          .slice(-MAX_HISTORY_LENGTH)
+          .filter(
+            (msg: unknown): msg is { role: string; content: string } =>
+              typeof msg === "object" &&
+              msg !== null &&
+              typeof (msg as Record<string, unknown>).role === "string" &&
+              typeof (msg as Record<string, unknown>).content === "string" &&
+              ((msg as Record<string, unknown>).role === "user" || (msg as Record<string, unknown>).role === "assistant") &&
+              ((msg as Record<string, unknown>).content as string).length <= MAX_MESSAGE_LENGTH,
+          );
+      }
+
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
       // בניית היסטוריית שיחה ל-Gemini
-      const chatHistory = (history ?? []).map((msg: { role: string; content: string }) => ({
-        role: msg.role === "user" ? "user" : "model",
+      const chatHistory = validatedHistory.map((msg) => ({
+        role: msg.role === "user" ? ("user" as const) : ("model" as const),
         parts: [{ text: msg.content }],
       }));
 
