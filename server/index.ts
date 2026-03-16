@@ -3,7 +3,7 @@ import { createServer } from "http";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -189,8 +189,7 @@ ${knowledgeDoc}`;
           );
       }
 
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const ai = new GoogleGenAI({ apiKey });
 
       // בניית היסטוריית שיחה ל-Gemini
       const chatHistory = validatedHistory.map((msg) => ({
@@ -198,13 +197,16 @@ ${knowledgeDoc}`;
         parts: [{ text: msg.content }],
       }));
 
-      const chat = model.startChat({
+      const chat = ai.chats.create({
+        model: "gemini-2.5-flash",
         history: chatHistory,
-        systemInstruction: SYSTEM_PROMPT,
+        config: {
+          systemInstruction: SYSTEM_PROMPT,
+        },
       });
 
-      const result = await chat.sendMessage(message);
-      const response = result.response.text();
+      const result = await chat.sendMessage({ message });
+      const response = result.text ?? "";
 
       res.json({ response });
     } catch (err) {
