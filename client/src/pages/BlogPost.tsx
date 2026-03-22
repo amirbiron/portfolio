@@ -799,14 +799,7 @@ locks_col.create_index("expiresAt", expireAfterSeconds=0)
 
 ## הפיפליין — מהזול ליקר
 
-כל פרויקט סריקה+התראות עובד באותו פיפליין:
-
-\`\`\`
-┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│  Scrape  │ →  │  Dedup   │ →  │  Filter  │ →  │ Classify │ →  │  Notify  │
-│ (אתר)   │    │ (DB)     │    │ (מילים)  │    │ (AI)     │    │(טלגרם)   │
-└──────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘
-\`\`\`
+כל פרויקט סריקה+התראות עובד באותו פיפליין: **Scrape → Dedup → Filter → Classify → Notify**.
 
 כל שלב מפחית את כמות הפריטים — חוסך זמן, API calls, וספאם למשתמש. כל שכבה בקובץ נפרד — קל להחליף, לטסט, ולבודד באגים.
 
@@ -915,16 +908,7 @@ async def smart_scroll(page, seen_checker) -> list[dict]:
 
 ## פיפליין סינון — מהזול ליקר
 
-\`\`\`
-raw posts
-  ├─ [1] Dedup (seen_posts DB)               ← חינם
-  ├─ [2] Early Content Dedup (hash תוכן)     ← חינם
-  ├─ [3] Age Filter (גיל הפוסט)             ← חינם
-  ├─ [4] Block Filter (מילים חסומות)         ← חינם
-  ├─ [5] Pre-filter (מילות מפתח)             ← חינם
-  ├─ [6] Cross-Group Dedup                   ← חינם
-  └─ [7] AI Classification                  ← $$$
-\`\`\`
+הסדר: **(1)** Dedup — **(2)** Content Dedup — **(3)** Age Filter — **(4)** Block Filter — **(5)** Pre-filter — **(6)** Cross-Group Dedup (כולם חינם) → **(7)** AI Classification ($$$).
 
 כל שלב חינמי מפחית קריאות ל-AI. **סדר קריטי!**
 
