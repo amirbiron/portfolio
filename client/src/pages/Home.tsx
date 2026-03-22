@@ -78,6 +78,12 @@ export default function Home() {
 
   const blogPosts = [
     {
+      title: "איך לבנות סורק אתרים עם התראות טלגרם — מדריך מהשטח",
+      date: "22-03-2026",
+      excerpt: "מדריך מעשי לבניית פייפליין סריקה: scraping, סינון חכם, dedup רב-שכבתי, סיווג AI, והתראות טלגרם — מבוסס על פרויקט אמיתי ב-512MB RAM.",
+      slug: "web-scraper-telegram-alerts"
+    },
+    {
       title: "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי",
       date: "14-03-2026",
       excerpt: "הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.",

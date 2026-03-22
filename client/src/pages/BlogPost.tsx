@@ -787,6 +787,323 @@ locks_col.create_index("expiresAt", expireAfterSeconds=0)
 **🚀 השתמשתי בזה ב-CodeBot שלי והבעיה נפתרה לגמרי!**
 
 מוזמנים להשתמש ולשתף 🙌`
+  },
+
+  "web-scraper-telegram-alerts": {
+    title: "איך לבנות סורק אתרים עם התראות טלגרם — מדריך מהשטח",
+    date: "22-03-2026",
+    content: `> מדריך מעשי לבניית פרויקט שסורק אתר בקביעות, מזהה נתונים רלוונטיים, ושולח התראות לטלגרם.
+> מבוסס על לקחים מפרויקט אמיתי שרץ בפרודקשן על VM עם 512MB RAM.
+
+---
+
+## הפיפליין — מהזול ליקר
+
+כל פרויקט סריקה+התראות עובד באותו פיפליין:
+
+\`\`\`
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│  Scrape  │ →  │  Dedup   │ →  │  Filter  │ →  │ Classify │ →  │  Notify  │
+│ (אתר)   │    │ (DB)     │    │ (מילים)  │    │ (AI)     │    │(טלגרם)   │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘
+\`\`\`
+
+כל שלב מפחית את כמות הפריטים — חוסך זמן, API calls, וספאם למשתמש. כל שכבה בקובץ נפרד — קל להחליף, לטסט, ולבודד באגים.
+
+---
+
+## בחירת טכנולוגיית סריקה
+
+| טכנולוגיה | מתי להשתמש | זיכרון |
+|-----------|-----------|--------|
+| **requests + BeautifulSoup** | אתר סטטי, API גלוי | ~20MB |
+| **Playwright** | אתר דינמי, צריך JS/login | ~150-300MB |
+| **API ישיר** | יש API רשמי/לא רשמי | ~10MB |
+
+> **כלל אצבע:** התחל עם requests. עבור ל-Playwright רק אם חייבים JS rendering או login.
+
+### דפוס בסיסי — requests
+
+\`\`\`python
+import requests
+from bs4 import BeautifulSoup
+
+async def scrape_page(url: str) -> list[dict]:
+    response = await asyncio.to_thread(
+        requests.get, url, timeout=15, headers=HEADERS
+    )
+    soup = BeautifulSoup(response.text, 'html.parser')
+    items = []
+    for element in soup.select('.item-selector'):
+        items.append({
+            "id": extract_id(element),
+            "text": element.get_text(strip=True),
+            "url": element.find('a')['href'],
+            "has_real_url": True,
+        })
+    return items
+\`\`\`
+
+### דפוס מתקדם — Playwright
+
+\`\`\`python
+from playwright.async_api import async_playwright
+
+async def scrape_with_browser(url: str) -> list[dict]:
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context(
+            viewport={"width": 360, "height": 640},  # מובייל = קל יותר
+        )
+        page = await context.new_page()
+        # חסימת משאבים כבדים — חוסך ~60% זיכרון
+        await page.route("**/*", lambda route: (
+            route.abort() if route.request.resource_type
+            in {"image", "media", "font"}
+            else route.continue_()
+        ))
+        await page.goto(url, wait_until="domcontentloaded")
+        items = await smart_scroll_and_extract(page)
+        await browser.close()
+        return items
+\`\`\`
+
+---
+
+## גלילה חכמה — מעקב לפי תוכן, לא אינדקס
+
+אתרים רבים משתמשים ב-DOM וירטואלי — אלמנטים נוספים ומוסרים תוך כדי גלילה. מעקב לפי אינדקס (\`elements[5:]\`) ישבר. תמיד לעקוב לפי **set של תוכן שכבר נראה**:
+
+\`\`\`python
+async def smart_scroll(page, seen_checker) -> list[dict]:
+    seen_texts = set()
+    consecutive_known = 0       # רצף של פריטים מוכרים
+    all_items = []
+
+    for scroll_num in range(MAX_SCROLLS):
+        elements = await page.query_selector_all('.item')
+        new_in_scroll = 0
+
+        for el in elements:
+            text = await el.inner_text()
+            if text in seen_texts:
+                continue
+            seen_texts.add(text)
+            item = extract_item(el, text)
+
+            if item["has_real_url"] and seen_checker(item["id"]):
+                consecutive_known += 1
+                if consecutive_known >= 3:
+                    return all_items  # הגענו לפוסטים ישנים
+                continue
+
+            consecutive_known = 0
+            new_in_scroll += 1
+            all_items.append(item)
+
+        if new_in_scroll == 0:
+            break
+        await page.evaluate("window.scrollBy(0, 1500)")
+        await asyncio.sleep(random.uniform(1, 3))
+
+    return all_items
+\`\`\`
+
+**למה רצף של 3 פריטים מוכרים?** פריט מוצמד (pinned) בראש הפיד כבר ב-DB — בדיקת פריט בודד תעצור מיד.
+
+---
+
+## פיפליין סינון — מהזול ליקר
+
+\`\`\`
+raw posts
+  ├─ [1] Dedup (seen_posts DB)               ← חינם
+  ├─ [2] Early Content Dedup (hash תוכן)     ← חינם
+  ├─ [3] Age Filter (גיל הפוסט)             ← חינם
+  ├─ [4] Block Filter (מילים חסומות)         ← חינם
+  ├─ [5] Pre-filter (מילות מפתח)             ← חינם
+  ├─ [6] Cross-Group Dedup                   ← חינם
+  └─ [7] AI Classification                  ← $$$
+\`\`\`
+
+כל שלב חינמי מפחית קריאות ל-AI. **סדר קריטי!**
+
+### סינון מילות מפתח — מלכודת ה-\`any([])\`
+
+\`\`\`python
+def passes_keyword_filter(text: str, keywords: list[str]) -> bool:
+    if not keywords:
+        return True  # !! רשימה ריקה = אין סינון = הכל עובר
+    text_lower = text.lower()
+    return any(kw in text_lower for kw in keywords)
+\`\`\`
+
+> **מלכודת:** \`any([])\` מחזיר \`False\` — בלי guard, רשימת מילות מפתח ריקה תחסום *הכל* בשקט.
+
+---
+
+## Dedup רב-שכבתי — הלב של המערכת
+
+### Content Hash יציב
+
+הבעיה: תוכן דינמי (תגובות, לייקים) משנה את ה-hash בין סריקות.
+
+\`\`\`python
+import hashlib, re
+
+def stable_text_for_hash(text: str) -> str:
+    text = text.lower()
+    text = re.sub(r'https?://\\S+', '', text)           # URLs עם tracking
+    text = re.sub(r'[\\uE000-\\uF8FF]', '', text)        # Private Use Area
+    lines = text.split('\\n')
+    stable = []
+    for line in lines:
+        s = line.strip()
+        if not s:
+            continue
+        if re.match(r'^\\d[\\d,. ]*$', s):                # "5" (ספירת לייקים)
+            continue
+        if ENGAGEMENT_RE.match(s):                       # "5 תגובות"
+            continue
+        stable.append(s)
+    return ' '.join(stable)
+
+def content_dedup_hash(text: str) -> str:
+    normalized = stable_text_for_hash(text)
+    words = normalized.split()[:12]    # 12 מילים ראשונות בלבד
+    core = ' '.join(words)
+    return hashlib.md5(core.encode()).hexdigest()
+\`\`\`
+
+**למה 12 מילים ולא 150 תווים?**
+- ליבת הפריט (כותרת + תחילת גוף) תמיד בהתחלה
+- תוכן דינמי (תגובות) בסוף
+- בפריטים קצרים, 150 תווים כולל חלק מתגובות — שמשתנות בין סריקות
+
+---
+
+## סיווג AI — באצ'ים עם Fallback
+
+\`\`\`python
+def classify_batch(items: list[dict], batch_size=5) -> list[dict]:
+    all_results = []
+    for i in range(0, len(items), batch_size):
+        batch = items[i:i + batch_size]
+        try:
+            response = call_api(batch)
+            temp = parse_response(response)  # רשימה זמנית!
+            if len(temp) != len(batch):
+                raise ValueError("אורך תשובה לא תואם")
+            all_results.extend(temp)          # רק אחרי הצלחה
+        except Exception:
+            for item in batch:
+                try:
+                    result = classify_single(item)
+                    all_results.append(result)
+                except Exception:
+                    all_results.append({"relevant": False})
+    return all_results
+\`\`\`
+
+**למה רשימה זמנית?** אם exception נופל באמצע ה-loop שמוסיף תוצאות, חלק כבר נוסף. ה-fallback מוסיף הכל שוב → \`zip()\` מתאים תוצאות לפריטים לא נכונים.
+
+---
+
+## התראות טלגרם
+
+\`\`\`python
+async def send_lead(item: dict, reason: str):
+    text = format_lead(item, reason)
+    # חשוב! requests.post חוסם event loop — חייבים to_thread
+    success = await asyncio.to_thread(send_message, text)
+    if success:
+        save_lead(item["id"], item["text"])
+\`\`\`
+
+**טיפ:** הפרידו ערוצים — לידים ללקוח, שגיאות טכניות למפתח.
+
+---
+
+## ניהול זיכרון ב-VM קטן
+
+חמישה עקרונות ל-512MB:
+
+1. **גרסת מובייל** — אם יש, חוסך ~60% זיכרון
+2. **חסימת resources** — תמונות, פונטים, מדיה
+3. **\`about:blank\` בין דפים** — משחרר DOM
+4. **\`gc.collect()\`** — אחרי סגירת דפדפן, לפני AI
+5. **דפדפן אחד, context חדש** — לא פותחים מספר instances
+
+---
+
+## טעויות נפוצות (ופתרונות)
+
+### 1. קריאות sync חוסמות event loop
+
+\`\`\`python
+# שגוי
+async def send():
+    requests.post(...)      # חוסם!
+
+# נכון
+async def send():
+    await asyncio.to_thread(requests.post, ...)
+\`\`\`
+
+### 2. מעקב לפי אינדקס בגלילה
+
+\`\`\`python
+# שגוי — DOM וירטואלי שובר אינדקסים
+for i in range(last_index, len(elements)):
+    process(elements[i])
+
+# נכון
+seen_texts = set()
+for el in elements:
+    text = el.text
+    if text not in seen_texts:
+        seen_texts.add(text)
+        process(el)
+\`\`\`
+
+### 3. Fallback ID שובר dedup
+
+\`\`\`python
+# שגוי — כל הפריטים ללא URL מקבלים ID דומה
+id = extract_url(el) or page_url
+
+# נכון — flag שמסמן ID אמיתי
+id, has_real_id = extract_item_id(el, page_url)
+if has_real_id:
+    check_dedup(id)
+\`\`\`
+
+### 4. Session detection אגרסיבי
+
+\`\`\`python
+# שגוי — סימן אחד = "סשן פג" → false positive שובר הכל
+if any_login_link_found:
+    re_login()
+
+# נכון — סף גבוה + בדיקה כפולה
+if login_ratio > 0.75 and no_content and link_count >= 3:
+    re_login()
+\`\`\`
+
+---
+
+## עקרונות זהב — סיכום
+
+1. **פיפליין מהזול ליקר** — סינון חינמי לפני AI
+2. **Dedup רב-שכבתי** — ID + content hash + cross-group
+3. **Hash יציב** — נרמול עמוק, 12 מילים ראשונות בלבד
+4. **רשימה ריקה = אין סינון** — guard על \`any([])\`
+5. **מעקב לפי תוכן, לא אינדקס** — DOM וירטואלי שובר אינדקסים
+6. **Async בכל מקום** — \`asyncio.to_thread()\` לקריאות sync
+7. **באצ' = רשימה זמנית** — extend רק אחרי הצלחה מלאה
+8. **Session detection שמרני** — false positive שובר הכל
+9. **גרסת מובייל + חסימת resources** — חוסך 60%+ זיכרון
+10. **גיל פוסט = מקסימום** — timestamp ישן ביותר = יצירת הפוסט`
   }
 };
 
