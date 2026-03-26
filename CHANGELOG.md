@@ -1,3 +1,16 @@
+## [2026-03-26] הוספת favicon בסגנון טרמינל
+
+**קבצים שהשתנו:**
+- `client/public/favicon.ico` — (נוסף) favicon בגדלים 16/32/48
+- `client/public/favicon.png` — (נוסף) favicon 32x32 PNG לדפדפנים מודרניים
+- `client/public/apple-touch-icon.png` — (נוסף) אייקון 180x180 לאייפון
+- `client/index.html` — (שונה) הוספת תגיות link ל-favicon
+
+**פירוט:**
+נוצר favicon עם הסימן `>_` (טרמינל) בירוק (#00ff41) על רקע כהה (#0d0208) — תואם לשפה העיצובית של הסייט. נוסף בפורמטים ico, png ו-apple-touch-icon. תגיות link נוספו ל-index.html.
+
+---
+
 ## [2026-03-26] שינוי כותרת ראשית מ-Bot Developer ל-Automation Developer
 
 **קבצים שהשתנו:**
