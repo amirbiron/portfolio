@@ -1,3 +1,28 @@
+## [2026-03-26] הוספת Meta Tags ו-Open Graph לתצוגה מקדימה ברשתות חברתיות
+
+**קבצים שהשתנו:**
+- `client/index.html` — (שונה) הוספת תגיות meta, Open Graph ו-Twitter Card
+- `render.yaml` — (שונה) הוספת משתנה סביבה VITE_SITE_URL
+
+**פירוט:**
+הוספת תגיות מטא לדף הראשי כדי שקישורים לאתר יציגו תצוגה מקדימה יפה כשמשתפים אותם ברשתות חברתיות (וואטסאפ, טלגרם, לינקדאין, טוויטר וכו').
+
+שינויים ב-`index.html`:
+- שפת הדף שונתה מ-`en` ל-`he` עם `dir="rtl"`
+- כותרת הדף שונתה ל-"אמיר בירון | Automation Developer"
+- תיאור עודכן לעברית
+- נוספו תגיות `author` ו-`keywords`
+- נוספו תגיות Open Graph: `og:type`, `og:title`, `og:description`, `og:image`, `og:url`, `og:locale`, `og:site_name`
+- נוספו תגיות Twitter Card: `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`
+- תמונת התצוגה המקדימה: `developer_profile_sketch.png` (קיימת ב-public)
+- כתובות מוחלטות (לתמונה ול-URL) משתמשות במשתנה `%VITE_SITE_URL%` שמוחלף בזמן build
+
+ב-`render.yaml` נוסף `VITE_SITE_URL` — יש לעדכן את הערך לדומיין האמיתי של האתר.
+
+תוקן גם באג קטן: תו `>` מיותר בסוף תגית הפונט.
+
+---
+
 ## [2026-03-26] שינוי כותרת ראשית מ-Bot Developer ל-Automation Developer
 
 **קבצים שהשתנו:**
