@@ -137,11 +137,11 @@ export default function Home() {
               </div>
               
               <h1 dir="ltr" className="text-4xl md:text-6xl font-bold text-primary neon-glow mb-4 cursor-blink text-left">
-                BOT DEVELOPER
+                AUTOMATION DEVELOPER
               </h1>
               
               <p dir="rtl" className="text-lg md:text-xl text-foreground/90 mb-8 max-w-2xl">
-                מפתח בוטים ופתרונות אוטומציה חכמה<br />
+                מפתח אוטומציות, בוטים ופתרונות חכמים<br />
                 התמחות: טלגרם, ווטסאפ, פייתון
               </p>
               
