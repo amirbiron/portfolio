@@ -5,6 +5,28 @@
 
 **פירוט:**
 פרויקט חדש — אפליקציית ווב אינטראקטיבית לבניית עוגני שגרה יומיים לילדים בתקופות חוסר ודאות. הפרויקט שונה מהשאר (TypeScript full-stack עם React, tRPC, MySQL, dnd-kit) ומציג רוחב טכנולוגי. כולל: תיאור, סטאק טכנולוגי, דיאגרמת Mermaid, אתגרים, פיצ'רים, קישור לדמו ולריפו. סקרינשוטים צריכים להישמר ידנית ב-`client/public/projects/` עם השמות: routine_home.jpg, routine_my_day.jpg, routine_activities.jpg, routine_evening_chat.jpg, routine_parent_guide.jpg.
+## [2026-03-26] הוספת Meta Tags ו-Open Graph לתצוגה מקדימה ברשתות חברתיות
+
+**קבצים שהשתנו:**
+- `client/index.html` — (שונה) הוספת תגיות meta, Open Graph ו-Twitter Card
+- `render.yaml` — (שונה) הוספת משתנה סביבה VITE_SITE_URL
+
+**פירוט:**
+הוספת תגיות מטא לדף הראשי כדי שקישורים לאתר יציגו תצוגה מקדימה יפה כשמשתפים אותם ברשתות חברתיות (וואטסאפ, טלגרם, לינקדאין, טוויטר וכו').
+
+שינויים ב-`index.html`:
+- שפת הדף שונתה מ-`en` ל-`he` (בלי `dir="rtl"` גלובלי — הקומפוננטות מנהלות כיוון RTL/LTR ברמת האלמנט)
+- כותרת הדף שונתה ל-"אמיר בירון | Automation Developer"
+- תיאור עודכן לעברית
+- נוספו תגיות `author` ו-`keywords`
+- נוספו תגיות Open Graph: `og:type`, `og:title`, `og:description`, `og:image`, `og:url`, `og:locale`, `og:site_name`
+- נוספו תגיות Twitter Card: `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`
+- תמונת התצוגה המקדימה: `developer_profile_sketch.png` (קיימת ב-public)
+- כתובות מוחלטות (לתמונה ול-URL) משתמשות במשתנה `%VITE_SITE_URL%` שמוחלף בזמן build
+
+ב-`render.yaml` נוסף `VITE_SITE_URL` — יש לעדכן את הערך לדומיין האמיתי של האתר.
+
+תוקן גם באג קטן: תו `>` מיותר בסוף תגית הפונט.
 
 ---
 
