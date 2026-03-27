@@ -1,3 +1,10 @@
+## [2026-03-27] הוספת פרויקט "שגרה בחוסר שגרה" לפורטפוליו
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) הוספת פרויקט routine-anchors למערך הפרויקטים
+
+**פירוט:**
+פרויקט חדש — אפליקציית ווב אינטראקטיבית לבניית עוגני שגרה יומיים לילדים בתקופות חוסר ודאות. הפרויקט שונה מהשאר (TypeScript full-stack עם React, tRPC, MySQL, dnd-kit) ומציג רוחב טכנולוגי. כולל: תיאור, סטאק טכנולוגי, דיאגרמת Mermaid, אתגרים, פיצ'רים, קישור לדמו ולריפו. סקרינשוטים צריכים להישמר ידנית ב-`client/public/projects/` עם השמות: routine_home.jpg, routine_my_day.jpg, routine_activities.jpg, routine_evening_chat.jpg, routine_parent_guide.jpg.
 ## [2026-03-26] הוספת Meta Tags ו-Open Graph לתצוגה מקדימה ברשתות חברתיות
 
 **קבצים שהשתנו:**
