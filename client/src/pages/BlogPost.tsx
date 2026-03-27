@@ -825,14 +825,11 @@ locks_col.create_index("expiresAt", expireAfterSeconds=0)
 2. שלחו \`/newbot\`, בחרו שם ו-username (חייב להסתיים ב-\`bot\`)
 3. שמרו את ה-TOKEN — זה המפתח לבוט
 
-כדי לאפשר מצב inline, שלחו ל-BotFather:
-\`\`\`
-/setinline
-\`\`\`
+כדי לאפשר מצב inline, שלחו ל-BotFather: \`/setinline\`
 
 ### שלב 2: תלויות
 
-\`\`\`text
+\`\`\`bash
 python-telegram-bot>=22.0,<23.0
 httpx>=0.27,<0.29
 pymongo[srv]>=4.6,<5
@@ -857,7 +854,7 @@ ALLOW_ALL_COMMANDS=false
 
 ## מבנה הפרויקט
 
-\`\`\`
+\`\`\`bash
 my-telegram-bot/
 ├── bot.py                    # קובץ ראשי
 ├── activity_reporter.py      # דיווח פעילות
