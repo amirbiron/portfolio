@@ -919,9 +919,10 @@ async def sh_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if parts[0] not in ALLOWED_CMDS:
         return await update.message.reply_text(f"פקודה לא מאושרת: {parts[0]}")
 
+    # shell=False + parts — מונע עקיפה דרך metacharacters (;, &&, |)
     try:
         result = subprocess.run(
-            cmdline, shell=True,
+            parts, shell=False,
             capture_output=True, text=True, timeout=30
         )
         output = result.stdout or result.stderr or "(no output)"
