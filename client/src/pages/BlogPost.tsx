@@ -789,6 +789,481 @@ locks_col.create_index("expiresAt", expireAfterSeconds=0)
 מוזמנים להשתמש ולשתף 🙌`
   },
 
+  "telegram-terminal-bot-guide": {
+    title: "מדריך ליצירת בוט טרמינל לטלגרם בפייתון — הרצת קוד מרחוק דרך הצ'אט",
+    date: "27-03-2026",
+    content: `> איך לבנות בוט טלגרם שמאפשר הרצת קוד Python, JavaScript ופקודות shell — עם מערכת הרשאות, ניהול סשנים, ופריסה ב-Docker.
+
+---
+
+## רקע — למה בוט טרמינל?
+
+לפעמים צריך להריץ פקודה מהירה על השרת, אבל אין גישה נוחה ל-SSH. בוט טרמינל בטלגרם נותן ממשק קליל — שולחים הודעה, מקבלים פלט. מדריך זה מבוסס על יישום אמיתי שרץ בפרודקשן.
+
+> **אזהרה:** בוט כזה מאפשר הרצת קוד שרירותי על השרת. חובה להריץ בסביבה מבודדת (Docker/VM) ולהגביל גישה למשתמשים מורשים בלבד.
+
+---
+
+## מה הבוט יודע לעשות
+
+- **הרצת Python** — עם שמירת מצב (משתנים, פונקציות) בין הרצות
+- **הרצת JavaScript** — Node.js עם תמיכה ב-ES6+
+- **הרצת Java** — קומפילציה והרצה אוטומטית עם זיהוי שם המחלקה
+- **פקודות Shell** — עם שמירת working directory ו-env vars בין פקודות
+- **מערכת הרשאות** — allowlist דינמי לפקודות, הגבלה למשתמשים מורשים
+- **מצב Inline** — הרצת קוד מכל צ'אט
+- **דיווח פעילות** — מעקב אוטומטי ל-MongoDB
+- **ניהול סשנים** — מצב נפרד לכל צ'אט
+
+---
+
+## הקמת הפרויקט
+
+### שלב 1: יצירת בוט בטלגרם
+
+1. פתחו את \`@BotFather\` בטלגרם
+2. שלחו \`/newbot\`, בחרו שם ו-username (חייב להסתיים ב-\`bot\`)
+3. שמרו את ה-TOKEN — זה המפתח לבוט
+
+כדי לאפשר מצב inline, שלחו ל-BotFather:
+\`\`\`
+/setinline
+\`\`\`
+
+### שלב 2: תלויות
+
+\`\`\`text
+python-telegram-bot>=22.0,<23.0
+httpx>=0.27,<0.29
+pymongo[srv]>=4.6,<5
+python-dotenv>=1.0,<2
+\`\`\`
+
+### שלב 3: משתני סביבה
+
+\`\`\`bash
+# .env (לא מעלים ל-git!)
+BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrsTUVwxyz
+OWNER_ID=123456789
+CMD_TIMEOUT=60
+TG_MAX_MESSAGE=4000
+MAX_OUTPUT=10000
+ALLOW_ALL_COMMANDS=false
+\`\`\`
+
+> **טיפ:** את ה-\`OWNER_ID\` אפשר למצוא על ידי שליחת \`/whoami\` לבוט אחרי ההפעלה הראשונה.
+
+---
+
+## מבנה הפרויקט
+
+\`\`\`
+my-telegram-bot/
+├── bot.py                    # קובץ ראשי
+├── activity_reporter.py      # דיווח פעילות
+├── requirements.txt
+├── Dockerfile
+├── .env
+└── .gitignore
+\`\`\`
+
+---
+
+## יישום — צעד אחרי צעד
+
+### שלד הבוט
+
+\`\`\`python
+import os
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+OWNER_ID = int(os.getenv("OWNER_ID", "0"))
+
+def allowed(update: Update) -> bool:
+    return update.effective_user.id == OWNER_ID
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "שלום! אני בוט טרמינל.\\n"
+        "שלח /help לעזרה"
+    )
+
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.run_polling(drop_pending_updates=True)
+
+if __name__ == "__main__":
+    main()
+\`\`\`
+
+### הרצת פקודות Shell
+
+\`\`\`python
+import subprocess
+import shlex
+
+ALLOWED_CMDS = {"ls", "pwd", "echo", "cat", "grep", "find"}
+
+async def sh_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not allowed(update):
+        return await update.message.reply_text("אין הרשאה")
+
+    cmdline = update.message.text.partition(" ")[2].strip()
+    if not cmdline:
+        return await update.message.reply_text("שימוש: /sh <פקודה>")
+
+    parts = shlex.split(cmdline)
+    if parts[0] not in ALLOWED_CMDS:
+        return await update.message.reply_text(f"פקודה לא מאושרת: {parts[0]}")
+
+    # shell=False + parts — מונע עקיפה דרך metacharacters (;, &&, |)
+    try:
+        result = subprocess.run(
+            parts, shell=False,
+            capture_output=True, text=True, timeout=30
+        )
+        output = result.stdout or result.stderr or "(no output)"
+        await update.message.reply_text(f"$ {cmdline}\\n\\n{output}")
+    except subprocess.TimeoutExpired:
+        await update.message.reply_text("Timeout")
+    except Exception as e:
+        await update.message.reply_text(f"שגיאה: {e}")
+\`\`\`
+
+### הרצת קוד Python עם שמירת מצב
+
+\`\`\`python
+import io
+import contextlib
+import traceback
+
+# הקשר גלובלי — משתנים נשמרים בין הרצות
+PY_CONTEXT = {}
+
+async def py_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not allowed(update):
+        return
+
+    code = update.message.text.partition(" ")[2].strip()
+    if not code:
+        return await update.message.reply_text("שימוש: /py <קוד>")
+
+    chat_id = update.effective_chat.id
+    if chat_id not in PY_CONTEXT:
+        PY_CONTEXT[chat_id] = {"__builtins__": __builtins__}
+
+    ctx = PY_CONTEXT[chat_id]
+    stdout_buffer = io.StringIO()
+    stderr_buffer = io.StringIO()
+
+    try:
+        with contextlib.redirect_stdout(stdout_buffer), \\
+             contextlib.redirect_stderr(stderr_buffer):
+            exec(code, ctx, ctx)
+
+        output = stdout_buffer.getvalue() or "(no output)"
+        await update.message.reply_text(output)
+    except Exception:
+        tb = traceback.format_exc()
+        await update.message.reply_text(f"שגיאה:\\n{tb}")
+\`\`\`
+
+שמירת המצב מאפשרת עבודה טבעית:
+
+\`\`\`python
+# הודעה ראשונה
+/py x = 42
+
+# הודעה שנייה — x עדיין קיים
+/py print(f"x = {x}")
+\`\`\`
+
+### ניהול סשנים
+
+\`\`\`python
+sessions = {}
+
+def get_session(update: Update):
+    chat_id = update.effective_chat.id
+    if chat_id not in sessions:
+        sessions[chat_id] = {
+            "cwd": os.getcwd(),
+            "env": dict(os.environ)
+        }
+    return sessions[chat_id]
+
+def handle_cd(sess, target_dir):
+    new_path = os.path.abspath(
+        os.path.join(sess["cwd"], target_dir)
+    )
+    if os.path.isdir(new_path):
+        sess["cwd"] = new_path
+        return f"cwd: {new_path}"
+    return f"תיקייה לא נמצאה: {target_dir}"
+\`\`\`
+
+---
+
+## רשימת פקודות
+
+| פקודה | דוגמה | תיאור |
+|-------|-------|-------|
+| \`/start\` | \`/start\` | הודעת פתיחה |
+| \`/sh\` | \`/sh ls -la\` | הרצת פקודת shell |
+| \`/py\` | \`/py print("Hello")\` | הרצת קוד Python |
+| \`/js\` | \`/js console.log("Hi")\` | הרצת קוד JavaScript |
+| \`/java\` | \`/java public class Main {...}\` | הרצת קוד Java |
+| \`/py_start\` | \`/py_start\` | התחלת איסוף קוד רב-שורות |
+| \`/py_run\` | \`/py_run\` | הרצת הקוד שנאסף |
+| \`/call\` | \`/call my_func arg1\` | קריאה לפונקציה מההקשר |
+| \`/env\` | \`/env\` | הצגת משתני סביבה |
+| \`/reset\` | \`/reset\` | איפוס cwd/env |
+| \`/clear\` | \`/clear\` | ניקוי מלא של הסשן |
+| \`/list\` | \`/list\` | הצגת פקודות מותרות |
+| \`/allow\` | \`/allow curl,wget\` | הוספת פקודות ל-allowlist |
+| \`/deny\` | \`/deny rm,rmdir\` | הסרת פקודות |
+| \`/health\` | \`/health\` | בדיקת חיבור |
+| \`/whoami\` | \`/whoami\` | הצגת מזהה המשתמש |
+| \`/restart\` | \`/restart\` | הפעלה מחדש |
+
+---
+
+## אבטחה
+
+### הגבלת הרשאות
+
+\`\`\`python
+# תמיכה במספר בעלים
+OWNER_IDS = {123456, 789012}
+
+def allowed(update: Update) -> bool:
+    return update.effective_user.id in OWNER_IDS
+\`\`\`
+
+### Timeout
+
+\`\`\`python
+import asyncio
+
+TIMEOUT = 60
+
+async def run_with_timeout(func, *args):
+    try:
+        return await asyncio.wait_for(func(*args), timeout=TIMEOUT)
+    except asyncio.TimeoutError:
+        return "Timeout"
+\`\`\`
+
+### הגבלת גודל פלט
+
+\`\`\`python
+MAX_OUTPUT = 10000
+
+def truncate(text: str) -> str:
+    if len(text) <= MAX_OUTPUT:
+        return text
+    return text[:MAX_OUTPUT] + f"\\n\\n[חתוך {len(text) - MAX_OUTPUT} תווים]"
+\`\`\`
+
+### ניקוי קלט (Sanitization)
+
+\`\`\`python
+import unicodedata
+import re
+
+def normalize_code(text: str) -> str:
+    text = unicodedata.normalize("NFKC", text)
+    text = text.replace("\\u201C", '"').replace("\\u201D", '"')
+    text = text.replace("\\u200E", "").replace("\\u200F", "")
+    text = re.sub(r"(?m)^\\s*\\\`\\\`\\\`[a-zA-Z0-9_+\\-]*\\s*$", "", text)
+    return text
+\`\`\`
+
+### הרצה מבודדת ב-Docker
+
+\`\`\`bash
+docker run --rm \\
+  --cpus="1.0" \\
+  --memory="512m" \\
+  --network="none" \\
+  -e BOT_TOKEN="$BOT_TOKEN" \\
+  -e OWNER_ID="$OWNER_ID" \\
+  my-telegram-bot
+\`\`\`
+
+---
+
+## פריסה
+
+### Dockerfile
+
+\`\`\`dockerfile
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \\
+    build-essential gcc git curl nodejs npm default-jdk \\
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+
+CMD ["python", "bot.py"]
+\`\`\`
+
+### בנייה והרצה
+
+\`\`\`bash
+docker build -t my-telegram-bot .
+
+docker run -d \\
+  --name telegram-bot \\
+  --restart unless-stopped \\
+  -e BOT_TOKEN="your-token-here" \\
+  -e OWNER_ID="123456789" \\
+  my-telegram-bot
+\`\`\`
+
+### עדכון אוטומטי עם GitHub Actions
+
+\`\`\`yaml
+name: Deploy Bot
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Render
+        env:
+          RENDER_DEPLOY_HOOK: \${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: curl -X POST $RENDER_DEPLOY_HOOK
+\`\`\`
+
+---
+
+## פיצ'רים מתקדמים
+
+### מצב Inline
+
+\`\`\`python
+from telegram import InlineQueryResultArticle, InputTextMessageContent
+from telegram.ext import InlineQueryHandler
+
+async def inline_query(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.inline_query.query
+    results = [
+        InlineQueryResultArticle(
+            id="1",
+            title=f"להריץ: {query}",
+            input_message_content=InputTextMessageContent(f"/sh {query}"),
+            description="הרצת פקודת shell"
+        )
+    ]
+    await update.inline_query.answer(results)
+
+app.add_handler(InlineQueryHandler(inline_query))
+\`\`\`
+
+### מקלדות אינטראקטיביות
+
+\`\`\`python
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import CallbackQueryHandler
+
+async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [
+            InlineKeyboardButton("Python", callback_data="lang_py"),
+            InlineKeyboardButton("JavaScript", callback_data="lang_js")
+        ],
+        [
+            InlineKeyboardButton("Shell", callback_data="lang_sh"),
+            InlineKeyboardButton("Java", callback_data="lang_java")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("בחר שפת תכנות:", reply_markup=reply_markup)
+
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    if query.data == "lang_py":
+        await query.edit_message_text("נבחרה Python! שלח קוד עם /py")
+
+app.add_handler(CommandHandler("menu", menu))
+app.add_handler(CallbackQueryHandler(button_handler))
+\`\`\`
+
+### דיווח פעילות ל-MongoDB
+
+\`\`\`python
+from pymongo import MongoClient
+from datetime import datetime, timezone
+
+class SimpleActivityReporter:
+    def __init__(self, mongodb_uri, service_id, service_name=None):
+        self.client = MongoClient(mongodb_uri)
+        self.db = self.client["bot_monitor"]
+        self.service_id = service_id
+        self.service_name = service_name or service_id
+
+    def report_activity(self, user_id):
+        now = datetime.now(timezone.utc)
+        self.db.user_interactions.update_one(
+            {"service_id": self.service_id, "user_id": user_id},
+            {
+                "$set": {"last_interaction": now},
+                "$inc": {"interaction_count": 1},
+                "$setOnInsert": {"created_at": now}
+            },
+            upsert=True
+        )
+        self.db.service_activity.update_one(
+            {"_id": self.service_id},
+            {
+                "$set": {
+                    "last_user_activity": now,
+                    "service_name": self.service_name
+                }
+            },
+            upsert=True
+        )
+\`\`\`
+
+---
+
+## פתרון בעיות נפוצות
+
+**"Conflict: terminated by other getUpdates request"** — יש instance נוסף שרץ. עצרו את כל ה-instances האחרים.
+
+**"Unauthorized"** — הטוקן לא תקין. ודאו ש-\`BOT_TOKEN\` נכון ולא פג תוקפו.
+
+**"ModuleNotFoundError"** — חסרה ספריה. התקינו עם \`pip install <שם>\`.
+
+**הבוט לא מגיב** — בדקו: האם הבוט רץ, האם יש חיבור לאינטרנט, האם \`OWNER_ID\` נכון (שלחו \`/whoami\`).
+
+---
+
+## סיכום
+
+בוט טרמינל לטלגרם הוא כלי שימושי לניהול שרת מרחוק. הנקודות העיקריות:
+
+1. **הגבלת גישה** — רק \`OWNER_ID\` מורשה, allowlist לפקודות
+2. **בידוד** — Docker עם הגבלות CPU/RAM/רשת
+3. **שמירת מצב** — context נפרד לכל צ'אט
+4. **Timeout וחיתוך פלט** — הגנה מפני הרצות כבדות
+5. **ניקוי קלט** — נרמול Unicode, הסרת markdown fences`
+  },
+
   "web-scraper-telegram-alerts": {
     title: "איך לבנות סורק אתרים עם התראות טלגרם — מדריך מהשטח",
     date: "22-03-2026",
