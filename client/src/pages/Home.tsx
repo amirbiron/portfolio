@@ -78,6 +78,12 @@ export default function Home() {
 
   const blogPosts = [
     {
+      title: "מדריך ליצירת בוט טרמינל לטלגרם בפייתון — הרצת קוד מרחוק דרך הצ'אט",
+      date: "27-03-2026",
+      excerpt: "איך לבנות בוט טלגרם שמאפשר הרצת קוד Python, JavaScript ופקודות shell — עם מערכת הרשאות, ניהול סשנים, ופריסה ב-Docker.",
+      slug: "telegram-terminal-bot-guide"
+    },
+    {
       title: "איך לבנות סורק אתרים עם התראות טלגרם — מדריך מהשטח",
       date: "22-03-2026",
       excerpt: "מדריך מעשי לבניית פייפליין סריקה: scraping, סינון חכם, dedup רב-שכבתי, סיווג AI, והתראות טלגרם — מבוסס על פרויקט אמיתי ב-512MB RAM.",
