@@ -14,6 +14,8 @@ export interface ProjectData {
   tech: string[];
   /** תמונת כרטיס בדף הבית (URL חיצוני או ריק) */
   image: string;
+  /** מיקום התמונה בכרטיס — ברירת מחדל center */
+  imagePosition?: string;
   screenshots: string[];
   mermaidDiagram: string;
   demo: string;
@@ -506,6 +508,7 @@ export const projects: ProjectData[] = [
     ],
     image:
       "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/routine-anchors-hznWo9CY8YAPAQLCxoMCmN.webp",
+    imagePosition: "top",
     screenshots: [
       "/projects/routine_home.jpg",
       "/projects/routine_my_day.jpg",

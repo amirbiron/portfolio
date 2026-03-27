@@ -286,7 +286,7 @@ export default function Home() {
                     <img
                       src={project.image}
                       alt={project.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500${project.imagePosition ? ` object-${project.imagePosition}` : ''}`}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
