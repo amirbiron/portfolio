@@ -508,7 +508,7 @@ export const projects: ProjectData[] = [
     ],
     image:
       "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/routine-anchors-hznWo9CY8YAPAQLCxoMCmN.webp",
-    imagePosition: "top",
+    imagePosition: "bottom",
     screenshots: [
       "/projects/routine_home.jpg",
       "/projects/routine_my_day.jpg",
