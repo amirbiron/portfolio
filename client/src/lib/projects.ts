@@ -483,4 +483,106 @@ export const projects: ProjectData[] = [
       "פאנל ניהול מלא עם HTMX",
     ],
   },
+  {
+    slug: "routine-anchors",
+    title: "שגרה בחוסר שגרה",
+    description:
+      "כלי אינטראקטיבי לבניית עוגני שגרה יומיים לילדים בתקופות של חוסר ודאות",
+    subtitle: "אפליקציית ווב לבניית שגרה יומית לילדים — עם דראג-אנד-דרופ, שיחת ערב ומערכת תגמולים",
+    fullDescription:
+      "אפליקציה אינטראקטיבית שעוזרת להורים וילדים לבנות סדר יום יציב בתקופות לא יציבות. כוללת בניית יום עם גרירת פעילויות, מאגר פעילויות מותאם אישית, שיחת ערב עם רפלקציה על היום, מערכת אסימונים (תגמולים וחיזוקים), מדריך מקצועי להורים מאת מנתחת התנהגות, Push Notifications לתזכורות, ודארק מוד.",
+    tech: [
+      "TypeScript",
+      "React 19",
+      "Tailwind CSS 4",
+      "tRPC",
+      "Drizzle ORM",
+      "MySQL",
+      "Express",
+      "dnd-kit",
+      "Framer Motion",
+      "Web Push",
+      "AWS S3",
+    ],
+    image:
+      "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/routine-anchors-jkhVgNmgzio5kVahiQuT4m.webp",
+    screenshots: [
+      "/projects/routine_home.jpg",
+      "/projects/routine_my_day.jpg",
+      "/projects/routine_activities.jpg",
+      "/projects/routine_evening_chat.jpg",
+      "/projects/routine_parent_guide.jpg",
+    ],
+    mermaidDiagram: `graph TB
+    subgraph Users["משתמשים"]
+        Parent["הורה"]
+        Child["ילד"]
+        Admin["אדמין"]
+    end
+    subgraph Client["React Client"]
+        Home["דף בית — ניווט ראשי"]
+        MyDay["היום שלי — סדר יום עם Drag & Drop"]
+        Activities["מאגרים — ניהול פעילויות וקטגוריות"]
+        EveningChat["שיחת ערב — רפלקציה על היום"]
+        Tokens["אסימונים — חיזוקים ותגמולים"]
+        ParentGuide["מדריך להורים — תוכן מקצועי"]
+    end
+    subgraph API["tRPC API Layer"]
+        AuthRouter["Auth Router — JWT + HTTP-only Cookies"]
+        DayRouter["Day Router — CRUD פעילויות יומיות"]
+        ActivityRouter["Activity Router — מאגר פעילויות"]
+        ChatRouter["Chat Router — שיחת ערב"]
+        TokenRouter["Token Router — מערכת תגמולים"]
+        PushRouter["Push Router — Web Push Notifications"]
+    end
+    subgraph Server["Express Server"]
+        tRPCServer["tRPC Server"]
+        PushService["Push Notification Service"]
+        S3Service["AWS S3 — העלאת תמונות"]
+    end
+    subgraph Storage["Database"]
+        MySQL[("MySQL — Drizzle ORM")]
+    end
+    Parent --> Client
+    Child --> Client
+    Admin --> Client
+    Home --> MyDay
+    Home --> Activities
+    Home --> EveningChat
+    Home --> Tokens
+    Home --> ParentGuide
+    MyDay --> DayRouter
+    Activities --> ActivityRouter
+    EveningChat --> ChatRouter
+    Tokens --> TokenRouter
+    Client --> AuthRouter
+    Client --> PushRouter
+    AuthRouter --> tRPCServer
+    DayRouter --> tRPCServer
+    ActivityRouter --> tRPCServer
+    ChatRouter --> tRPCServer
+    TokenRouter --> tRPCServer
+    PushRouter --> PushService
+    tRPCServer --> MySQL
+    PushService --> MySQL
+    S3Service --> MySQL`,
+    demo: "https://routine-anchors.onrender.com",
+    repo: "https://github.com/amirbiron/routine",
+    challenges: [
+      "דראג-אנד-דרופ מורכב עם dnd-kit — גרירת פעילויות בין קטגוריות ומשבצות זמן",
+      "מערכת אימות עם JWT ו-HTTP-only Cookies עם tRPC",
+      "Push Notifications עם web-push — רישום, שליחה ותזמון תזכורות",
+      "תמיכה מלאה ב-RTL עם ממשק עברית מותאם",
+    ],
+    features: [
+      "בניית סדר יום עם גרירת פעילויות לפי ארוחות (בוקר, צהריים, ערב)",
+      "מאגר פעילויות מותאם אישית עם אייקונים וקטגוריות",
+      "שיחת ערב — רפלקציה יומית עם בחירת מצב רוח ושאלות מנחות",
+      "מערכת אסימונים — חיזוקים ותגמולים לילדים",
+      "מדריך מקצועי להורים מאת מנתחת התנהגות",
+      "Push Notifications לתזכורות יומיות",
+      "דארק מוד",
+      "ממשק מותאם למובייל עם ניווט תחתון",
+    ],
+  },
 ];
