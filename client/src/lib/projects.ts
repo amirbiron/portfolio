@@ -505,7 +505,7 @@ export const projects: ProjectData[] = [
       "AWS S3",
     ],
     image:
-      "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/routine-anchors-jkhVgNmgzio5kVahiQuT4m.webp",
+      "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/routine-anchors-hznWo9CY8YAPAQLCxoMCmN.webp",
     screenshots: [
       "/projects/routine_home.jpg",
       "/projects/routine_my_day.jpg",
