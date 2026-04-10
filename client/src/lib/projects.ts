@@ -48,7 +48,7 @@ export const projects: ProjectData[] = [
       "Zustand",
       "React Query",
     ],
-    image: "",
+    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/mentorios-dp9UZSZMBXWsxobfqR7dac.webp",
     screenshots: [
       "/projects/mentoros_memory.jpg",
       "/projects/mentoros_profile.jpg",
