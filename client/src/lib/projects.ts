@@ -49,7 +49,11 @@ export const projects: ProjectData[] = [
       "React Query",
     ],
     image: "",
-    screenshots: [],
+    screenshots: [
+      "/projects/mentoros_memory.jpg",
+      "/projects/mentoros_profile.jpg",
+      "/projects/mentoros_dashboard.jpg",
+    ],
     mermaidDiagram: `graph TD
     User[משתמש] --> NextJS[Next.js 16 Frontend]
 
