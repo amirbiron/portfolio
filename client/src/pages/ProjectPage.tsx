@@ -243,7 +243,7 @@ export default function ProjectPage() {
               size="sm"
               className="bg-primary/20 text-primary border border-primary hover:bg-primary hover:text-primary-foreground"
               onClick={() => {
-                if (project.demo !== "#") window.open(project.demo, "_blank");
+                if (project.demo === "#") { toast.info("Demo link - Feature coming soon"); } else { window.open(project.demo, "_blank"); }
               }}
             >
               <ExternalLink className="mr-2 h-3 w-3" />
@@ -453,7 +453,7 @@ export default function ProjectPage() {
               <Button
                 className="bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
                 onClick={() => {
-                  if (project.demo !== "#") window.open(project.demo, "_blank");
+                  if (project.demo === "#") { toast.info("Demo link - Feature coming soon"); } else { window.open(project.demo, "_blank"); }
                 }}
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
