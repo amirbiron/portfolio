@@ -86,7 +86,8 @@ export const projects: ProjectData[] = [
 
     FastAPI --> IdentityProfile[Identity Profile<br/>Auto-Synthesized]
     FastAPI --> PromptLab[Prompt Lab<br/>A/B Testing]`,
-    demo: "#",
+    demo: "https://claude.ai/public/artifacts/dbeaf237-38d2-4518-826b-b1af58866db5",
+    demoLabel: "Landing Page",
     repo: "#",
     challenges: [
       "חיפוש סמנטי בזיכרון עם pgvector — embeddings ב-1536 ממדים, cosine distance, fallback לדירוג לפי עדכניות",
