@@ -28,6 +28,86 @@ export interface ProjectData {
 
 export const projects: ProjectData[] = [
   {
+    slug: "mentoros",
+    title: "MentorOS",
+    description:
+      "מנטור אישי מבוסס AI עם זיכרון ארוך טווח — מזהה דפוסים, מנתח החלטות ומלווה צמיחה אישית",
+    subtitle:
+      "מנטור AI אישי עם זיכרון סמנטי, ניתוח החלטות מובנה וזיהוי דפוסי חשיבה",
+    fullDescription:
+      "MentorOS הוא מנטור אישי שזוכר אותך — כל שיחה מחלצת זיכרונות (ערכים, פחדים, דפוסים, מטרות) ושומרת אותם כוקטורים ב-pgvector. במקום צ'אטבוט חסר הקשר, המנטור מזהה חזרות מעגליות בחשיבה, מציע עדשות קוגניטיביות חלופיות ומנתח החלטות מכמה זוויות. כולל תהליך הכרות מובנה, מודולי העמקה ב-6 תחומים, רפלקציה שבועית, וייבוא שיחות מ-ChatGPT/Claude/Gemini — מערכת שלמה לליווי צמיחה אישית.",
+    tech: [
+      "Next.js",
+      "TypeScript",
+      "Tailwind CSS",
+      "FastAPI",
+      "PostgreSQL",
+      "pgvector",
+      "Google Gemini API",
+      "OpenAI Embeddings",
+      "Zustand",
+      "React Query",
+    ],
+    image: "",
+    screenshots: [],
+    mermaidDiagram: `graph TD
+    User[משתמש] --> NextJS[Next.js 16 Frontend]
+
+    NextJS -->|JWT + Axios| FastAPI[FastAPI Backend]
+
+    FastAPI --> Auth[Auth Layer<br/>JWT + Refresh Tokens]
+    FastAPI --> Chat[Chat Engine]
+    FastAPI --> Decisions[Decision Room]
+    FastAPI --> DeepDive[Deep Dive Modules]
+    FastAPI --> Reflections[Weekly Reflections]
+    FastAPI --> Import[AI Import Parser]
+
+    Chat --> MemoryRetrieval[Memory Retrieval<br/>Cosine Similarity]
+    Chat --> LoopDetector[Loop Detector<br/>Cross-Session Similarity]
+    Chat --> QualityGuard[Quality Guard<br/>Background Evaluator]
+    Chat --> SafetyLayer[Safety Classifier<br/>Keyword + LLM]
+
+    Chat -->|Extract| MemoryPipeline[Memory Extraction<br/>11 Types · Dedup · Contradictions]
+
+    MemoryRetrieval --> pgvector[(PostgreSQL + pgvector<br/>VECTOR 1536)]
+    MemoryPipeline --> pgvector
+
+    Chat --> Gemini[Google Gemini API<br/>3 Model Tiers]
+    MemoryPipeline --> OpenAI[OpenAI Embeddings<br/>text-embedding-3-small]
+    MemoryRetrieval --> OpenAI
+
+    Decisions --> Gemini
+    DeepDive --> Gemini
+    Reflections --> Gemini
+
+    FastAPI --> IdentityProfile[Identity Profile<br/>Auto-Synthesized]
+    FastAPI --> PromptLab[Prompt Lab<br/>A/B Testing]`,
+    demo: "#",
+    repo: "#",
+    challenges: [
+      "חיפוש סמנטי בזיכרון עם pgvector — embeddings ב-1536 ממדים, cosine distance, fallback לדירוג לפי עדכניות",
+      "ניהול מודלים מרובים — ניתוב 3 רמות (strong/fast/summary) עם מעקב עלויות per-call ותקרת הוצאות",
+      "זיהוי סתירות — בדיקת similarity בין זיכרונות חדשים לקיימים למניעת כפילויות וסתירות",
+      "זיהוי לולאות — השוואת דמיון סמנטי חוצה-סשנים לזיהוי דפוסי חשיבה מעגליים",
+      "אבטחת auth ללא localStorage — JWT + refresh tokens מנוהלים בזיכרון בלבד (Zustand), עם interceptor אוטומטי",
+      "ביצועי רקע — חילוץ זיכרונות, Quality Guard ובדיקת לולאות רצים כ-background tasks ולא חוסמים תשובה",
+      "RTL-first UI — ממשק עברית מלא עם dark mode, מעברים חלקים ותמיכה ב-system preference",
+    ],
+    features: [
+      "צ'אט מנטורינג עם שליפת זיכרונות סמנטית (cosine similarity)",
+      "חילוץ זיכרונות אוטומטי — 11 סוגים (ערכים, דפוסים, פחדים, מטרות, החלטות...)",
+      "זיהוי לולאות חשיבה מעגליות + הזרקת עדשות קוגניטיביות (Best Friend, Future Self, Values-First...)",
+      "ניתוח החלטות מובנה — אפשרויות, נקודות עיוורות, דפוסים רלוונטיים",
+      "Deep Dive — 30 שאלות ב-6 מודולים לבניית פרופיל זהות מעמיק",
+      "ייבוא שיחות מ-AI אחרים (ChatGPT, Claude, Gemini) עם חילוץ זיכרונות",
+      "רפלקציה שבועית + סיכום שבועי נרטיבי אוטומטי",
+      "פרופיל זהות מתעדכן — תכונות, חוזקות, טריגרים, גרסאות היסטוריות",
+      "Quality Guard — הערכת איכות תשובות ברקע (שימוש בהקשר, חזרות, סתירות)",
+      "מערכת בטיחות דו-שכבתית — מסווג מהיר + מסווג LLM (עברית + אנגלית)",
+      "Prompt Lab — כלי A/B testing לפרומפטים (admin)",
+    ],
+  },
+  {
     slug: "codekeeper",
     title: "CodeKeeper",
     description: "בוט טלגרם לגיבוי ריפוזיטורי + אתר למפתחים לשמירת קוד",
