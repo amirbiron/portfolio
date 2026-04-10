@@ -86,7 +86,8 @@ export const projects: ProjectData[] = [
 
     FastAPI --> IdentityProfile[Identity Profile<br/>Auto-Synthesized]
     FastAPI --> PromptLab[Prompt Lab<br/>A/B Testing]`,
-    demo: "#",
+    demo: "https://claude.ai/public/artifacts/dbeaf237-38d2-4518-826b-b1af58866db5",
+    demoLabel: "Landing Page",
     repo: "#",
     challenges: [
       "חיפוש סמנטי בזיכרון עם pgvector — embeddings ב-1536 ממדים, cosine distance, fallback לדירוג לפי עדכניות",
@@ -99,7 +100,7 @@ export const projects: ProjectData[] = [
     ],
     features: [
       "צ'אט מנטורינג עם שליפת זיכרונות סמנטית (cosine similarity)",
-      "חילוץ זיכרונות אוטומטי — 11 סוגים (ערכים, דפוסים, פחדים, מטרות, החלטות...)",
+      "חילוץ זיכרונות אוטומטי — 11 סוגים (ערכים, דפוסים, פחדים, מטרות, החלטות ועוד)",
       "זיהוי לולאות חשיבה מעגליות + הזרקת עדשות קוגניטיביות (Best Friend, Future Self, Values-First...)",
       "ניתוח החלטות מובנה — אפשרויות, נקודות עיוורות, דפוסים רלוונטיים",
       "Deep Dive — 30 שאלות ב-6 מודולים לבניית פרופיל זהות מעמיק",
