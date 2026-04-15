@@ -35,4 +35,13 @@ export const testimonials: TestimonialData[] = [
     screenshot: "/testimonials/feedback-delivery-system.png",
     fileName: "client_feedback_002.png",
   },
+  {
+    slug: "werai",
+    clientName: "WeRAI | בינה עסקית עם תוצאות אמיתיות לעסקים קטנים",
+    role: "מתאם לקוחות",
+    shortQuote:
+      "מתוך ניסיון אמיתי בעבודה משותפת על פרויקט ללקוח עסקי. אמיר יודע להקשיב, להבין בדיוק מה צריך, ולבצע מהר\u2026 והכי חשוב בעיניי — יש לו הבנה של צד המשתמש, ורואים את זה בתוצאה.",
+    screenshot: "/testimonials/feedback-werai.png",
+    fileName: "client_feedback_003.png",
+  },
 ];
