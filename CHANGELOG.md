@@ -1,3 +1,11 @@
+## [2026-04-15] עדכון קישור Landing Page של פרויקט MentorOS
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) החלפת ה-`demo` של פרויקט mentoros לקישור הלנדינג פייג' החדש
+
+**פירוט:**
+בפרויקט MentorOS הוחלף הערך של השדה `demo` מקישור ל-artifact ישן ב-claude.ai לכתובת הלנדינג פייג' החדשה: `https://mentorai-k5y0.onrender.com/?home=1`. ה-`demoLabel` נשאר "Landing Page". לצורך יישום מחדש: ב-`client/src/lib/projects.ts`, באובייקט הפרויקט עם `slug: "mentoros"`, יש לעדכן את שדה ה-`demo` לערך הנ"ל.
+
 ## [2026-04-10] הוספת פרויקט MentorOS לפורטפוליו
 
 **קבצים שהשתנו:**
