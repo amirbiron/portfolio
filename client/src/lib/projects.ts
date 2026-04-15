@@ -86,7 +86,7 @@ export const projects: ProjectData[] = [
 
     FastAPI --> IdentityProfile[Identity Profile<br/>Auto-Synthesized]
     FastAPI --> PromptLab[Prompt Lab<br/>A/B Testing]`,
-    demo: "https://claude.ai/public/artifacts/dbeaf237-38d2-4518-826b-b1af58866db5",
+    demo: "https://mentorai-k5y0.onrender.com/?home=1",
     demoLabel: "Landing Page",
     repo: "#",
     challenges: [
