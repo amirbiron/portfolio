@@ -1,3 +1,16 @@
+## [2026-04-19] הסרת פוסט בלוג "סנכרון בזמן אמת בין Telegram Bot ל-Web App"
+
+**קבצים שהשתנו:**
+- `client/src/pages/Home.tsx` — (שונה) הוסר האובייקט של הפוסט ממערך `blogPosts`
+- `client/src/pages/BlogPost.tsx` — (שונה) הוסרה המפתח `"telegram-bot-webapp-sync"` מאובייקט `blogPosts`
+
+**פירוט:**
+הפוסט "סנכרון בזמן אמת בין Telegram Bot ל-Web App — ואיך מאמתים משתמשים בצורה מאובטחת" (slug: `telegram-bot-webapp-sync`, תאריך 10-02-2026) הוסר לחלוטין מהבלוג.
+
+ליישום מחדש:
+1. ב-`client/src/pages/Home.tsx`, במערך `blogPosts` (בתוך הקומפוננטה `Home`), להסיר את האובייקט עם `slug: "telegram-bot-webapp-sync"`. הפוסט הבא לפניו הוא `distributed-lock-mongo`.
+2. ב-`client/src/pages/BlogPost.tsx`, באובייקט `blogPosts` הגלובלי בראש הקובץ, להסיר את כל הערך תחת המפתח `"telegram-bot-webapp-sync"` (כולל `title`, `date`, `content`).
+
 ## [2026-04-19] שחזור מיקום גלילה בחזרה לדף הראשי
 
 **קבצים שהשתנו:**

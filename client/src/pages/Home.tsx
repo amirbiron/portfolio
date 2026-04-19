@@ -102,12 +102,6 @@ export default function Home() {
       date: "15-02-2026",
       excerpt: "בזמן האחרון נתקלתי בבעיה מעצבנת: הבוט שלי רץ על כמה אינסטנסים. הפתרון? מנגנון נעילה מבוזר (Distributed Lock) מבוסס MongoDB.",
       slug: "distributed-lock-mongo"
-    },
-    {
-      title: "סנכרון בזמן אמת בין Telegram Bot ל-Web App — ואיך מאמתים משתמשים בצורה מאובטחת",
-      date: "10-02-2026",
-      excerpt: "איך דואגים שמה שמשתמש עושה ב-Web App יופיע מיד בבוט, ולהיפך? ואיך מוודאים שרק מי שמחובר בטלגרם יוכל להיכנס ל-Web App?",
-      slug: "telegram-bot-webapp-sync"
     }
   ];
 
