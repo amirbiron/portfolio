@@ -19,22 +19,26 @@ export function useHomeScrollRestoration() {
     }
 
     // שמירת מיקום הגלילה ברקע (throttled) + לפני יציאה מהעמוד
-    let ticking = false;
+    let timerId: number | null = null;
     const save = () => {
       sessionStorage.setItem(STORAGE_KEY, String(window.scrollY));
     };
     const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      window.setTimeout(() => {
+      if (timerId !== null) return;
+      timerId = window.setTimeout(() => {
         save();
-        ticking = false;
+        timerId = null;
       }, 150);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
+      // ביטול טיימר ממתין כדי שלא ידרוס את המיקום שנשמר ב-cleanup
+      if (timerId !== null) {
+        window.clearTimeout(timerId);
+        timerId = null;
+      }
       save();
     };
   }, []);
