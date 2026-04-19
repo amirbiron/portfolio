@@ -17,6 +17,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { projects } from "@/lib/projects";
 import { testimonials } from "@/lib/testimonials";
+import { useHomeScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // קומפוננטת עזר לאנימציית כניסה בגלילה
 function FadeInSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
@@ -35,6 +36,7 @@ function FadeInSection({ children, className = "", delay = 0 }: { children: Reac
 
 export default function Home() {
   const [, setLocation] = useLocation();
+  useHomeScrollRestoration();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [contactStatus, setContactStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
