@@ -9,8 +9,8 @@
 
 מימוש: נוסף hook בשם `useHomeScrollRestoration` בקובץ חדש `client/src/hooks/useScrollRestoration.ts`. ה-hook:
 1. בעת עליית הרכיב (mount) — קורא מ-`sessionStorage` את המפתח `"home:scrollY"`, ואם יש ערך תקין מפעיל `window.scrollTo(0, y)` בתוך `requestAnimationFrame` (כדי להבטיח שה-DOM קיים).
-2. ברקע — מאזין ל-event של `scroll` על `window` ושומר את `window.scrollY` ל-sessionStorage עם throttle של 150ms (דרך `setTimeout`).
-3. בעת פירוק הרכיב (cleanup) — מסיר את ה-listener ושומר פעם אחרונה את המיקום.
+2. ברקע — מאזין ל-event של `scroll` על `window` ושומר את `window.scrollY` ל-sessionStorage עם throttle של 150ms (דרך `setTimeout`). **חשוב:** יש לשמור את ה-timer id שמוחזר מ-`setTimeout` במשתנה (למשל `timerId`), ולא רק דגל בוליאני. אחרת טיימר ממתין שיירה אחרי unmount ידרוס את המיקום שנשמר ב-cleanup ב-0 (כי בינתיים עמוד המשנה קרא ל-`scrollTo(0, 0)`).
+3. בעת פירוק הרכיב (cleanup) — מסיר את ה-listener, מבטל את הטיימר הממתין דרך `clearTimeout(timerId)` אם קיים, ואז שומר פעם אחרונה את המיקום.
 
 שימוש: בקובץ `client/src/pages/Home.tsx`, מיד בתוך רכיב `Home` (לפני שאר ה-state), מוסיפים `useHomeScrollRestoration();` וייבוא מתאים: `import { useHomeScrollRestoration } from "@/hooks/useScrollRestoration";`.
 
