@@ -1,3 +1,21 @@
+## [2026-04-19] שחזור מיקום גלילה בחזרה לדף הראשי
+
+**קבצים שהשתנו:**
+- `client/src/hooks/useScrollRestoration.ts` — (נוסף) Hook חדש לשמירה ושחזור של מיקום הגלילה בדף הבית
+- `client/src/pages/Home.tsx` — (שונה) שימוש ב-hook החדש כדי שלחיצה על "Back to Portfolio" תחזיר את המשתמש למיקום האחרון שבו היה, במקום לראש הדף
+
+**פירוט:**
+עד היום, לחיצה על "Back to Portfolio" בכל אחד מעמודי המשנה (פרויקט, המלצה, פוסט בלוג) החזירה את המשתמש לראש דף הבית. כעת המיקום האחרון נשמר ומשוחזר.
+
+מימוש: נוסף hook בשם `useHomeScrollRestoration` בקובץ חדש `client/src/hooks/useScrollRestoration.ts`. ה-hook:
+1. בעת עליית הרכיב (mount) — קורא מ-`sessionStorage` את המפתח `"home:scrollY"`, ואם יש ערך תקין מפעיל `window.scrollTo(0, y)` בתוך `requestAnimationFrame` (כדי להבטיח שה-DOM קיים).
+2. ברקע — מאזין ל-event של `scroll` על `window` ושומר את `window.scrollY` ל-sessionStorage עם throttle של 150ms (דרך `setTimeout`).
+3. בעת פירוק הרכיב (cleanup) — מסיר את ה-listener ושומר פעם אחרונה את המיקום.
+
+שימוש: בקובץ `client/src/pages/Home.tsx`, מיד בתוך רכיב `Home` (לפני שאר ה-state), מוסיפים `useHomeScrollRestoration();` וייבוא מתאים: `import { useHomeScrollRestoration } from "@/hooks/useScrollRestoration";`.
+
+אין צורך לשנות את עמודי המשנה (`ProjectPage`, `TestimonialPage`, `BlogPost`) — כפתורי "Back to Portfolio" שלהם ממשיכים לקרוא ל-`setLocation("/")`, וה-hook ב-Home דואג לשחזר את הגלילה. ה-scrollTo(0,0) שקיים ב-useEffect של עמודי המשנה עצמם (בכניסה אליהם) נשאר כפי שהוא.
+
 ## [2026-04-15] הוספת המלצה חדשה — WeRAI (מתאם לקוחות)
 
 **קבצים שהשתנו:**
