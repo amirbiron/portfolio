@@ -8,9 +8,9 @@
 עד היום, לחיצה על "Back to Portfolio" בכל אחד מעמודי המשנה (פרויקט, המלצה, פוסט בלוג) החזירה את המשתמש לראש דף הבית. כעת המיקום האחרון נשמר ומשוחזר.
 
 מימוש: נוסף hook בשם `useHomeScrollRestoration` בקובץ חדש `client/src/hooks/useScrollRestoration.ts`. ה-hook:
-1. בעת עליית הרכיב (mount) — קורא מ-`sessionStorage` את המפתח `"home:scrollY"`, ואם יש ערך תקין מפעיל `window.scrollTo(0, y)` בתוך `requestAnimationFrame` (כדי להבטיח שה-DOM קיים).
-2. ברקע — מאזין ל-event של `scroll` על `window` ושומר את `window.scrollY` ל-sessionStorage עם throttle של 150ms (דרך `setTimeout`). **חשוב:** יש לשמור את ה-timer id שמוחזר מ-`setTimeout` במשתנה (למשל `timerId`), ולא רק דגל בוליאני. אחרת טיימר ממתין שיירה אחרי unmount ידרוס את המיקום שנשמר ב-cleanup ב-0 (כי בינתיים עמוד המשנה קרא ל-`scrollTo(0, 0)`).
-3. בעת פירוק הרכיב (cleanup) — מסיר את ה-listener, מבטל את הטיימר הממתין דרך `clearTimeout(timerId)` אם קיים, ואז שומר פעם אחרונה את המיקום.
+1. בעת עליית הרכיב (mount) — קורא מ-`sessionStorage` את המפתח `"home:scrollY"`, ואם יש ערך תקין מפעיל `window.scrollTo(0, y)` בתוך `requestAnimationFrame` (כדי להבטיח שה-DOM קיים). **חשוב:** יש לשמור את ה-id שמוחזר מ-`requestAnimationFrame` במשתנה `rafId`, ולבטלו ב-cleanup דרך `cancelAnimationFrame(rafId)` — אחרת אם Home מפורק לפני שה-callback רץ, ה-`scrollTo` ירוץ על עמוד המשנה החדש.
+2. ברקע — מאזין ל-event של `scroll` על `window`, מעדכן משתנה סגירה בשם `latestY = window.scrollY` על כל scroll, ושומר את הערך ל-sessionStorage עם throttle של 150ms (דרך `setTimeout`). **חשוב:** יש לשמור את ה-timer id שמוחזר מ-`setTimeout` במשתנה (למשל `timerId`), ולא רק דגל בוליאני. אחרת טיימר ממתין שיירה אחרי unmount ידרוס את המיקום שנשמר ב-cleanup ב-0.
+3. בעת פירוק הרכיב (cleanup) — מסיר את ה-listener, מבטל את ה-RAF הממתין אם קיים, מבטל את הטיימר הממתין דרך `clearTimeout(timerId)` אם קיים, ואז שומר פעם אחרונה. **קריטי:** השמירה ב-cleanup חייבת לכתוב את `latestY` (הערך שנצפה לאחרונה כשה-hook היה פעיל) ולא את `window.scrollY` הנוכחי. הסיבה: ה-cleanup רץ אחרי ש-wouter כבר החליף את הרכיב (ו-ProjectPage/TestimonialPage/AskAI עולים מאחורי `Suspense fallback` קטן — ספינר בלבד), ולכן `window.scrollY` כבר נחתך ל-0 בזמן ה-cleanup, וקריאה שלו הייתה דורסת את המיקום הנכון.
 
 שימוש: בקובץ `client/src/pages/Home.tsx`, מיד בתוך רכיב `Home` (לפני שאר ה-state), מוסיפים `useHomeScrollRestoration();` וייבוא מתאים: `import { useHomeScrollRestoration } from "@/hooks/useScrollRestoration";`.
 

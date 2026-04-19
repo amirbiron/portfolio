@@ -10,23 +10,30 @@ const STORAGE_KEY = "home:scrollY";
 export function useHomeScrollRestoration() {
   useEffect(() => {
     // שחזור מיקום הגלילה בכניסה לעמוד — אחרי שה-DOM נטען כדי שהגובה יהיה נכון
+    let rafId: number | null = null;
     const saved = sessionStorage.getItem(STORAGE_KEY);
     if (saved) {
       const y = parseInt(saved, 10);
       if (!Number.isNaN(y) && y > 0) {
-        requestAnimationFrame(() => window.scrollTo(0, y));
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          window.scrollTo(0, y);
+        });
       }
     }
 
-    // שמירת מיקום הגלילה ברקע (throttled) + לפני יציאה מהעמוד
+    // עוקב אחרי המיקום העדכני במשתנה בתוך הסגירה, כדי שלא נקרא את window.scrollY
+    // אחרי שה-DOM של עמוד היעד כבר נטען (והגובה התקצר ל-0 בזמן Suspense fallback)
+    let latestY = window.scrollY;
     let timerId: number | null = null;
-    const save = () => {
-      sessionStorage.setItem(STORAGE_KEY, String(window.scrollY));
+    const commit = () => {
+      sessionStorage.setItem(STORAGE_KEY, String(latestY));
     };
     const onScroll = () => {
+      latestY = window.scrollY;
       if (timerId !== null) return;
       timerId = window.setTimeout(() => {
-        save();
+        commit();
         timerId = null;
       }, 150);
     };
@@ -34,12 +41,16 @@ export function useHomeScrollRestoration() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      // ביטול טיימר ממתין כדי שלא ידרוס את המיקום שנשמר ב-cleanup
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       if (timerId !== null) {
         window.clearTimeout(timerId);
         timerId = null;
       }
-      save();
+      // כותב את המיקום האחרון שנצפה בזמן שה-hook היה פעיל — לא את scrollY הנוכחי
+      commit();
     };
   }, []);
 }
