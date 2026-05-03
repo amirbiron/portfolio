@@ -1,3 +1,17 @@
+## [2026-05-03] העברת שאלון האפיון מ-`survey/index.html` ל-`docs/survey.html`
+
+**קבצים שהשתנו:**
+- `survey/index.html` — (נמחק) הקובץ הוסר ממיקומו הקודם
+- `docs/survey.html` — (נוסף) אותו תוכן הועבר לכאן ללא שינויים
+
+**פירוט:**
+GitHub Pages במצב "Deploy from a branch" מאפשר לבחור רק `/(root)` או `/docs` כתיקיית מקור — לא תיקיות אחרות. כדי שאפשר יהיה לחשוף את השאלון דרך GitHub Pages בלי לשים אותו ב-root של האתר, הקובץ הועבר לתיקיית `docs/` הקיימת תחת השם `survey.html`. תוכן הקובץ זהה לחלוטין למה שהיה ב-`survey/index.html` (כולל המייל `amirbiron@gmail.com` שמוגדר בפונקציית `sendEmail`).
+
+ליישום מחדש:
+1. למחוק את `survey/index.html` (ואת התיקייה `survey/` אם נשארה ריקה).
+2. ליצור `docs/survey.html` עם אותו תוכן בדיוק.
+3. בהגדרות GitHub Pages של הריפו: Source = Deploy from a branch, Branch = `main`, Folder = `/docs`. הדף יהיה זמין בכתובת `https://<user>.github.io/<repo>/survey.html`.
+
 ## [2026-05-03] עדכון כתובת המייל בשאלון האפיון
 
 **קבצים שהשתנו:**
