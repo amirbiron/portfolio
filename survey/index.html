@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אפיון דף נחיתה | אוטומציה בקלות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0e1a;
+    --bg-card: #111827;
+    --bg-input: #1f2937;
+    --border: #2d3748;
+    --border-focus: #38bdf8;
+    --text: #f1f5f9;
+    --text-dim: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #38bdf8;
+    --accent-2: #a78bfa;
+    --accent-glow: rgba(56, 189, 248, 0.15);
+    --success: #10b981;
+    --gradient: linear-gradient(135deg, #38bdf8 0%, #a78bfa 100%);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(at 20% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+      radial-gradient(at 80% 100%, rgba(167, 139, 250, 0.08) 0px, transparent 50%);
+  }
+
+  .container {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* כותרת */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding: 32px 20px;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 6px 14px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  .header h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header p {
+    font-size: 17px;
+    color: var(--text-dim);
+    max-width: 580px;
+    margin: 0 auto;
+  }
+
+  /* פס התקדמות */
+  .progress-wrap {
+    position: sticky;
+    top: 0;
+    background: rgba(10, 14, 26, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 16px 0;
+    margin-bottom: 32px;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+
+  .progress-info strong { color: var(--accent); }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--bg-input);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--gradient);
+    width: 0%;
+    transition: width 0.4s ease;
+    border-radius: 999px;
+  }
+
+  /* סקשן */
+  .section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+
+  .section:hover {
+    border-color: rgba(56, 189, 248, 0.3);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+
+  .section-num {
+    width: 40px;
+    height: 40px;
+    background: var(--gradient);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #0a0e1a;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .section-desc {
+    color: var(--text-dim);
+    font-size: 15px;
+    margin-bottom: 24px;
+    margin-right: 56px;
+  }
+
+  /* שדות טופס */
+  .field {
+    margin-bottom: 20px;
+  }
+
+  .field:last-child { margin-bottom: 0; }
+
+  .field label {
+    display: block;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .field .hint {
+    display: block;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  .field .required {
+    color: var(--accent);
+    margin-right: 4px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="number"],
+  textarea,
+  select {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    direction: rtl;
+  }
+
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+    background: #243049;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.6;
+  }
+
+  ::placeholder { color: var(--text-muted); }
+
+  /* רשת צ'קבוקסים */
+  .checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+
+  .checkbox-item:hover {
+    border-color: var(--accent);
+    background: #243049;
+  }
+
+  .checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .checkbox-item.checked {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+  }
+
+  .checkbox-item span { font-size: 14px; }
+
+  /* אזור שליחה */
+  .submit-area {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    margin-top: 32px;
+  }
+
+  .submit-area h2 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  .submit-area p {
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  .button-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 14px 28px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--gradient);
+    color: #0a0e1a;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.3);
+  }
+
+  .btn-secondary {
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    background: #243049;
+  }
+
+  /* פוטר */
+  .footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .footer a { color: var(--accent); text-decoration: none; }
+
+  /* טוסט */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--success);
+    color: white;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 500;
+    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* מובייל */
+  @media (max-width: 640px) {
+    .container { padding: 20px 16px 60px; }
+    .section { padding: 24px 20px; }
+    .section-desc { margin-right: 0; margin-top: 12px; }
+    .section-header { flex-wrap: wrap; }
+    .submit-area { padding: 24px 20px; }
+    .btn { width: 100%; justify-content: center; }
+  }
+
+  /* אנימציה */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section { animation: fadeUp 0.5s ease backwards; }
+  .section:nth-child(1) { animation-delay: 0.05s; }
+  .section:nth-child(2) { animation-delay: 0.1s; }
+  .section:nth-child(3) { animation-delay: 0.15s; }
+  .section:nth-child(4) { animation-delay: 0.2s; }
+  .section:nth-child(5) { animation-delay: 0.25s; }
+  .section:nth-child(6) { animation-delay: 0.3s; }
+  .section:nth-child(7) { animation-delay: 0.35s; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="header">
+    <span class="badge">⚡ אוטומציה בקלות</span>
+    <h1>שאלון אפיון לדף נחיתה</h1>
+    <p>כדי לבנות לך דף נחיתה שבאמת מביא תוצאות, אני צריך להכיר אותך, את העסק ואת הלקוח האידיאלי שלך. תקדיש לזה 15-20 דקות — זה ישפר משמעותית את התוצר.</p>
+  </header>
+
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span>התקדמות במילוי</span>
+      <span><strong id="progressPercent">0%</strong></span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <form id="briefForm">
+
+    <!-- סקשן 1: פרטים כלליים -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div class="section-title">פרטים כלליים</div>
+      </div>
+      <p class="section-desc">בואו נתחיל עם הבסיס.</p>
+
+      <div class="field">
+        <label>שם מלא <span class="required">*</span></label>
+        <input type="text" name="full_name" placeholder="ישראל ישראלי" required>
+      </div>
+
+      <div class="field">
+        <label>שם העסק <span class="required">*</span></label>
+        <input type="text" name="business_name" placeholder="שם המותג / העסק" required>
+      </div>
+
+      <div class="field">
+        <label>תחום העסק <span class="required">*</span></label>
+        <input type="text" name="industry" placeholder="לדוגמה: ייעוץ פיננסי, קליניקה, סטודיו לכושר" required>
+      </div>
+
+      <div class="field">
+        <label>טלפון ליצירת קשר <span class="required">*</span></label>
+        <input type="tel" name="phone" placeholder="050-0000000" required>
+      </div>
+
+      <div class="field">
+        <label>מייל <span class="required">*</span></label>
+        <input type="email" name="email" placeholder="name@example.com" required>
+      </div>
+
+      <div class="field">
+        <label>אתר קיים (אם יש)</label>
+        <input type="url" name="existing_site" placeholder="https://example.co.il">
+      </div>
+    </section>
+
+    <!-- סקשן 2: מטרת הדף -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div class="section-title">מטרת הדף</div>
+      </div>
+      <p class="section-desc">החלק הכי חשוב. בלי מטרה ברורה, אין דף נחיתה אפקטיבי.</p>
+
+      <div class="field">
+        <label>מה המטרה העיקרית של הדף? <span class="required">*</span></label>
+        <span class="hint">מה אתה רוצה שהמבקר יעשה? (השארת פרטים, רכישה, חיוג, הורדה, הרשמה לוובינר וכו')</span>
+        <textarea name="main_goal" rows="3" required></textarea>
+      </div>
+
+      <div class="field">
+        <label>איך תמדוד הצלחה? <span class="required">*</span></label>
+        <span class="hint">כמה לידים / מכירות בחודש זה הצלחה בעיניך?</span>
+        <textarea name="success_metric" rows="2" required></textarea>
+      </div>
+
+      <div class="field">
+        <label>לאן הלידים צריכים להגיע? <span class="required">*</span></label>
+        <div class="checkbox-grid">
+          <label class="checkbox-item"><input type="checkbox" name="lead_dest" value="מייל"><span>מייל</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="lead_dest" value="וואטסאפ"><span>וואטסאפ</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="lead_dest" value="SMS"><span>SMS</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="lead_dest" value="CRM"><span>מערכת CRM</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="lead_dest" value="גוגל שיטס"><span>Google Sheets</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="lead_dest" value="אחר"><span>אחר</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>תוך כמה זמן אתה (או הצוות שלך) חוזר ללידים?</label>
+        <input type="text" name="response_time" placeholder="לדוגמה: עד שעה / באותו יום / 24 שעות">
+      </div>
+    </section>
+
+    <!-- סקשן 3: קהל היעד -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div class="section-title">קהל היעד</div>
+      </div>
+      <p class="section-desc">מי הולך להיכנס לדף? ככל שתכיר אותו טוב יותר, הקופי יהיה חד יותר.</p>
+
+      <div class="field">
+        <label>תאר את הלקוח האידיאלי שלך <span class="required">*</span></label>
+        <span class="hint">גיל, מגדר, מקצוע, רמת הכנסה, מצב משפחתי — כל מה שרלוונטי</span>
+        <textarea name="ideal_customer" rows="3" required></textarea>
+      </div>
+
+      <div class="field">
+        <label>מה הכאב/הבעיה שהוא חווה לפני שהוא מגיע אליך? <span class="required">*</span></label>
+        <textarea name="customer_pain" rows="3" required></textarea>
+      </div>
+
+      <div class="field">
+        <label>מה ההתנגדויות הנפוצות שאתה שומע מלקוחות?</label>
+        <span class="hint">"זה יקר", "אין לי זמן", "ניסיתי דברים דומים שלא עבדו" — מה אתה שומע הכי הרבה?</span>
+        <textarea name="objections" rows="3"></textarea>
+      </div>
+
+      <div class="field">
+        <label>תאר את הלקוח האחרון המעולה שלך</label>
+        <span class="hint">מאיפה הוא הגיע, מה הוא אמר בשיחה הראשונה, ולמה בחר בך? (זהב לקופי)</span>
+        <textarea name="best_customer" rows="3"></textarea>
+      </div>
+    </section>
+
+    <!-- סקשן 4: ההצעה -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div class="section-title">ההצעה (Offer)</div>
+      </div>
+      <p class="section-desc">מה בדיוק אתה מציע, ובאיזה תנאים?</p>
+
+      <div class="field">
+        <label>מה אתה מוכר/מציע בדף הזה? <span class="required">*</span></label>
+        <textarea name="offer" rows="3" required></textarea>
+      </div>
+
+      <div class="field">
+        <label>מחיר / טווח מחירים</label>
+        <input type="text" name="price" placeholder="לדוגמה: 1,500 ₪ / החל מ-500 ₪ / לא לפרסום">
+      </div>
+
+      <div class="field">
+        <label>יש מבצע או הצעה מיוחדת לדף הזה?</label>
+        <textarea name="special_offer" rows="2" placeholder="לדוגמה: 20% הנחה ל-30 הראשונים, ייעוץ ראשון חינם, וכו'"></textarea>
+      </div>
+
+      <div class="field">
+        <label>מה כלול ומה לא כלול?</label>
+        <textarea name="included" rows="3"></textarea>
+      </div>
+
+      <div class="field">
+        <label>כמה זמן לוקח לקבל את התוצר/שירות?</label>
+        <input type="text" name="delivery_time" placeholder="לדוגמה: מיידי, תוך שבוע, תהליך של חודש">
+      </div>
+    </section>
+
+    <!-- סקשן 5: בידול ואמינות -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div class="section-title">בידול ואמינות</div>
+      </div>
+      <p class="section-desc">למה שיבחרו דווקא בך?</p>
+
+      <div class="field">
+        <label>3 סיבות מרכזיות שבגללן לקוחות בוחרים בך <span class="required">*</span></label>
+        <textarea name="differentiation" rows="4" placeholder="1.&#10;2.&#10;3." required></textarea>
+      </div>
+
+      <div class="field">
+        <label>מתחרים עיקריים</label>
+        <span class="hint">תן 2-3 קישורים. עוזר לי להבין את השוק ולבדל אותך</span>
+        <textarea name="competitors" rows="2"></textarea>
+      </div>
+
+      <div class="field">
+        <label>סטטיסטיקות / מספרים מרשימים</label>
+        <span class="hint">לדוגמה: 500+ לקוחות מרוצים, 12 שנות ניסיון, 95% המלצה</span>
+        <textarea name="stats" rows="2"></textarea>
+      </div>
+
+      <div class="field">
+        <label>יש לך המלצות / ביקורות / לוגואים של לקוחות?</label>
+        <div class="checkbox-grid">
+          <label class="checkbox-item"><input type="checkbox" name="social_proof" value="המלצות בכתב"><span>המלצות בכתב</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="social_proof" value="המלצות בוידאו"><span>המלצות בוידאו</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="social_proof" value="ביקורות גוגל"><span>ביקורות גוגל</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="social_proof" value="לוגואים של לקוחות"><span>לוגואים של לקוחות</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="social_proof" value="case studies"><span>מקרי בוחן</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="social_proof" value="אין"><span>אין כרגע</span></label>
+        </div>
+      </div>
+    </section>
+
+    <!-- סקשן 6: חומרים קיימים ומיתוג -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <div class="section-title">חומרים קיימים ומיתוג</div>
+      </div>
+      <p class="section-desc">מה כבר יש לך, ומה צריך לבנות מאפס?</p>
+
+      <div class="field">
+        <label>מה יש לך מוכן?</label>
+        <div class="checkbox-grid">
+          <label class="checkbox-item"><input type="checkbox" name="assets" value="לוגו"><span>לוגו</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="assets" value="תמונות מקצועיות"><span>תמונות מקצועיות</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="assets" value="סרטון תדמית"><span>סרטון תדמית</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="assets" value="טקסטים"><span>טקסטים מוכנים</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="assets" value="מיתוג"><span>מיתוג צבעים/פונטים</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="assets" value="אין כלום"><span>אין כלום</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>צבעים מועדפים / מיתוג קיים</label>
+        <input type="text" name="colors" placeholder="לדוגמה: כחול נייבי + זהב, או קוד צבע: #1a73e8">
+      </div>
+
+      <div class="field">
+        <label>3-5 דפי נחיתה שאתה אוהב</label>
+        <span class="hint">לא בהכרח מהתחום שלך — מה תופס אותך מבחינת עיצוב, סגנון, תחושה. תן קישורים</span>
+        <textarea name="inspirations" rows="3"></textarea>
+      </div>
+
+      <div class="field">
+        <label>מה הסגנון שאתה שואף אליו?</label>
+        <div class="checkbox-grid">
+          <label class="checkbox-item"><input type="checkbox" name="style" value="מינימליסטי"><span>מינימליסטי ונקי</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="style" value="מודרני"><span>מודרני וטכנולוגי</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="style" value="חם"><span>חם ואנושי</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="style" value="יוקרתי"><span>יוקרתי ומעוצב</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="style" value="צבעוני"><span>צבעוני וצעיר</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="style" value="רציני"><span>רציני ומקצועי</span></label>
+        </div>
+      </div>
+    </section>
+
+    <!-- סקשן 7: דרישות טכניות -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <div class="section-title">דרישות טכניות</div>
+      </div>
+      <p class="section-desc">פרטים שיעזרו לי להעריך עלויות וזמנים.</p>
+
+      <div class="field">
+        <label>יש דומיין? אם כן, מה הוא?</label>
+        <input type="text" name="domain" placeholder="example.co.il">
+      </div>
+
+      <div class="field">
+        <label>אילו אינטגרציות נדרשות?</label>
+        <div class="checkbox-grid">
+          <label class="checkbox-item"><input type="checkbox" name="integrations" value="פיקסל פייסבוק"><span>פיקסל פייסבוק</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="integrations" value="Google Analytics"><span>Google Analytics</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="integrations" value="Google Tag Manager"><span>Google Tag Manager</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="integrations" value="צ'אט בוט"><span>צ'אט / בוט וואטסאפ</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="integrations" value="תשלום אונליין"><span>תשלום אונליין</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="integrations" value="קלנדלי"><span>קביעת תורים</span></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>תקציב משוער לפרויקט</label>
+        <select name="budget">
+          <option value="">בחר טווח</option>
+          <option value="עד 2000">עד 2,000 ₪</option>
+          <option value="2000-5000">2,000-5,000 ₪</option>
+          <option value="5000-10000">5,000-10,000 ₪</option>
+          <option value="10000+">10,000 ₪ ומעלה</option>
+          <option value="לא יודע">עוד לא ברור לי</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>תוך כמה זמן אתה צריך את הדף באוויר?</label>
+        <select name="timeline">
+          <option value="">בחר טווח</option>
+          <option value="דחוף">דחוף — תוך שבוע</option>
+          <option value="2-3 שבועות">2-3 שבועות</option>
+          <option value="חודש">חודש</option>
+          <option value="גמיש">גמיש</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>משהו נוסף שחשוב שאדע?</label>
+        <textarea name="additional" rows="3" placeholder="כל פרט שלא נכלל בשאלות והוא חשוב — אשמח לשמוע"></textarea>
+      </div>
+    </section>
+
+    <!-- שליחה -->
+    <div class="submit-area">
+      <h2>סיימת? יופי 🎉</h2>
+      <p>בחר איך נוח לך לשלוח אליי את התשובות:</p>
+      <div class="button-row">
+        <button type="button" class="btn btn-primary" onclick="sendEmail()">
+          📧 שלח במייל
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="downloadPDF()">
+          📄 הורד כ-PDF
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="copyToClipboard()">
+          📋 העתק לוואטסאפ
+        </button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>נבנה ב-❤️ על ידי <a href="#">אוטומציה בקלות</a></p>
+    </div>
+
+  </form>
+</div>
+
+<div class="toast" id="toast">הועתק ללוח!</div>
+
+<script>
+  // מעקב התקדמות
+  const form = document.getElementById('briefForm');
+  const progressFill = document.getElementById('progressFill');
+  const progressPercent = document.getElementById('progressPercent');
+
+  function updateProgress() {
+    const allFields = form.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], textarea, select');
+    const checkboxGroups = {};
+    form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      checkboxGroups[cb.name] = checkboxGroups[cb.name] || [];
+      checkboxGroups[cb.name].push(cb);
+    });
+
+    let filled = 0;
+    let total = allFields.length + Object.keys(checkboxGroups).length;
+
+    allFields.forEach(f => { if (f.value.trim()) filled++; });
+    Object.values(checkboxGroups).forEach(group => {
+      if (group.some(cb => cb.checked)) filled++;
+    });
+
+    const percent = Math.round((filled / total) * 100);
+    progressFill.style.width = percent + '%';
+    progressPercent.textContent = percent + '%';
+  }
+
+  form.addEventListener('input', updateProgress);
+  form.addEventListener('change', updateProgress);
+
+  // מצב ויזואלי לצ'קבוקסים
+  document.querySelectorAll('.checkbox-item').forEach(item => {
+    const cb = item.querySelector('input[type="checkbox"]');
+    cb.addEventListener('change', () => {
+      item.classList.toggle('checked', cb.checked);
+    });
+  });
+
+  // איסוף נתוני הטופס
+  function collectData() {
+    const sections = [
+      { title: '1. פרטים כלליים', fields: ['full_name','business_name','industry','phone','email','existing_site'] },
+      { title: '2. מטרת הדף', fields: ['main_goal','success_metric','lead_dest','response_time'] },
+      { title: '3. קהל היעד', fields: ['ideal_customer','customer_pain','objections','best_customer'] },
+      { title: '4. ההצעה', fields: ['offer','price','special_offer','included','delivery_time'] },
+      { title: '5. בידול ואמינות', fields: ['differentiation','competitors','stats','social_proof'] },
+      { title: '6. חומרים קיימים ומיתוג', fields: ['assets','colors','inspirations','style'] },
+      { title: '7. דרישות טכניות', fields: ['domain','integrations','budget','timeline','additional'] }
+    ];
+
+    const labels = {
+      full_name: 'שם מלא', business_name: 'שם העסק', industry: 'תחום העסק',
+      phone: 'טלפון', email: 'מייל', existing_site: 'אתר קיים',
+      main_goal: 'מטרה עיקרית', success_metric: 'מדד הצלחה',
+      lead_dest: 'יעד לידים', response_time: 'זמן תגובה',
+      ideal_customer: 'לקוח אידיאלי', customer_pain: 'כאב הלקוח',
+      objections: 'התנגדויות', best_customer: 'לקוח מעולה אחרון',
+      offer: 'ההצעה', price: 'מחיר', special_offer: 'מבצע מיוחד',
+      included: 'מה כלול', delivery_time: 'זמן אספקה',
+      differentiation: '3 סיבות לבידול', competitors: 'מתחרים',
+      stats: 'סטטיסטיקות', social_proof: 'הוכחה חברתית',
+      assets: 'חומרים קיימים', colors: 'צבעים', inspirations: 'השראה',
+      style: 'סגנון מבוקש', domain: 'דומיין', integrations: 'אינטגרציות',
+      budget: 'תקציב', timeline: 'לוח זמנים', additional: 'הערות נוספות'
+    };
+
+    let output = '';
+    sections.forEach(sec => {
+      output += '\n═══════════════════════════════\n';
+      output += sec.title + '\n';
+      output += '═══════════════════════════════\n';
+      sec.fields.forEach(name => {
+        const elements = form.elements[name];
+        let value = '';
+        if (!elements) return;
+
+        if (elements instanceof RadioNodeList || (elements.length && elements[0].type === 'checkbox')) {
+          const checked = Array.from(elements).filter(e => e.checked).map(e => e.value);
+          value = checked.join(', ');
+        } else {
+          value = elements.value || '';
+        }
+
+        if (value.trim()) {
+          output += '\n▪ ' + labels[name] + ':\n' + value + '\n';
+        }
+      });
+    });
+
+    return output.trim();
+  }
+
+  // שליחה במייל
+  function sendEmail() {
+    const data = collectData();
+    if (!data) {
+      alert('נא למלא לפחות כמה שדות לפני השליחה');
+      return;
+    }
+    const businessName = form.elements['business_name'].value || 'לקוח חדש';
+    const subject = encodeURIComponent('אפיון דף נחיתה - ' + businessName);
+    const body = encodeURIComponent(data);
+    const yourEmail = 'amirbiron@gmail.com';
+    window.location.href = 'mailto:' + yourEmail + '?subject=' + subject + '&body=' + body;
+  }
+
+  // העתקה ללוח
+  function copyToClipboard() {
+    const data = collectData();
+    if (!data) {
+      alert('נא למלא לפחות כמה שדות לפני ההעתקה');
+      return;
+    }
+    navigator.clipboard.writeText(data).then(() => {
+      showToast('✓ הועתק! הדבק בוואטסאפ ושלח');
+    }).catch(() => {
+      // fallback
+      const textarea = document.createElement('textarea');
+      textarea.value = data;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showToast('✓ הועתק! הדבק בוואטסאפ ושלח');
+    });
+  }
+
+  // הורדה כ-PDF (דרך הדפסת הדפדפן)
+  function downloadPDF() {
+    const data = collectData();
+    if (!data) {
+      alert('נא למלא לפחות כמה שדות לפני ההורדה');
+      return;
+    }
+    const businessName = form.elements['business_name'].value || 'אפיון';
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="he" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <title>אפיון דף נחיתה - ${businessName}</title>
+        <style>
+          body { font-family: 'Heebo', Arial, sans-serif; padding: 30px; line-height: 1.7; max-width: 800px; margin: 0 auto; color: #1a1a1a; }
+          h1 { border-bottom: 3px solid #38bdf8; padding-bottom: 10px; }
+          pre { white-space: pre-wrap; font-family: inherit; font-size: 14px; }
+          @media print { body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <h1>אפיון דף נחיתה — ${businessName}</h1>
+        <p style="color:#666">תאריך: ${new Date().toLocaleDateString('he-IL')}</p>
+        <pre>${data.replace(/</g,'&lt;')}</pre>
+        <script>window.onload = () => { window.print(); }<\/script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  updateProgress();
+</script>
+
+</body>
+</html>
