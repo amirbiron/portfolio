@@ -821,8 +821,7 @@
     const businessName = form.elements['business_name'].value || 'לקוח חדש';
     const subject = encodeURIComponent('אפיון דף נחיתה - ' + businessName);
     const body = encodeURIComponent(data);
-    // החלף כאן את כתובת המייל שלך:
-    const yourEmail = 'YOUR_EMAIL@example.com';
+    const yourEmail = 'amirbiron@gmail.com';
     window.location.href = 'mailto:' + yourEmail + '?subject=' + subject + '&body=' + body;
   }
 
