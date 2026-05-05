@@ -1,3 +1,31 @@
+## [2026-05-05] הוספת פוסט בלוג חדש: "12 מלכודות שלמדתי בדרך הקשה מבניית צ'אטבוט AI בפרודקשן"
+
+**קבצים שהשתנו:**
+- `client/src/pages/BlogPost.tsx` — (שונה) נוסף פוסט חדש תחת המפתח `chatbot-ai-antipatterns` באובייקט `blogPosts`
+- `client/src/pages/Home.tsx` — (שונה) נוסף פריט חדש בראש מערך `blogPosts` עם הכותרת, התאריך, התקציר וה-slug המתאים
+
+**פירוט:**
+פוסט חדש לבלוג שמתאר 12 אנטי-פטרנים שלמדתי מבניית צ'אטבוט AI בפרודקשן (RAG + intent detection + ערוצי טלגרם/וואטסאפ). הפוסט נכתב בסגנון נרטיבי שמתאים לשאר פוסטי הבלוג (לקחים מהשטח עם דוגמאות קוד), ולא כמדריך רפרנס.
+
+12 המלכודות המתועדות:
+1. `except: pass` שמסתיר באגים — חובה ל-`logger.error`
+2. קריאת LLM בלי rate limiting (callbacks/deep links/follow-ups שעוקפים)
+3. כתיבת PII לפני consent
+4. שכפול לוגיקת RAG בין נתיבים שונים
+5. Fuzzy detection ל-handoff (חובה טוקן `[HANDOFF]` דטרמיניסטי)
+6. לולאת I/O בלי try/except פנימי לכל איטרציה
+7. JSON output בלי דוגמה ושמות שדות מפורשים בפרומפט
+8. `asyncio.run_coroutine_threadsafe` בלי `add_done_callback`
+9. דריסת מונים בפונקציית error handler
+10. שכפול לוגיקת WHERE בין `get_X` ל-`count_X`
+11. גבולות ערוץ לא בדוקים (WhatsApp 1600 תווים שקוצץ בשקט)
+12. dead code ב-routes ללא UI שקורא להם
+
+**ליישום מחדש:**
+1. ב-`client/src/pages/BlogPost.tsx`, להוסיף ערך חדש בראש האובייקט `blogPosts` עם המפתח `"chatbot-ai-antipatterns"`. הערך צריך לכלול `title`, `date: "05-05-2026"`, ו-`content` שהוא template literal (backticks) של תוכן ה-Markdown של הפוסט. שים לב שכל backtick בתוך התוכן (למשל בלוקי קוד \`\`\`python) חייב escape ל-\`.
+2. ב-`client/src/pages/Home.tsx`, בתוך `const blogPosts = [...]`, להוסיף פריט חדש *בראש המערך* (לפני "מדריך ליצירת בוט טרמינל"). הפריט: `{ title, date: "05-05-2026", excerpt, slug: "chatbot-ai-antipatterns" }`. ה-excerpt: "אנטי-פטרנים שתועדו אחרי שזה קרה בפרודקשן — מ-except: pass שמסתיר באגים, דרך handoff עם fuzzy matching, ועד גבולות ערוץ שקוצצים הודעות בשקט."
+3. אין צורך בשינויים נוספים — ה-routing (`/blog/:slug`) מטפל אוטומטית בפוסטים חדשים שמתווספים לאובייקט.
+
 ## [2026-05-03] העברת שאלון האפיון מ-`survey/index.html` ל-`docs/survey.html`
 
 **קבצים שהשתנו:**

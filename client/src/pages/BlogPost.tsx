@@ -12,6 +12,324 @@ import { Streamdown } from 'streamdown';
 
 // Blog posts data
 const blogPosts = {
+  "chatbot-ai-antipatterns": {
+    title: "12 מלכודות שלמדתי בדרך הקשה מבניית צ'אטבוט AI בפרודקשן",
+    date: "05-05-2026",
+    content: `> כל אחת מהמלכודות בפוסט הזה תועדה אחרי שזה קרה לי בפרודקשן ויצר באג אמיתי. חלקן שקטות, חלקן רועשות, רובן עולות זמן ועצבים.
+> אם אתה בונה צ'אטבוט מבוסס LLM + RAG — שמור את הרשימה.
+
+---
+
+צ'אטבוט שעובד טוב בדמו ושצ'אטבוט שעובד טוב בפרודקשן זה לא אותו דבר. בדמו אתה שולט במשתמש, ב-prompts, וב-edge cases. בפרודקשן יש לך משתמשים אמיתיים ששואלים שאלות שלא חשבת עליהן, ספקי LLM שנופלים, ובאגים שקטים שמופיעים רק אחרי 1000 שיחות.
+
+הנה 12 מלכודות שלמדתי לזהות אחרי שנפלתי בכל אחת מהן.
+
+---
+
+## 1. \`except Exception: pass\` — הרוצח השקט
+
+זה הקלאסי, וזה הכי מסוכן. נראה תמים:
+
+\`\`\`python
+# ❌ כשל נעלם בלי עקבות
+try:
+    db.save_unanswered_question(user_id, question)
+except Exception:
+    pass
+\`\`\`
+
+הפונקציה \`save_unanswered_question\` הייתה אמורה לתעד שאלות שהבוט לא ידע לענות עליהן, כדי שאוכל לשפר את ה-KB. במשך שבועיים הטבלה הייתה ריקה והייתי בטוח שהבוט מצוין. עד שהמשתמשים התלוננו.
+
+מה שקרה? שינוי בסכימה שבר את ה-INSERT. אם היה לוג, הייתי רואה את זה ביום הראשון.
+
+\`\`\`python
+# ✅ לפחות תדע שמשהו נשבר
+try:
+    db.save_unanswered_question(user_id, question)
+except Exception as e:
+    logger.error("Failed to log unanswered question: %s", e)
+\`\`\`
+
+**הכלל:** אסור \`except: pass\`. תמיד \`logger.error\` עם ההקשר. הסכמה הזאת הצילה אותי שוב ושוב.
+
+---
+
+## 2. קריאת LLM בלי rate limiting — המתקפה מבפנים
+
+חשבתי שיש לי rate limit מסודר. \`message_handler\` בודק כל הודעה נכנסת, סופר חלון של דקה/שעה/יום. סגור.
+
+עד שראיתי משתמש שצרך פי 50 מהמכסה.
+
+המקור: לחצנים של "שאלות המשך" שהבוט מציע. כל לחיצה הפעילה קריאה ל-LLM **בלי לעבור ב-rate limiter**, כי זו הייתה \`callback_query\` ולא \`message\`. המשתמש לחץ ולחץ ולחץ.
+
+\`\`\`python
+# ❌ callback handler בלי הגנה
+async def follow_up_callback(update, context):
+    question = update.callback_query.data
+    answer = generate_answer(question)  # ⚠️ קריאת LLM!
+    await update.callback_query.message.reply_text(answer)
+\`\`\`
+
+**הכלל:** כל נתיב — *כל* נתיב — שיכול להגיע ל-LLM, חייב לעבור ב-\`check_rate_limit + record_message\`. כולל callbacks, deep links, scheduled tasks, ושאלות המשך אוטומטיות.
+
+---
+
+## 3. כתיבת PII לפני הסכמה — הפרת רגולציה בשורה אחת
+
+חוק הפרטיות (וגם GDPR) דורש קונסנט לפני שמירת מידע אישי. במבט ראשון נראה שהקוד מטפל בזה:
+
+\`\`\`python
+# ❌ נראה תקין, באמת לא
+async def start_command(update, context):
+    user = update.effective_user
+    db.upsert_user(user.id, user.first_name, user.username)  # ⚠️ נשמר
+    if not db.has_consent(user.id):
+        return await show_consent_screen(update)
+\`\`\`
+
+הבעיה: \`db.upsert_user\` כותב לטבלת \`users\` שם, יוזר־ניים, ו-\`user_id\` — כל זה PII. אם המשתמש לוחץ "אני לא מסכים", המידע כבר ב-DB.
+
+\`\`\`python
+# ✅ קונסנט קודם, כתיבה אחר כך
+async def start_command(update, context):
+    user = update.effective_user
+    if not db.has_consent(user.id):
+        return await show_consent_screen(update)
+    db.upsert_user(user.id, user.first_name, user.username)
+\`\`\`
+
+**הכלל:** שום פונקציה שכותבת PII לא רצה לפני \`db.has_consent()\`. זה כולל \`upsert_user\`, \`subscribe\`, ואפילו רישום unanswered questions אם הוא מכיל user metadata.
+
+---
+
+## 4. שכפול לוגיקת RAG — הבאג שמתרבה לאט
+
+יום אחד החלטתי שכל שאלה שהבוט לא יודע לענות עליה תירשם ל-\`unanswered_questions\`. הוספתי את הלוג ב-\`process_rag_query\`. בדקתי — עובד.
+
+חודש אחר כך גיליתי שהטבלה ריקה למחצה. למה? כי שאלות שהגיעו דרך כפתור inline (callback) השתמשו ב-handler אחר שמימש מחדש את לוגיקת ה-RAG. השינוי לא הוחל שם.
+
+\`\`\`python
+# ❌ שני נתיבים שעושים את אותו דבר
+async def message_handler(update, context):
+    return await process_rag_query(...)  # יש לוג
+
+async def callback_handler(update, context):
+    answer = generate_answer(...)  # אין לוג
+    await reply(answer)
+\`\`\`
+
+**הכלל:** **נקודת כניסה אחת ל-RAG**. אם יש שני handlers שצריכים לעשות חיפוש סמנטי + LLM, שניהם קוראים לאותה פונקציה. אסור לדלג עליה כי "זה רק callback קטן".
+
+---
+
+## 5. Fuzzy detection ל-handoff — false positives גרועים מ-false negatives
+
+בגרסה ראשונה, החלטתי שאם ה-LLM כתב משהו כמו "אעביר את הפנייה שלך לבירור" — נעביר את הלקוח לבעל העסק. נראה הגיוני.
+
+תוצאה: לקוחות הועברו לבעל העסק כש-LLM אמר משפטים תמימים כמו "אם תרצה אעביר את הפנייה לבירור נוסף". בעל העסק קיבל 30 התראות ביום על "פניות דחופות" שלא היו דחופות.
+
+הפתרון: **טוקן דטרמיניסטי**.
+
+\`\`\`python
+HANDOFF_MARKER = "[HANDOFF]"
+
+def should_handoff_to_human(text: str) -> bool:
+    return text.strip().startswith(HANDOFF_MARKER)
+
+def strip_handoff_marker(text: str) -> str:
+    stripped = text.lstrip()
+    if stripped.startswith(HANDOFF_MARKER):
+        return stripped[len(HANDOFF_MARKER):].lstrip()
+    return text
+\`\`\`
+
+הפרומפט מורה ל-LLM: *אם אתה לא יודע — התחל בדיוק עם \`[HANDOFF]\`*. הקוד בודק טוקן בתחילת המחרוזת, מסיר אותו לפני השליחה למשתמש, ומחליט על escalation.
+
+**הכלל:** סיגנלים בין LLM לקוד צריכים להיות **בינאריים, דטרמיניסטיים וניתנים לבדיקה**. fuzzy matching על טקסט חופשי מ-LLM = באגים שמתפרצים בערב שישי.
+
+---
+
+## 6. לולאת I/O בלי \`try/except\` פנימי — broadcast שמת באמצע
+
+בקאמפיין broadcast הראשון, רציתי לשלוח הודעה ל-3000 משתמשים. הקוד היה כזה:
+
+\`\`\`python
+# ❌ משתמש אחד עם בעיה הופך לכשל גורף
+for user in users:
+    bot.send_message(user.id, text)
+\`\`\`
+
+המשתמש ה-127 חסם את הבוט. \`send_message\` זרק \`Forbidden\`. הלולאה מתה. 2873 המשתמשים האחרים לא קיבלו את ההודעה. גיליתי את זה בבוקר.
+
+\`\`\`python
+# ✅ כל פריט מוגן בנפרד
+for user in users:
+    try:
+        bot.send_message(user.id, text)
+    except Exception as e:
+        logger.error("Failed for user %s: %s", user.id, e)
+        db.mark_send_failed(user.id, str(e))
+\`\`\`
+
+**הכלל:** כל לולאה שעושה I/O על אוסף — \`try/except\` *סביב כל איטרציה*, לא סביב הלולאה כולה. כשל בודד הוא נורמלי. כשל גורף הוא קטסטרופה.
+
+---
+
+## 7. JSON output בלי דוגמה בפרומפט — הבאג השקט הקלאסי
+
+OpenAI נותנים \`response_format={"type": "json_object"}\` שמבטיח JSON תקין. אבל **התקינות היא רק תחבירית** — המודל יכול להמציא שדות.
+
+\`\`\`python
+# ❌ הפרומפט לא מציין שמות שדות
+prompt = "החלט אם לשלוח follow-up למשתמש. החזר JSON."
+response = client.chat.completions.create(
+    response_format={"type": "json_object"},
+    ...
+)
+data = json.loads(response.choices[0].message.content)
+should_send = data.get("should_send", False)  # ⚠️
+\`\`\`
+
+המודל החזיר JSON כמו \`{"send_followup": true, "reason": "..."}\`. השדה \`should_send\` לא קיים שם. \`dict.get(..., False)\` החזיר False. אף follow-up לא נשלח במשך שבועיים.
+
+\`\`\`python
+# ✅ שמות מפורשים + דוגמה
+prompt = """
+החלט אם לשלוח follow-up. החזר JSON עם השדות:
+- should_send (boolean)
+- reason (string)
+- delay_hours (integer)
+
+דוגמה:
+{"should_send": true, "reason": "שאלה פתוחה", "delay_hours": 24}
+"""
+\`\`\`
+
+**ועוד טיפ:** הוסף טסט שאוכף שכל שדה ב-schema מופיע גם בפרומפט. אם מישהו מוסיף שדה ל-schema בלי לעדכן פרומפט — הטסט נופל.
+
+---
+
+## 8. \`asyncio.run_coroutine_threadsafe\` בלי \`add_done_callback\`
+
+קלאסי בקוד שמערבב Flask (sync) עם בוט (async). אתה רוצה לקרוא ל-coroutine מ-thread של Flask:
+
+\`\`\`python
+# ❌ exceptions נעלמים בשקט
+asyncio.run_coroutine_threadsafe(send_to_user(uid, msg), loop)
+\`\`\`
+
+ה-Future חוזר, אתה זורק אותו, ואם ה-coroutine נכשל — אף אחד לא יודע. שעות של דיבוג.
+
+\`\`\`python
+# ✅ done_callback שמלוג שגיאות
+def _on_done(f):
+    if f.cancelled():           # לבדוק cancelled לפני exception!
+        return
+    if exc := f.exception():
+        logger.error("Coroutine failed: %s", exc)
+
+future = asyncio.run_coroutine_threadsafe(send_to_user(uid, msg), loop)
+future.add_done_callback(_on_done)
+\`\`\`
+
+**הכלל:** ה-Future חוזר לסיבה. אם אתה לא מטפל בו — חבל לקרוא לפונקציה האסינכרונית.
+
+---
+
+## 9. דריסת התקדמות ב-error path — מונים שמתאפסים בכאוס
+
+\`broadcast_service\` שלי שמר ב-DB את ההתקדמות: \`sent=2500, failed=12, total=3000\`. שגיאת רשת באמצע גרמה ל-error handler לרוץ — שקרא ל-\`fail_broadcast(broadcast_id)\`.
+
+\`fail_broadcast\` כתב: \`status="failed", sent=0, failed=0\`. המונים נמחקו. כשהמערכת התאוששה ועשיתי retry, היא התחילה מההתחלה ושלחה שוב לכל מי שכבר קיבל.
+
+\`\`\`python
+# ❌ דורס מונים שכבר נכתבו
+def fail_broadcast(broadcast_id, error):
+    db.update_broadcast(broadcast_id, status="failed", sent=0, failed=0, error=error)
+
+# ✅ עדכן רק status, השאר את המונים
+def fail_broadcast(broadcast_id, error):
+    db.update_broadcast(broadcast_id, status="failed", error=error)
+\`\`\`
+
+**הכלל:** error handler שעושה UPDATE — תכתוב **רק** את השדות שצריך לשנות. אל תכלול סתם את \`sent\` ו-\`failed\` כי "זה השדה הראשון בטבלה". זה דורס עבודה אמיתית שכבר הצטברה.
+
+---
+
+## 10. שכפול WHERE בין \`get_X\` ל-\`count_X\` — הסטייה השקטה
+
+יש לי \`get_pending_messages(user_id)\` שמחזיר רשימת הודעות, ו-\`count_pending_messages(user_id)\` שמחזיר מספר. שני SELECTs נפרדים, שני WHEREs נפרדים.
+
+יום אחד הוספתי תנאי "AND is_archived = 0" ל-\`get_pending_messages\`. שכחתי מ-\`count\`. תוצאה: ה-UI הציג "יש לך 5 הודעות חדשות" אבל כשנכנסת ראית 2. למשתמשים זה נראה כמו באג אקראי.
+
+\`\`\`python
+# ✅ helper פרטי משותף
+def _pending_messages_query(user_id):
+    return select(Message).where(
+        Message.user_id == user_id,
+        Message.is_pending == True,
+        Message.is_archived == False,
+    )
+
+def get_pending_messages(user_id):
+    return db.execute(_pending_messages_query(user_id)).all()
+
+def count_pending_messages(user_id):
+    q = _pending_messages_query(user_id).with_only_columns(func.count())
+    return db.scalar(q)
+\`\`\`
+
+**הכלל:** שתי פונקציות שצריכות אותו WHERE — חייבות לחלוק helper. שכפול = סטייה שקטה ביום שמשנים אחת מהן.
+
+---
+
+## 11. גבולות ערוץ שלא בודקים מראש
+
+WhatsApp דרך Twilio קוצץ הודעות שעוברות 1600 תווים. **בלי הודעת שגיאה**. באמצע משפט. המשתמש מקבל הודעה חתוכה.
+
+לקוח שאל "מה ההבדלים בין החבילות שלכם?". התשובה הייתה 1800 תווים. הוא קיבל 1600 הראשונים, שנגמרו באמצע "החבילה השנייה כוללת—". הוא חשב שהבוט קרס.
+
+\`\`\`python
+# ✅ לבדוק אורך לפני שליחה, ולהפנות לעמוד HTML אם חוצה
+def send_whatsapp_response(user_id, text, rag_context):
+    if len(text) > 1500:  # מרווח ביטחון
+        page_id = create_public_page(text, rag_context)
+        url = f"{ADMIN_URL}/p/{page_id}"
+        text = f"התשובה ארוכה — קישור לקריאה:\\n{url}"
+    twilio.send(user_id, text)
+\`\`\`
+
+**הכלל:** לכל ערוץ יש מגבלות אופייניות — Telegram = 4096 תווים, WhatsApp = 1600, SMS = 160. **תכיר אותן לפני הפרודקשן**, לא אחרי. ובמיוחד בערוצים שקוצצים בשקט.
+
+---
+
+## 12. dead code ב-routes — ה-clutter שמתרבה לאט
+
+מדי פעם הוספתי endpoint לפאנל אדמין כי "אצטרך אותו אחר כך". כעבור חצי שנה היו לי 12 routes ש-UI לא קרא לאף אחד מהם. כל אחד היה דורש לעבור עליו כשעשיתי refactor של auth, של logging, של error handling.
+
+לכל אחד עלות תחזוקה אמיתית, גם אם הוא לא רץ.
+
+**הכלל:** אם הוספת \`@app.route\`, חייב להיות באותו commit UI שקורא לו. אין "אצרוך את זה בקרוב". dead code מתרבה ולא הולך לבד.
+
+---
+
+## סיכום
+
+המכנה המשותף לכל המלכודות האלה: **הן שקטות**. הן לא מפילות את האפליקציה. הן יוצרות באגים שמתגלים שבועות אחרי, אצל משתמשים, בערב שישי.
+
+הדרך היחידה לתפוס אותן זה:
+1. **לוג כל כשל** — \`except: pass\` הוא אויב.
+2. **נקודת כניסה אחת** לכל לוגיקה משותפת — RAG, rate limit, consent.
+3. **סיגנלים בינאריים** בין שכבות — לא fuzzy matching.
+4. **טסטים שאוכפים סנכרון** בין דברים שצריכים להיות מסונכרנים — schema⇄prompt, get⇄count.
+5. **להכיר גבולות** של כל ערוץ/ספק לפני שמגיעים אליהם.
+
+לפעמים אני חושב שכל באג שתופס אותך בפרודקשן הוא הזדמנות להוסיף שכבת הגנה כללית — לא רק תיקון נקודתי. הרשימה הזאת היא בדיוק זה: כל מלכודת היא לקח שהפך לכלל. אני מקווה שתחסוך לכם כמה לילות.
+
+---
+
+*מבוסס על לקחים מבניית צ'אטבוט AI שרץ בפרודקשן עם RAG, intent detection, ומספר ערוצים (Telegram, WhatsApp, web).*`
+  },
   "whatsapp-bot-python-guide": {
     title: "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי",
     date: "14-03-2026",
