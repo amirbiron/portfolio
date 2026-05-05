@@ -80,6 +80,12 @@ export default function Home() {
 
   const blogPosts = [
     {
+      title: "12 מלכודות שלמדתי בדרך הקשה מבניית צ'אטבוט AI בפרודקשן",
+      date: "05-05-2026",
+      excerpt: "אנטי-פטרנים שתועדו אחרי שזה קרה בפרודקשן — מ-except: pass שמסתיר באגים, דרך handoff עם fuzzy matching, ועד גבולות ערוץ שקוצצים הודעות בשקט.",
+      slug: "chatbot-ai-antipatterns"
+    },
+    {
       title: "מדריך ליצירת בוט טרמינל לטלגרם בפייתון — הרצת קוד מרחוק דרך הצ'אט",
       date: "27-03-2026",
       excerpt: "איך לבנות בוט טלגרם שמאפשר הרצת קוד Python, JavaScript ופקודות shell — עם מערכת הרשאות, ניהול סשנים, ופריסה ב-Docker.",
