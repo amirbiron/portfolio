@@ -1,3 +1,22 @@
+## [2026-05-23] שינוי שם EmailFlow → LeadsFlow + החלפת תמונות הכרטיס ל-CloudFront
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) שם ו-slug של EmailFlow → LeadsFlow; שדה `image` של ארבעת הפרויקטים החדשים עודכן ל-URLי CloudFront ייעודיים
+
+**פירוט:**
+1. **שינוי שם**: הפרויקט `emailflow` (EmailFlow) שונה ל-`leadsflow` (LeadsFlow), כי המערכת מטפלת בכמה ערוצים (לא רק מייל). הוחלפו רק `slug` ו-`title` — שאר התוכן (description / subtitle / fullDescription / tech / mermaid / challenges / features) נשאר זהה.
+2. **תמונות כרטיס (image)** — הוחלפו מצילומי מסך מקומיים לאיורי תדמית ב-CloudFront:
+   - `myagent`: `https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/myagent-7Lod562R8dLjThpijRkjRn.webp`
+   - `leadsflow`: `https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/leadsflow-Hab8u6YTDprDoPcciCNpYj.webp`
+   - `contentflow`: `https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/contentflow-EBa2b5dteRp3ZzuJDjF3mU.webp`
+   - `offerflow`: `https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/offerflow-2CDpNggdSfmGNBbDEYjzn9.webp`
+3. **screenshots** — נשארו צילומי המסך הפנימיים מ-`/projects/...` ללא שינוי (משמשים בגלריה של עמוד הפרויקט).
+4. **imagePosition של offerflow** — הוסר (כבר לא רלוונטי, האיור הוא ריבועי/מתאים מרכזית).
+
+**ליישום מחדש:**
+1. ב-`client/src/lib/projects.ts`: למצוא את `slug: "emailflow"` ו-`title: "EmailFlow"` ולהחליף ל-`slug: "leadsflow"` ו-`title: "LeadsFlow"`.
+2. לכל אחד מארבעת האובייקטים החדשים — להחליף את שדה `image` ב-URL ה-CloudFront הייעודי שלמעלה. שדה `screenshots` נשאר עם המסלולים המקומיים. ב-`offerflow` להסיר את `imagePosition: "top"`.
+
 ## [2026-05-23] חיבור צילומי מסך לפרויקטים החדשים (myAgent / EmailFlow / ContentFlow / OfferFlow)
 
 **קבצים שהשתנו:**

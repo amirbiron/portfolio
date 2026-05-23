@@ -146,7 +146,7 @@ export const projects: ProjectData[] = [
       "Claude Sonnet",
       "Render",
     ],
-    image: "/projects/Screenshot_20260511_190937_Chrome.jpg",
+    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/myagent-7Lod562R8dLjThpijRkjRn.webp",
     screenshots: ["/projects/Screenshot_20260511_190937_Chrome.jpg"],
     mermaidDiagram: `graph TB
     subgraph Users["משתמשים"]
@@ -301,8 +301,8 @@ export const projects: ProjectData[] = [
     ],
   },
   {
-    slug: "emailflow",
-    title: "EmailFlow",
+    slug: "leadsflow",
+    title: "LeadsFlow",
     description:
       "מערכת ניהול תקשורת ולידים רב-ערוצית — מייל, וואטסאפ, מסנג'ר ואינסטגרם בתיבה אחת עם טיוטות AI",
     subtitle: "Inbox מאוחד לכל ערוצי הלידים עם סיווג AI וטיוטת תשובה אוטומטית",
@@ -323,7 +323,7 @@ export const projects: ProjectData[] = [
       "Render",
       "Supabase",
     ],
-    image: "/projects/Screenshot_20260516_121229_Chrome.jpg",
+    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/leadsflow-Hab8u6YTDprDoPcciCNpYj.webp",
     screenshots: ["/projects/Screenshot_20260516_121229_Chrome.jpg"],
     mermaidDiagram: `graph TB
     subgraph Channels["ערוצי כניסה"]
@@ -414,7 +414,7 @@ export const projects: ProjectData[] = [
       "Tailwind",
       "Render",
     ],
-    image: "/projects/Screenshot_20260523_223347_Chrome.jpg",
+    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/contentflow-EBa2b5dteRp3ZzuJDjF3mU.webp",
     screenshots: [
       "/projects/Screenshot_20260523_223347_Chrome.jpg",
       "/projects/Screenshot_20260523_223356_Chrome.jpg",
@@ -497,8 +497,7 @@ export const projects: ProjectData[] = [
       "Cloudflare R2",
       "Render",
     ],
-    image: "/projects/Screenshot_20260523_223540_Chrome.jpg",
-    imagePosition: "top",
+    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/offerflow-2CDpNggdSfmGNBbDEYjzn9.webp",
     screenshots: ["/projects/Screenshot_20260523_223540_Chrome.jpg"],
     mermaidDiagram: `graph TB
     subgraph Owner["בעל העסק"]
