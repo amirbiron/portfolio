@@ -1,3 +1,82 @@
+## [2026-05-23] שינוי שם EmailFlow → LeadsFlow + החלפת תמונות הכרטיס ל-CloudFront
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) שם ו-slug של EmailFlow → LeadsFlow; שדה `image` של ארבעת הפרויקטים החדשים עודכן ל-URLי CloudFront ייעודיים
+
+**פירוט:**
+1. **שינוי שם**: הפרויקט `emailflow` (EmailFlow) שונה ל-`leadsflow` (LeadsFlow), כי המערכת מטפלת בכמה ערוצים (לא רק מייל). הוחלפו רק `slug` ו-`title` — שאר התוכן (description / subtitle / fullDescription / tech / mermaid / challenges / features) נשאר זהה.
+2. **תמונות כרטיס (image)** — הוחלפו מצילומי מסך מקומיים לאיורי תדמית ב-CloudFront:
+   - `myagent`: `https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/myagent-7Lod562R8dLjThpijRkjRn.webp`
+   - `leadsflow`: `https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/leadsflow-Hab8u6YTDprDoPcciCNpYj.webp`
+   - `contentflow`: `https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/contentflow-EBa2b5dteRp3ZzuJDjF3mU.webp`
+   - `offerflow`: `https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/offerflow-2CDpNggdSfmGNBbDEYjzn9.webp`
+3. **screenshots** — נשארו צילומי המסך הפנימיים מ-`/projects/...` ללא שינוי (משמשים בגלריה של עמוד הפרויקט).
+4. **imagePosition של offerflow** — הוסר (כבר לא רלוונטי, האיור הוא ריבועי/מתאים מרכזית).
+
+**ליישום מחדש:**
+1. ב-`client/src/lib/projects.ts`: למצוא את `slug: "emailflow"` ו-`title: "EmailFlow"` ולהחליף ל-`slug: "leadsflow"` ו-`title: "LeadsFlow"`.
+2. לכל אחד מארבעת האובייקטים החדשים — להחליף את שדה `image` ב-URL ה-CloudFront הייעודי שלמעלה. שדה `screenshots` נשאר עם המסלולים המקומיים. ב-`offerflow` להסיר את `imagePosition: "top"`.
+
+## [2026-05-23] חיבור צילומי מסך לפרויקטים החדשים (myAgent / EmailFlow / ContentFlow / OfferFlow)
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) שדות `image` ו-`screenshots` עודכנו עבור ארבעת הפרויקטים החדשים
+- `client/public/projects/Screenshot_20260511_190937_Chrome.jpg` — (נוסף) צילום מסך של myAgent (דף הגדרות / סיסטם פרומפט)
+- `client/public/projects/Screenshot_20260516_121229_Chrome.jpg` — (נוסף) צילום מסך של EmailFlow (דואר נכנס מאוחד)
+- `client/public/projects/Screenshot_20260523_223347_Chrome.jpg` — (נוסף) צילום מסך של ContentFlow (בחירת סוג פוסט)
+- `client/public/projects/Screenshot_20260523_223356_Chrome.jpg` — (נוסף) צילום מסך של ContentFlow (טופס יצירת תוכן)
+- `client/public/projects/Screenshot_20260523_223540_Chrome.jpg` — (נוסף) צילום מסך של OfferFlow (עמוד צפייה ציבורי של הצעת מחיר)
+
+**פירוט:**
+חיבור צילומי המסך שהועלו ל-`client/public/projects/` למערך `projects.ts`:
+
+- `myagent`: `image` ו-`screenshots[0]` = `/projects/Screenshot_20260511_190937_Chrome.jpg`
+- `emailflow`: `image` ו-`screenshots[0]` = `/projects/Screenshot_20260516_121229_Chrome.jpg`
+- `contentflow`: `image` ו-`screenshots[0]` = `/projects/Screenshot_20260523_223347_Chrome.jpg`; `screenshots[1]` = `/projects/Screenshot_20260523_223356_Chrome.jpg`
+- `offerflow`: `image` ו-`screenshots[0]` = `/projects/Screenshot_20260523_223540_Chrome.jpg`; נוסף `imagePosition: "top"` כי הצילום ארוך (טופס מלא) — שלא ייחתך באמצע בכרטיס בדף הבית
+
+**ליישום מחדש:**
+1. להעלות את חמשת הקבצים לתיקייה `client/public/projects/` (השמות מעלה).
+2. ב-`client/src/lib/projects.ts`, לכל אחד מארבעת האובייקטים החדשים להחליף `image: ""` ו-`screenshots: []` במסלולים שלמעלה. עבור `offerflow` להוסיף גם `imagePosition: "top"` כדי שהצילום הארוך לא ייחתך בכרטיס.
+
+## [2026-05-23] עדכון רשימת הפרויקטים — הסרת MarkdownBot ו-ModularBot, הוספת myAgent / EmailFlow / ContentFlow / OfferFlow ושינוי סדר
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) הוסרו שני פרויקטים, נוספו ארבעה חדשים, וסדר הפרויקטים עודכן
+
+**פירוט:**
+עדכון מערך `projects` בקובץ `client/src/lib/projects.ts` בהתאם להחלטת בעל הפורטפוליו:
+
+1. **הוסרו** הפרויקטים הבאים מהמערך:
+   - `markdownbot` (MarkdownBot)
+   - `modularbot` (ModularBot)
+
+2. **נוספו** ארבעה פרויקטים חדשים (כל אחד כאובייקט `ProjectData` מלא — `slug`, `title`, `description`, `subtitle`, `fullDescription`, `tech`, `image`, `screenshots`, `mermaidDiagram`, `demo`, `repo`, `challenges`, `features`):
+   - `myagent` — myAgent: סוכן AI אישי לוואטסאפ ולטלגרם (FastAPI · MongoDB · Node.js · whatsapp-web.js · Telethon · Next.js 14 · Tailwind · Gemini 2.5 Pro / Claude Sonnet · Render). שלושה שירותים נפרדים ב-Render עם Persistent Disks, אבטחה דו-שכבתית (WEBHOOK_SECRET ו-DASHBOARD_TOKEN), RAG מבסיס ידע אישי, דשבורד Next.js.
+   - `emailflow` — EmailFlow: Inbox מאוחד למייל/WhatsApp/Messenger/Instagram עם Claude Haiku לסיווג + Lead Score, Claude Sonnet לטיוטת תשובה, FAQ עם pgvector + OpenAI embeddings, התראות טלגרם עם כפתור Send inline, multi-tenant + Fernet, APScheduler ל-follow-up. סטאק: FastAPI · SQLAlchemy 2.0 async · PostgreSQL + pgvector · Anthropic Claude · OpenAI Embeddings · Green API / Meta Cloud API · Next.js 15 · Tailwind · shadcn/ui · APScheduler · Render · Supabase.
+   - `contentflow` — ContentFlow: מחולל פוסטים שיווקיים בעברית עם פרופיל עסק מתמשך, ניתוח דוגמאות סגנון, Claude Sonnet 4.6 + Prompt Caching, מערכת Auth רב-משתמשית. סטאק: FastAPI · MongoDB · Anthropic Claude (Sonnet 4.6) · Jinja2 · Alpine.js · Tailwind · Render.
+   - `offerflow` — OfferFlow: מחולל הצעות מחיר ב-AI עם Quick AI (תיאור חופשי → JSON), עורך Split-View, WeasyPrint לעברית RTL, חישובי מע"מ ומספור אוטומטי, AI לניסוח, קטלוג שירותים, עמוד צפייה ציבורי (`/q/{token}`) עם חתימה דיגיטלית canvas ו-tracking, שליחה ב-Email/WhatsApp Deep Link, Onboarding 5 שלבים, 9 פלטות צבע + WCAG, גרסאות (Revisions), Prompt Caching (חיסכון 70-80%), דשבורד KPIs. סטאק: FastAPI · Python 3.11 · MongoDB Motor async · Anthropic Claude Sonnet 4.6 + Prompt Caching · WeasyPrint · Jinja2 · Tailwind · Alpine.js · Cloudflare R2 · Render.
+
+   הטקסטים המלאים (description / subtitle / fullDescription / challenges / features / mermaidDiagram) מופיעים בקובץ. עבור ארבעת הפרויקטים החדשים `image: ""`, `screenshots: []`, `demo: "#"`, `repo: "#"` — אין עדיין תמונות/דמו ציבוריים.
+
+3. **סדר חדש** של מערך `projects` (זה הסדר שבו הם מופיעים בקובץ ובדף הבית):
+   1. `ai-business-bot` — AI Business Bot
+   2. `myagent` — myAgent
+   3. `fb-leads-scanner` — FB Leads Scanner
+   4. `emailflow` — EmailFlow
+   5. `contentflow` — ContentFlow
+   6. `offerflow` — OfferFlow
+   7. `mentoros` — MentorOS
+   8. `codekeeper` — CodeKeeper
+   9. `routine-anchors` — שגרה בחוסר שגרה
+
+**ליישום מחדש:**
+- לפתוח את `client/src/lib/projects.ts`.
+- למחוק את האובייקטים של `slug: "markdownbot"` ו-`slug: "modularbot"` מהמערך `projects`.
+- לארגן מחדש את שאר האובייקטים הקיימים (mentoros, codekeeper, fb-leads-scanner, ai-business-bot, routine-anchors) לפי הסדר החדש שלמעלה.
+- להוסיף ארבעה אובייקטים חדשים (`myagent`, `emailflow`, `contentflow`, `offerflow`) במיקומים המתאימים בסדר. לכל אחד למלא את כל השדות החובה של `ProjectData`. אם אין תמונה — `image: ""` ו-`screenshots: []`; אם אין דמו/repo ציבוריים — `demo: "#"` ו-`repo: "#"`. דיאגרמת `mermaidDiagram` נכתבה כ-`graph TB` (או `graph TD`) ומציגה את הרכיבים הראשיים של כל מערכת.
+- אין צורך בשינויים נוספים (Home / ProjectPage / App routes) — הקבצים האלה ניזונים אוטומטית מהמערך `projects` לפי `slug`.
+
 ## [2026-05-05] הוספת פוסט בלוג חדש: "12 מלכודות שלמדתי בדרך הקשה מבניית צ'אטבוט AI בפרודקשן"
 
 **קבצים שהשתנו:**
