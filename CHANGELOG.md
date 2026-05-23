@@ -1,3 +1,19 @@
+## [2026-05-23] קיצור fullDescription בארבעת הפרויקטים החדשים
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) קוצרו שדות `fullDescription` עבור myAgent, LeadsFlow, ContentFlow ו-OfferFlow
+
+**פירוט:**
+הוסרו פסקאות "כוללת..." הארוכות שפירטו את היכולות הטכניות מתוך `fullDescription` של ארבעת הפרויקטים החדשים, כי הפירוט הטכני כבר מופיע בלאו הכי בשדות `features` ו-`challenges` ובסקציות הייעודיות בעמוד הפרויקט. הטקסט המקוצר משאיר רק את ה-pitch הקצר.
+
+- `myagent`: הוסר "ויש דשבורד Next.js לניהול בסיס הידע, מעקב והשתלטות על שיחות. נפרס כשלושה שירותים נפרדים ב-Render עם Persistent Disks לשמירת סשנים."
+- `leadsflow`: הוסר "עם כפתור 'שלח' inline, בסיס ידע (FAQ) עם חיפוש סמנטי (pgvector + OpenAI embeddings), שכבת ספקים מופשטת ל-WhatsApp (Green API / Meta Cloud API), multi-tenant מלא עם הצפנת credentials (Fernet), ו-follow-up אוטומטי ללידים שלא ענו אליהם." — נשאר "...כוללת התראות טלגרם בזמן אמת על לידים חמים."
+- `contentflow`: הוסר "כוללת Onboarding שמלמד את המערכת על העסק, פרופיל עסק מתמשך שכל פוסט נשען עליו, יצירת תוכן עם Prompt Caching של Claude Sonnet 4.6 (חוסך עלות וזמן דרמטית), מערכת Auth רב-משתמשית, ו-UI עברית עם Design System אחיד."
+- `offerflow`: הוסר "כוללת עורך עם תצוגה חיה (Split-View), הפקת PDF ממותג בעברית עם WeasyPrint, חישובי מע\"מ, AI לניסוח טקסטים, קטלוג שירותים, עמוד צפייה ציבורי עם כפתורי אישור/דחייה, שליחה ב-Email ו-WhatsApp Deep Link, Onboarding 5 שלבים, 9 פלטות צבע סמנטיות עם בדיקת WCAG, גרסאות (Revisions), Prompt Caching שחוסך 70-80% מעלות ה-AI, ודשבורד KPIs."
+
+**ליישום מחדש:**
+בקובץ `client/src/lib/projects.ts`, ב-`fullDescription` של ארבעת האובייקטים `myagent` / `leadsflow` / `contentflow` / `offerflow` — למחוק את המשפטים שמתחילים ב"כוללת..." (או ב"ויש דשבורד..." עבור myAgent) עד סוף ה-fullDescription, ולהשאיר רק את הפסקה הראשונה (ה-pitch הקצר).
+
 ## [2026-05-23] שינוי שם EmailFlow → LeadsFlow + החלפת תמונות הכרטיס ל-CloudFront
 
 **קבצים שהשתנו:**
