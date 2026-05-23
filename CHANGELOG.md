@@ -1,3 +1,41 @@
+## [2026-05-23] עדכון רשימת הפרויקטים — הסרת MarkdownBot ו-ModularBot, הוספת myAgent / EmailFlow / ContentFlow / OfferFlow ושינוי סדר
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) הוסרו שני פרויקטים, נוספו ארבעה חדשים, וסדר הפרויקטים עודכן
+
+**פירוט:**
+עדכון מערך `projects` בקובץ `client/src/lib/projects.ts` בהתאם להחלטת בעל הפורטפוליו:
+
+1. **הוסרו** הפרויקטים הבאים מהמערך:
+   - `markdownbot` (MarkdownBot)
+   - `modularbot` (ModularBot)
+
+2. **נוספו** ארבעה פרויקטים חדשים (כל אחד כאובייקט `ProjectData` מלא — `slug`, `title`, `description`, `subtitle`, `fullDescription`, `tech`, `image`, `screenshots`, `mermaidDiagram`, `demo`, `repo`, `challenges`, `features`):
+   - `myagent` — myAgent: סוכן AI אישי לוואטסאפ ולטלגרם (FastAPI · MongoDB · Node.js · whatsapp-web.js · Telethon · Next.js 14 · Tailwind · Gemini 2.5 Pro / Claude Sonnet · Render). שלושה שירותים נפרדים ב-Render עם Persistent Disks, אבטחה דו-שכבתית (WEBHOOK_SECRET ו-DASHBOARD_TOKEN), RAG מבסיס ידע אישי, דשבורד Next.js.
+   - `emailflow` — EmailFlow: Inbox מאוחד למייל/WhatsApp/Messenger/Instagram עם Claude Haiku לסיווג + Lead Score, Claude Sonnet לטיוטת תשובה, FAQ עם pgvector + OpenAI embeddings, התראות טלגרם עם כפתור Send inline, multi-tenant + Fernet, APScheduler ל-follow-up. סטאק: FastAPI · SQLAlchemy 2.0 async · PostgreSQL + pgvector · Anthropic Claude · OpenAI Embeddings · Green API / Meta Cloud API · Next.js 15 · Tailwind · shadcn/ui · APScheduler · Render · Supabase.
+   - `contentflow` — ContentFlow: מחולל פוסטים שיווקיים בעברית עם פרופיל עסק מתמשך, ניתוח דוגמאות סגנון, Claude Sonnet 4.6 + Prompt Caching, מערכת Auth רב-משתמשית. סטאק: FastAPI · MongoDB · Anthropic Claude (Sonnet 4.6) · Jinja2 · Alpine.js · Tailwind · Render.
+   - `offerflow` — OfferFlow: מחולל הצעות מחיר ב-AI עם Quick AI (תיאור חופשי → JSON), עורך Split-View, WeasyPrint לעברית RTL, חישובי מע"מ ומספור אוטומטי, AI לניסוח, קטלוג שירותים, עמוד צפייה ציבורי (`/q/{token}`) עם חתימה דיגיטלית canvas ו-tracking, שליחה ב-Email/WhatsApp Deep Link, Onboarding 5 שלבים, 9 פלטות צבע + WCAG, גרסאות (Revisions), Prompt Caching (חיסכון 70-80%), דשבורד KPIs. סטאק: FastAPI · Python 3.11 · MongoDB Motor async · Anthropic Claude Sonnet 4.6 + Prompt Caching · WeasyPrint · Jinja2 · Tailwind · Alpine.js · Cloudflare R2 · Render.
+
+   הטקסטים המלאים (description / subtitle / fullDescription / challenges / features / mermaidDiagram) מופיעים בקובץ. עבור ארבעת הפרויקטים החדשים `image: ""`, `screenshots: []`, `demo: "#"`, `repo: "#"` — אין עדיין תמונות/דמו ציבוריים.
+
+3. **סדר חדש** של מערך `projects` (זה הסדר שבו הם מופיעים בקובץ ובדף הבית):
+   1. `ai-business-bot` — AI Business Bot
+   2. `myagent` — myAgent
+   3. `fb-leads-scanner` — FB Leads Scanner
+   4. `emailflow` — EmailFlow
+   5. `contentflow` — ContentFlow
+   6. `offerflow` — OfferFlow
+   7. `mentoros` — MentorOS
+   8. `codekeeper` — CodeKeeper
+   9. `routine-anchors` — שגרה בחוסר שגרה
+
+**ליישום מחדש:**
+- לפתוח את `client/src/lib/projects.ts`.
+- למחוק את האובייקטים של `slug: "markdownbot"` ו-`slug: "modularbot"` מהמערך `projects`.
+- לארגן מחדש את שאר האובייקטים הקיימים (mentoros, codekeeper, fb-leads-scanner, ai-business-bot, routine-anchors) לפי הסדר החדש שלמעלה.
+- להוסיף ארבעה אובייקטים חדשים (`myagent`, `emailflow`, `contentflow`, `offerflow`) במיקומים המתאימים בסדר. לכל אחד למלא את כל השדות החובה של `ProjectData`. אם אין תמונה — `image: ""` ו-`screenshots: []`; אם אין דמו/repo ציבוריים — `demo: "#"` ו-`repo: "#"`. דיאגרמת `mermaidDiagram` נכתבה כ-`graph TB` (או `graph TD`) ומציגה את הרכיבים הראשיים של כל מערכת.
+- אין צורך בשינויים נוספים (Home / ProjectPage / App routes) — הקבצים האלה ניזונים אוטומטית מהמערך `projects` לפי `slug`.
+
 ## [2026-05-05] הוספת פוסט בלוג חדש: "12 מלכודות שלמדתי בדרך הקשה מבניית צ'אטבוט AI בפרודקשן"
 
 **קבצים שהשתנו:**
