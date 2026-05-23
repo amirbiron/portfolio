@@ -146,8 +146,8 @@ export const projects: ProjectData[] = [
       "Claude Sonnet",
       "Render",
     ],
-    image: "",
-    screenshots: [],
+    image: "/projects/Screenshot_20260511_190937_Chrome.jpg",
+    screenshots: ["/projects/Screenshot_20260511_190937_Chrome.jpg"],
     mermaidDiagram: `graph TB
     subgraph Users["משתמשים"]
         Customer["Customer - WhatsApp / Telegram"]
@@ -323,8 +323,8 @@ export const projects: ProjectData[] = [
       "Render",
       "Supabase",
     ],
-    image: "",
-    screenshots: [],
+    image: "/projects/Screenshot_20260516_121229_Chrome.jpg",
+    screenshots: ["/projects/Screenshot_20260516_121229_Chrome.jpg"],
     mermaidDiagram: `graph TB
     subgraph Channels["ערוצי כניסה"]
         Email["Email"]
@@ -414,8 +414,11 @@ export const projects: ProjectData[] = [
       "Tailwind",
       "Render",
     ],
-    image: "",
-    screenshots: [],
+    image: "/projects/Screenshot_20260523_223347_Chrome.jpg",
+    screenshots: [
+      "/projects/Screenshot_20260523_223347_Chrome.jpg",
+      "/projects/Screenshot_20260523_223356_Chrome.jpg",
+    ],
     mermaidDiagram: `graph TB
     subgraph User["משתמש"]
         Owner["בעל העסק"]
@@ -494,8 +497,9 @@ export const projects: ProjectData[] = [
       "Cloudflare R2",
       "Render",
     ],
-    image: "",
-    screenshots: [],
+    image: "/projects/Screenshot_20260523_223540_Chrome.jpg",
+    imagePosition: "top",
+    screenshots: ["/projects/Screenshot_20260523_223540_Chrome.jpg"],
     mermaidDiagram: `graph TB
     subgraph Owner["בעל העסק"]
         QuickAI["Quick AI - תיאור חופשי"]

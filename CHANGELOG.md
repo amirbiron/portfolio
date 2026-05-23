@@ -1,3 +1,25 @@
+## [2026-05-23] חיבור צילומי מסך לפרויקטים החדשים (myAgent / EmailFlow / ContentFlow / OfferFlow)
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) שדות `image` ו-`screenshots` עודכנו עבור ארבעת הפרויקטים החדשים
+- `client/public/projects/Screenshot_20260511_190937_Chrome.jpg` — (נוסף) צילום מסך של myAgent (דף הגדרות / סיסטם פרומפט)
+- `client/public/projects/Screenshot_20260516_121229_Chrome.jpg` — (נוסף) צילום מסך של EmailFlow (דואר נכנס מאוחד)
+- `client/public/projects/Screenshot_20260523_223347_Chrome.jpg` — (נוסף) צילום מסך של ContentFlow (בחירת סוג פוסט)
+- `client/public/projects/Screenshot_20260523_223356_Chrome.jpg` — (נוסף) צילום מסך של ContentFlow (טופס יצירת תוכן)
+- `client/public/projects/Screenshot_20260523_223540_Chrome.jpg` — (נוסף) צילום מסך של OfferFlow (עמוד צפייה ציבורי של הצעת מחיר)
+
+**פירוט:**
+חיבור צילומי המסך שהועלו ל-`client/public/projects/` למערך `projects.ts`:
+
+- `myagent`: `image` ו-`screenshots[0]` = `/projects/Screenshot_20260511_190937_Chrome.jpg`
+- `emailflow`: `image` ו-`screenshots[0]` = `/projects/Screenshot_20260516_121229_Chrome.jpg`
+- `contentflow`: `image` ו-`screenshots[0]` = `/projects/Screenshot_20260523_223347_Chrome.jpg`; `screenshots[1]` = `/projects/Screenshot_20260523_223356_Chrome.jpg`
+- `offerflow`: `image` ו-`screenshots[0]` = `/projects/Screenshot_20260523_223540_Chrome.jpg`; נוסף `imagePosition: "top"` כי הצילום ארוך (טופס מלא) — שלא ייחתך באמצע בכרטיס בדף הבית
+
+**ליישום מחדש:**
+1. להעלות את חמשת הקבצים לתיקייה `client/public/projects/` (השמות מעלה).
+2. ב-`client/src/lib/projects.ts`, לכל אחד מארבעת האובייקטים החדשים להחליף `image: ""` ו-`screenshots: []` במסלולים שלמעלה. עבור `offerflow` להוסיף גם `imagePosition: "top"` כדי שהצילום הארוך לא ייחתך בכרטיס.
+
 ## [2026-05-23] עדכון רשימת הפרויקטים — הסרת MarkdownBot ו-ModularBot, הוספת myAgent / EmailFlow / ContentFlow / OfferFlow ושינוי סדר
 
 **קבצים שהשתנו:**
