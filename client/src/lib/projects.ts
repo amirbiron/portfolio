@@ -506,7 +506,7 @@ export const projects: ProjectData[] = [
     end
     subgraph Backend["FastAPI Backend"]
         AIParser["AI Parser - free text to JSON"]
-        QuoteSvc["Quote Service - חישובי מע\\\"מ + מספור"]
+        QuoteSvc["Quote Service - חישובי מע״מ + מספור"]
         CatalogSvc["Catalog Service"]
         Wording["AI Wording - פתיח / סיום / תיאור פריט"]
         Tracker["View / Sign Tracker"]
