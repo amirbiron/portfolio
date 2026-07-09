@@ -185,9 +185,9 @@ export default function AskAI() {
               )}
               <div
                 dir="rtl"
-                className={`max-w-[80%] p-4 whitespace-pre-wrap text-sm leading-relaxed ${
+                className={`max-w-[80%] p-4 text-sm leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-primary/20 border border-primary text-foreground"
+                    ? "whitespace-pre-wrap bg-primary/20 border border-primary text-foreground"
                     : "terminal-window"
                 }`}
               >
@@ -198,8 +198,8 @@ export default function AskAI() {
                         response.md
                       </span>
                     </div>
-                    {/* רינדור התשובה כ-Markdown (קוד, הדגשות, רשימות) */}
-                    <div className="prose prose-invert prose-sm max-w-none text-foreground/90">
+                    {/* רינדור התשובה כ-Markdown (קוד, הדגשות, רשימות) — מרווחים מהודקים לצ'אט */}
+                    <div className="prose prose-invert prose-sm max-w-none text-foreground/90 prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-pre:my-2">
                       <Streamdown>{msg.content}</Streamdown>
                     </div>
                   </div>
