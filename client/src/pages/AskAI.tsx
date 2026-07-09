@@ -8,7 +8,6 @@ import { ArrowLeft, Send, Bot, User, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Streamdown } from "streamdown";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -198,10 +197,7 @@ export default function AskAI() {
                         response.md
                       </span>
                     </div>
-                    {/* רינדור התשובה כ-Markdown (קוד, הדגשות, רשימות) */}
-                    <div className="prose prose-invert prose-sm max-w-none text-foreground/90">
-                      <Streamdown>{msg.content}</Streamdown>
-                    </div>
+                    <div className="text-foreground/90">{msg.content}</div>
                   </div>
                 ) : (
                   msg.content
