@@ -1,3 +1,29 @@
+## [2026-07-09] רינדור Markdown בתשובות סוכן ה-AI (עמוד Ask AI)
+
+**קבצים שהשתנו:**
+- `client/src/pages/AskAI.tsx` — (שונה) תשובות הסוכן מרונדרות עכשיו כ-Markdown במקום טקסט גולמי
+
+**פירוט:**
+עד עכשיו תשובות סוכן ה-AI הוצגו כטקסט רגיל, כך שתחביר Markdown שהמודל מחזיר (למשל `` `code` ``, בלוקי קוד, וכוכביות `**הדגשה**`) הופיע כתווים גולמיים ולא כעיצוב. הוחלף הרינדור כך שהתשובות עוברות דרך הקומפוננטה `Streamdown` (מהחבילה `streamdown`, שכבר בשימוש בעמוד הבלוג `BlogPost.tsx`) — כך קוד, הדגשות ורשימות מוצגים מעוצבים.
+
+**ליישום מחדש:**
+1. בראש `client/src/pages/AskAI.tsx` להוסיף את ה-import:
+   ```ts
+   import { Streamdown } from "streamdown";
+   ```
+2. באזור רינדור ההודעות, בענף של `msg.role === "assistant"`, להחליף את השורה שהציגה את הטקסט הגולמי:
+   ```tsx
+   <div className="text-foreground/90">{msg.content}</div>
+   ```
+   ברינדור Markdown עטוף ב-`prose`:
+   ```tsx
+   {/* רינדור התשובה כ-Markdown (קוד, הדגשות, רשימות) */}
+   <div className="prose prose-invert prose-sm max-w-none text-foreground/90">
+     <Streamdown>{msg.content}</Streamdown>
+   </div>
+   ```
+3. הודעות המשתמש (`msg.role === "user"`) נשארות טקסט רגיל ללא שינוי.
+
 ## [2026-05-23] קיצור fullDescription בארבעת הפרויקטים החדשים
 
 **קבצים שהשתנו:**
