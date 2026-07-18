@@ -15,7 +15,7 @@ A personal portfolio site showcasing bot development projects, technical blog po
 
 - **Hero** — Terminal-style `whoami` intro
 - **About** — Developer profile and background
-- **Projects** — 5 showcase projects (CodeKeeper, ModularBot, MarkdownBot, FB Leads Scanner, AI Business Bot)
+- **Projects** — 5 showcase projects (CodeKeeper, ModularBot, MarkdownBot, FB Leads Scanner, AI Business Chatbot)
 - **Testimonials** — Client feedback with screenshots
 - **Skills Matrix** — Technical skills with progress indicators
 - **Blog** — Technical articles on bot development, distributed systems, and integrations

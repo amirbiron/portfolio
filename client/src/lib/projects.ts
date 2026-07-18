@@ -29,7 +29,7 @@ export interface ProjectData {
 export const projects: ProjectData[] = [
   {
     slug: "ai-business-bot",
-    title: "AI Business Bot",
+    title: "AI Business Chatbot",
     description:
       "בוט שלומד את העסק שלך, עונה ללקוחות 24/7, ומציע תורים אוטומטית + פאנל ווב לניהול",
     subtitle: "צ'אטבוט AI לשירות לקוחות 24/7 עם זימון תורים ופאנל ניהול",
@@ -109,7 +109,7 @@ export const projects: ProjectData[] = [
     AdminPanel --> SQLite
     RAGEngine --> SQLite`,
     demo: "https://t.me/ai_business2U_bot",
-    repo: "https://amirbiron.github.io/landing-page/",
+    repo: "https://amirbiron.github.io/Chatbot4U/",
     repoLabel: "Landing Page",
     challenges: [
       "מערכת RAG עם 3 שכבות LLM — התנהגות, הקשר, ובקרת איכות",

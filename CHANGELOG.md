@@ -1,3 +1,18 @@
+## [2026-07-18] עדכון שם וקישור Landing Page לפרויקט AI Business Chatbot
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) שם הפרויקט וקישור ה-Landing Page
+- `README.md` — (שונה) עדכון שם הפרויקט ברשימת ה-showcase
+
+**פירוט:**
+בפרויקט עם `slug: "ai-business-bot"` בוצעו שני שינויים:
+1. שדה `title` שונה מ-`"AI Business Bot"` ל-`"AI Business Chatbot"`.
+2. שדה `repo` (כפתור "Landing Page", `repoLabel: "Landing Page"`) שונה מ-`"https://amirbiron.github.io/landing-page/"` ל-`"https://amirbiron.github.io/Chatbot4U/"`.
+
+בנוסף, ב-`README.md` עודכן שם הפרויקט ברשימת פרויקטי ה-showcase מ-`AI Business Bot` ל-`AI Business Chatbot` לשמירת עקביות.
+
+ה-`slug` נשאר `ai-business-bot` כדי לא לשבור את ה-routing/כתובות הקיימות.
+
 ## [2026-07-09] רינדור Markdown בתשובות סוכן ה-AI (עמוד Ask AI)
 
 **קבצים שהשתנו:**
