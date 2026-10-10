@@ -13,84 +13,76 @@ import { Streamdown } from 'streamdown';
 // Blog posts data
 const blogPosts = {
   "chatbot-ai-antipatterns": {
-    title: "12 מלכודות שלמדתי בדרך הקשה מבניית צ'אטבוט AI בפרודקשן",
+    title: "12 מלכודות בבניית צ'אטבוט AI לפרודקשן",
     date: "05-05-2026",
-    content: `> כל אחת מהמלכודות בפוסט הזה תועדה אחרי שזה קרה לי בפרודקשן ויצר באג אמיתי. חלקן שקטות, חלקן רועשות, רובן עולות זמן ועצבים.
-> אם אתה בונה צ'אטבוט מבוסס LLM + RAG — שמור את הרשימה.
+    content: `בניתי צ'אטבוט AI לעסקים, עם RAG וזיהוי כוונות, שעובד בוואטסאפ או בטלגרם, לפי מה שמתאים ללקוחות של כל עסק, ועם פאנל ניהול לבעל העסק.
+תוך כדי הבנייה נכתב לו מדריך פיתוח, ורוב מה שיש בו הוא לא "איך לבנות", אלא "מה לא לעשות". הפוסט הזה אוסף את 12 הכללים החשובים שבו, ולכל אחד את הסיבה.
+
+צ'אטבוט שעובד בדמו וצ'אטבוט שעובד בפרודקשן הם לא אותו דבר. בדמו אתם שולטים בשאלות, בפרומפטים ובמקרי הקצה. בפרודקשן יש משתמשים ששואלים מה שלא חשבתם עליו, ספקי LLM שנופלים, ובאגים שלא מפילים כלום, אלא פשוט גורמים לדברים לא לקרות.
 
 ---
 
-צ'אטבוט שעובד טוב בדמו ושצ'אטבוט שעובד טוב בפרודקשן זה לא אותו דבר. בדמו אתה שולט במשתמש, ב-prompts, וב-edge cases. בפרודקשן יש לך משתמשים אמיתיים ששואלים שאלות שלא חשבת עליהן, ספקי LLM שנופלים, ובאגים שקטים שמופיעים רק אחרי 1000 שיחות.
-
-הנה 12 מלכודות שלמדתי לזהות אחרי שנפלתי בכל אחת מהן.
-
----
-
-## 1. \`except Exception: pass\` — הרוצח השקט
-
-זה הקלאסי, וזה הכי מסוכן. נראה תמים:
+## 1. \`except Exception: pass\` — כשל שלא משאיר עקבות
 
 \`\`\`python
-# ❌ כשל נעלם בלי עקבות
+# שגוי — הכשל נעלם
 try:
     db.save_unanswered_question(user_id, question)
 except Exception:
     pass
 \`\`\`
 
-הפונקציה \`save_unanswered_question\` הייתה אמורה לתעד שאלות שהבוט לא ידע לענות עליהן, כדי שאוכל לשפר את ה-KB. במשך שבועיים הטבלה הייתה ריקה והייתי בטוח שהבוט מצוין. עד שהמשתמשים התלוננו.
-
-מה שקרה? שינוי בסכימה שבר את ה-INSERT. אם היה לוג, הייתי רואה את זה ביום הראשון.
+הפונקציה הזו אמורה לתעד שאלות שהבוט לא ידע לענות עליהן, כדי לשפר את בסיס הידע. אם ה-INSERT נשבר, למשל אחרי שינוי בסכימה, הטבלה פשוט נשארת ריקה. וטבלה ריקה נראית בדיוק כמו בוט שיודע לענות על הכול.
 
 \`\`\`python
-# ✅ לפחות תדע שמשהו נשבר
+# נכון — הכשל נרשם, עם ה-traceback
 try:
     db.save_unanswered_question(user_id, question)
-except Exception as e:
-    logger.error("Failed to log unanswered question: %s", e)
+except Exception:
+    logger.exception("failed to save unanswered question for %s", user_id)
 \`\`\`
 
-**הכלל:** אסור \`except: pass\`. תמיד \`logger.error\` עם ההקשר. הסכמה הזאת הצילה אותי שוב ושוב.
+\`logger.exception\` שומר גם את סוג השגיאה וגם את השורה שבה היא קרתה. \`logger.error\` עם הודעת השגיאה בלבד מאבד את רוב המידע שתצטרכו.
+
+**הכלל:** אין \`except: pass\`. כל כשל נרשם בלוג, עם ההקשר.
 
 ---
 
-## 2. קריאת LLM בלי rate limiting — המתקפה מבפנים
+## 2. נתיב ל-LLM שעוקף את מגבלת השימוש
 
-חשבתי שיש לי rate limit מסודר. \`message_handler\` בודק כל הודעה נכנסת, סופר חלון של דקה/שעה/יום. סגור.
-
-עד שראיתי משתמש שצרך פי 50 מהמכסה.
-
-המקור: לחצנים של "שאלות המשך" שהבוט מציע. כל לחיצה הפעילה קריאה ל-LLM **בלי לעבור ב-rate limiter**, כי זו הייתה \`callback_query\` ולא \`message\`. המשתמש לחץ ולחץ ולחץ.
+מגבלת שימוש שבודקת כל הודעה נכנסת נשמעת סגורה. אבל הודעה היא לא הדרך היחידה להגיע ל-LLM. כפתור "שאלת המשך" בטלגרם, למשל, מגיע כ-callback ולא כהודעה, ולכן לא עובר בבדיקה בכלל.
 
 \`\`\`python
-# ❌ callback handler בלי הגנה
+# שגוי — כל לחיצה היא קריאה ל-LLM, בלי מגבלה
 async def follow_up_callback(update, context):
     question = update.callback_query.data
-    answer = generate_answer(question)  # ⚠️ קריאת LLM!
+    answer = generate_answer(question)
     await update.callback_query.message.reply_text(answer)
 \`\`\`
 
-**הכלל:** כל נתיב — *כל* נתיב — שיכול להגיע ל-LLM, חייב לעבור ב-\`check_rate_limit + record_message\`. כולל callbacks, deep links, scheduled tasks, ושאלות המשך אוטומטיות.
+משתמש שלוחץ שוב ושוב צורך קריאות בתשלום בלי שום תקרה.
+
+**הכלל:** כל נתיב שמגיע ל-LLM עובר בבדיקת המגבלה: callbacks, קישורי עומק, משימות מתוזמנות ושאלות המשך. והדרך הבטוחה לוודא את זה היא לשים את הבדיקה בתוך הפונקציה שקוראת ל-LLM, ולא בכל נתיב בנפרד. ראו מלכודת 4.
 
 ---
 
-## 3. כתיבת PII לפני הסכמה — הפרת רגולציה בשורה אחת
+## 3. שמירת מידע אישי לפני מסך ההסכמה
 
-חוק הפרטיות (וגם GDPR) דורש קונסנט לפני שמירת מידע אישי. במבט ראשון נראה שהקוד מטפל בזה:
+אם הבוט מציג מסך הסכמה, הסדר חשוב:
 
 \`\`\`python
-# ❌ נראה תקין, באמת לא
+# שגוי — המידע נשמר עוד לפני שהמשתמש החליט
 async def start_command(update, context):
     user = update.effective_user
-    db.upsert_user(user.id, user.first_name, user.username)  # ⚠️ נשמר
+    db.upsert_user(user.id, user.first_name, user.username)
     if not db.has_consent(user.id):
         return await show_consent_screen(update)
 \`\`\`
 
-הבעיה: \`db.upsert_user\` כותב לטבלת \`users\` שם, יוזר־ניים, ו-\`user_id\` — כל זה PII. אם המשתמש לוחץ "אני לא מסכים", המידע כבר ב-DB.
+מי שלוחץ "לא מסכים" כבר נמצא במסד, עם השם ושם המשתמש שלו. המסך נשאר, אבל הוא כבר לא אומר כלום.
 
 \`\`\`python
-# ✅ קונסנט קודם, כתיבה אחר כך
+# נכון — הסכמה קודם, שמירה אחר כך
 async def start_command(update, context):
     user = update.effective_user
     if not db.has_consent(user.id):
@@ -98,37 +90,33 @@ async def start_command(update, context):
     db.upsert_user(user.id, user.first_name, user.username)
 \`\`\`
 
-**הכלל:** שום פונקציה שכותבת PII לא רצה לפני \`db.has_consent()\`. זה כולל \`upsert_user\`, \`subscribe\`, ואפילו רישום unanswered questions אם הוא מכיל user metadata.
+**הכלל:** אם בחרתם בהסכמה כבסיס לשמירת המידע, שום פונקציה שכותבת מידע אישי לא רצה לפניה. גם לא רישום של שאלות, אם הוא כולל פרטים על המשתמש.
 
 ---
 
-## 4. שכפול לוגיקת RAG — הבאג שמתרבה לאט
-
-יום אחד החלטתי שכל שאלה שהבוט לא יודע לענות עליה תירשם ל-\`unanswered_questions\`. הוספתי את הלוג ב-\`process_rag_query\`. בדקתי — עובד.
-
-חודש אחר כך גיליתי שהטבלה ריקה למחצה. למה? כי שאלות שהגיעו דרך כפתור inline (callback) השתמשו ב-handler אחר שמימש מחדש את לוגיקת ה-RAG. השינוי לא הוחל שם.
+## 4. אותה לוגיקת RAG בשני מקומות
 
 \`\`\`python
-# ❌ שני נתיבים שעושים את אותו דבר
+# שגוי — שני נתיבים שעושים כמעט אותו דבר
 async def message_handler(update, context):
-    return await process_rag_query(...)  # יש לוג
+    return await process_rag_query(...)   # כאן יש תיעוד של שאלות בלי תשובה
 
 async def callback_handler(update, context):
-    answer = generate_answer(...)  # אין לוג
+    answer = generate_answer(...)          # כאן אין
     await reply(answer)
 \`\`\`
 
-**הכלל:** **נקודת כניסה אחת ל-RAG**. אם יש שני handlers שצריכים לעשות חיפוש סמנטי + LLM, שניהם קוראים לאותה פונקציה. אסור לדלג עליה כי "זה רק callback קטן".
+כל שיפור שנכנס לאחד מהם, תיעוד, מגבלת שימוש, טיפול בשגיאות, חסר בשני. ואף אחד לא שם לב, כי שני הנתיבים עדיין עונים.
+
+**הכלל:** נקודת כניסה אחת ל-RAG. כל handler שצריך חיפוש סמנטי ו-LLM קורא לאותה פונקציה, גם כש"זה רק callback קטן".
 
 ---
 
-## 5. Fuzzy detection ל-handoff — false positives גרועים מ-false negatives
+## 5. העברה לנציג לפי ניחוש של טקסט
 
-בגרסה ראשונה, החלטתי שאם ה-LLM כתב משהו כמו "אעביר את הפנייה שלך לבירור" — נעביר את הלקוח לבעל העסק. נראה הגיוני.
+רעיון שנראה הגיוני: אם ה-LLM כתב משהו כמו "אעביר את הפנייה לבירור", להעביר את השיחה לבעל העסק. הבעיה היא שה-LLM כותב משפטים כאלה גם כשהוא בכלל לא מתכוון, למשל "אם תרצה, אעביר את הפנייה לבירור נוסף". כל משפט כזה הופך להתראה מיותרת אצל בעל העסק.
 
-תוצאה: לקוחות הועברו לבעל העסק כש-LLM אמר משפטים תמימים כמו "אם תרצה אעביר את הפנייה לבירור נוסף". בעל העסק קיבל 30 התראות ביום על "פניות דחופות" שלא היו דחופות.
-
-הפתרון: **טוקן דטרמיניסטי**.
+הפתרון: סימן קבוע שה-LLM מוסיף בדיוק כשהוא מתכוון.
 
 \`\`\`python
 HANDOFF_MARKER = "[HANDOFF]"
@@ -143,57 +131,52 @@ def strip_handoff_marker(text: str) -> str:
     return text
 \`\`\`
 
-הפרומפט מורה ל-LLM: *אם אתה לא יודע — התחל בדיוק עם \`[HANDOFF]\`*. הקוד בודק טוקן בתחילת המחרוזת, מסיר אותו לפני השליחה למשתמש, ומחליט על escalation.
+הפרומפט אומר ל-LLM: אם אתה לא יודע, התחל את התשובה בדיוק ב-\`[HANDOFF]\`. הקוד בודק את הסימן, מסיר אותו לפני שהמשתמש רואה את התשובה, ומעביר.
 
-**הכלל:** סיגנלים בין LLM לקוד צריכים להיות **בינאריים, דטרמיניסטיים וניתנים לבדיקה**. fuzzy matching על טקסט חופשי מ-LLM = באגים שמתפרצים בערב שישי.
+**הכלל:** אות שעובר מה-LLM לקוד צריך להיות חד-משמעי: כן או לא, ושאפשר לבדוק אותו בטסט. ניחוש על טקסט חופשי הוא באג שמחכה לקרות.
 
 ---
 
-## 6. לולאת I/O בלי \`try/except\` פנימי — broadcast שמת באמצע
-
-בקאמפיין broadcast הראשון, רציתי לשלוח הודעה ל-3000 משתמשים. הקוד היה כזה:
+## 6. לולאת שליחה בלי הגנה על כל פריט
 
 \`\`\`python
-# ❌ משתמש אחד עם בעיה הופך לכשל גורף
+# שגוי — משתמש אחד עם בעיה עוצר את כולם
 for user in users:
     bot.send_message(user.id, text)
 \`\`\`
 
-המשתמש ה-127 חסם את הבוט. \`send_message\` זרק \`Forbidden\`. הלולאה מתה. 2873 המשתמשים האחרים לא קיבלו את ההודעה. גיליתי את זה בבוקר.
+משתמש שחסם את הבוט גורם ל-\`send_message\` לזרוק שגיאה. הלולאה נעצרת, וכל מי שאחריו ברשימה לא מקבל את ההודעה.
 
 \`\`\`python
-# ✅ כל פריט מוגן בנפרד
+# נכון — כל משתמש מוגן בנפרד
 for user in users:
     try:
         bot.send_message(user.id, text)
-    except Exception as e:
-        logger.error("Failed for user %s: %s", user.id, e)
-        db.mark_send_failed(user.id, str(e))
+    except Exception:
+        logger.exception("broadcast failed for %s", user.id)
+        db.mark_send_failed(user.id)
 \`\`\`
 
-**הכלל:** כל לולאה שעושה I/O על אוסף — \`try/except\` *סביב כל איטרציה*, לא סביב הלולאה כולה. כשל בודד הוא נורמלי. כשל גורף הוא קטסטרופה.
+**הכלל:** לולאה שעושה I/O על רשימה עוטפת כל איטרציה בנפרד, ולא את הלולאה כולה. כשל של פריט אחד הוא רגיל. כשל של כולם בגללו הוא לא.
 
 ---
 
-## 7. JSON output בלי דוגמה בפרומפט — הבאג השקט הקלאסי
+## 7. JSON מה-LLM בלי שמות שדות מפורשים
 
-OpenAI נותנים \`response_format={"type": "json_object"}\` שמבטיח JSON תקין. אבל **התקינות היא רק תחבירית** — המודל יכול להמציא שדות.
+\`response_format={"type": "json_object"}\` של OpenAI מבטיח JSON תקין. הוא לא מבטיח אילו שדות יהיו בו.
 
 \`\`\`python
-# ❌ הפרומפט לא מציין שמות שדות
+# שגוי — הפרומפט לא אומר איך קוראים לשדות
 prompt = "החלט אם לשלוח follow-up למשתמש. החזר JSON."
-response = client.chat.completions.create(
-    response_format={"type": "json_object"},
-    ...
-)
 data = json.loads(response.choices[0].message.content)
-should_send = data.get("should_send", False)  # ⚠️
+should_send = data.get("should_send", False)
 \`\`\`
 
-המודל החזיר JSON כמו \`{"send_followup": true, "reason": "..."}\`. השדה \`should_send\` לא קיים שם. \`dict.get(..., False)\` החזיר False. אף follow-up לא נשלח במשך שבועיים.
+אם המודל מחליט לקרוא לשדה \`send_followup\`, הקוד לא מוצא את \`should_send\`, ה-\`get\` מחזיר False, ושום follow-up לא נשלח. בלי שגיאה אחת בלוג.
+
+שתי דרכים לסגור את זה. הפשוטה: לכתוב בפרומפט את שמות השדות ולתת דוגמה.
 
 \`\`\`python
-# ✅ שמות מפורשים + דוגמה
 prompt = """
 החלט אם לשלוח follow-up. החזר JSON עם השדות:
 - should_send (boolean)
@@ -205,130 +188,117 @@ prompt = """
 """
 \`\`\`
 
-**ועוד טיפ:** הוסף טסט שאוכף שכל שדה ב-schema מופיע גם בפרומפט. אם מישהו מוסיף שדה ל-schema בלי לעדכן פרומפט — הטסט נופל.
+והחזקה יותר: Structured Outputs, שבו מעבירים למודל סכימה (\`json_schema\` עם \`strict\`), והמודל לא יכול להחזיר שדות אחרים. בכל מקרה, כדאי לא להסתיר שדה חסר מאחורי ערך ברירת מחדל: שדה חסר הוא שגיאה, וצריך שייראה כמו שגיאה.
 
 ---
 
-## 8. \`asyncio.run_coroutine_threadsafe\` בלי \`add_done_callback\`
+## 8. \`run_coroutine_threadsafe\` בלי לבדוק את התוצאה
 
-קלאסי בקוד שמערבב Flask (sync) עם בוט (async). אתה רוצה לקרוא ל-coroutine מ-thread של Flask:
+בקוד שמערבב Flask, שרץ סינכרוני, עם בוט אסינכרוני, קוראים ל-coroutine מתוך thread של Flask:
 
 \`\`\`python
-# ❌ exceptions נעלמים בשקט
+# שגוי — שגיאה ב-coroutine נעלמת
 asyncio.run_coroutine_threadsafe(send_to_user(uid, msg), loop)
 \`\`\`
 
-ה-Future חוזר, אתה זורק אותו, ואם ה-coroutine נכשל — אף אחד לא יודע. שעות של דיבוג.
+הפונקציה מחזירה Future, והוא נזרק. אם ה-coroutine נכשל, אף אחד לא יודע.
 
 \`\`\`python
-# ✅ done_callback שמלוג שגיאות
-def _on_done(f):
-    if f.cancelled():           # לבדוק cancelled לפני exception!
+# נכון — callback שרושם כל כשל
+def _on_done(future):
+    if future.cancelled():   # לבדוק לפני exception(), שזורק על Future שבוטל
         return
-    if exc := f.exception():
-        logger.error("Coroutine failed: %s", exc)
+    if exc := future.exception():
+        logger.error("coroutine failed", exc_info=exc)
 
 future = asyncio.run_coroutine_threadsafe(send_to_user(uid, msg), loop)
 future.add_done_callback(_on_done)
 \`\`\`
 
-**הכלל:** ה-Future חוזר לסיבה. אם אתה לא מטפל בו — חבל לקרוא לפונקציה האסינכרונית.
+**הכלל:** ה-Future הוא הדרך היחידה לדעת מה קרה. מי שזורק אותו, זורק את השגיאה איתו.
 
 ---
 
-## 9. דריסת התקדמות ב-error path — מונים שמתאפסים בכאוס
+## 9. טיפול בשגיאה שמוחק את ההתקדמות
 
-\`broadcast_service\` שלי שמר ב-DB את ההתקדמות: \`sent=2500, failed=12, total=3000\`. שגיאת רשת באמצע גרמה ל-error handler לרוץ — שקרא ל-\`fail_broadcast(broadcast_id)\`.
-
-\`fail_broadcast\` כתב: \`status="failed", sent=0, failed=0\`. המונים נמחקו. כשהמערכת התאוששה ועשיתי retry, היא התחילה מההתחלה ושלחה שוב לכל מי שכבר קיבל.
+שירות שליחה המונית שומר את ההתקדמות שלו: כמה נשלחו, כמה נכשלו, כמה בסך הכול. כששגיאה עוצרת אותו באמצע, ה-handler מסמן אותו כנכשל:
 
 \`\`\`python
-# ❌ דורס מונים שכבר נכתבו
+# שגוי — מאפס מונים שכבר נכתבו
 def fail_broadcast(broadcast_id, error):
     db.update_broadcast(broadcast_id, status="failed", sent=0, failed=0, error=error)
 
-# ✅ עדכן רק status, השאר את המונים
+# נכון — משנה רק את מה שבאמת השתנה
 def fail_broadcast(broadcast_id, error):
     db.update_broadcast(broadcast_id, status="failed", error=error)
 \`\`\`
 
-**הכלל:** error handler שעושה UPDATE — תכתוב **רק** את השדות שצריך לשנות. אל תכלול סתם את \`sent\` ו-\`failed\` כי "זה השדה הראשון בטבלה". זה דורס עבודה אמיתית שכבר הצטברה.
+בגרסה השגויה, ניסיון חוזר לא יודע מי כבר קיבל את ההודעה, מתחיל מההתחלה, ושולח שוב לכל מי שכבר קיבל.
+
+**הכלל:** UPDATE בתוך טיפול בשגיאה כותב רק את השדות שהשגיאה שינתה. כל שדה נוסף דורס עבודה שכבר נעשתה.
 
 ---
 
-## 10. שכפול WHERE בין \`get_X\` ל-\`count_X\` — הסטייה השקטה
+## 10. אותו תנאי, פעמיים: ב-get וב-count
 
-יש לי \`get_pending_messages(user_id)\` שמחזיר רשימת הודעות, ו-\`count_pending_messages(user_id)\` שמחזיר מספר. שני SELECTs נפרדים, שני WHEREs נפרדים.
-
-יום אחד הוספתי תנאי "AND is_archived = 0" ל-\`get_pending_messages\`. שכחתי מ-\`count\`. תוצאה: ה-UI הציג "יש לך 5 הודעות חדשות" אבל כשנכנסת ראית 2. למשתמשים זה נראה כמו באג אקראי.
+\`get_pending_messages\` מחזיר רשימת הודעות, ו-\`count_pending_messages\` מחזיר את המספר שלהן. אם לכל אחת מהן WHERE משלה, מספיק שתנאי חדש, למשל "לא בארכיון", ייכנס רק לאחת, וה-UI יציג "יש לך 5 הודעות חדשות" כשבפנים יש 2.
 
 \`\`\`python
-# ✅ helper פרטי משותף
-def _pending_messages_query(user_id):
-    return select(Message).where(
+# נכון — התנאים מוגדרים פעם אחת
+def _pending_conditions(user_id):
+    return (
         Message.user_id == user_id,
-        Message.is_pending == True,
-        Message.is_archived == False,
+        Message.is_pending.is_(True),
+        Message.is_archived.is_(False),
     )
 
 def get_pending_messages(user_id):
-    return db.execute(_pending_messages_query(user_id)).all()
+    return db.scalars(select(Message).where(*_pending_conditions(user_id))).all()
 
 def count_pending_messages(user_id):
-    q = _pending_messages_query(user_id).with_only_columns(func.count())
-    return db.scalar(q)
+    return db.scalar(
+        select(func.count()).select_from(Message).where(*_pending_conditions(user_id))
+    )
 \`\`\`
 
-**הכלל:** שתי פונקציות שצריכות אותו WHERE — חייבות לחלוק helper. שכפול = סטייה שקטה ביום שמשנים אחת מהן.
+**הכלל:** שתי פונקציות שצריכות את אותו תנאי חולקות אותו. שני עותקים יתפצלו ביום שמישהו ישנה אחד מהם.
 
 ---
 
-## 11. גבולות ערוץ שלא בודקים מראש
+## 11. מגבלות של כל ערוץ
 
-WhatsApp דרך Twilio קוצץ הודעות שעוברות 1600 תווים. **בלי הודעת שגיאה**. באמצע משפט. המשתמש מקבל הודעה חתוכה.
-
-לקוח שאל "מה ההבדלים בין החבילות שלכם?". התשובה הייתה 1800 תווים. הוא קיבל 1600 הראשונים, שנגמרו באמצע "החבילה השנייה כוללת—". הוא חשב שהבוט קרס.
+לכל ערוץ יש תקרת אורך להודעה: טלגרם 4,096 תווים, וואטסאפ דרך Twilio 1,600, ו-SMS 160 לכל מקטע. תשובת LLM מפורטת עוברת 1,600 תווים בקלות, ותשובה ארוכה מהתקרה לא תגיע למשתמש כמו שהיא.
 
 \`\`\`python
-# ✅ לבדוק אורך לפני שליחה, ולהפנות לעמוד HTML אם חוצה
+# בודקים לפני השליחה, ותשובה ארוכה עוברת לעמוד משלה
 def send_whatsapp_response(user_id, text, rag_context):
     if len(text) > 1500:  # מרווח ביטחון
         page_id = create_public_page(text, rag_context)
-        url = f"{ADMIN_URL}/p/{page_id}"
-        text = f"התשובה ארוכה — קישור לקריאה:\\n{url}"
+        text = f"התשובה ארוכה, אפשר לקרוא אותה כאן:\\n{ADMIN_URL}/p/{page_id}"
     twilio.send(user_id, text)
 \`\`\`
 
-**הכלל:** לכל ערוץ יש מגבלות אופייניות — Telegram = 4096 תווים, WhatsApp = 1600, SMS = 160. **תכיר אותן לפני הפרודקשן**, לא אחרי. ובמיוחד בערוצים שקוצצים בשקט.
+**הכלל:** מכירים את המגבלות של כל ערוץ לפני העלייה לאוויר, ובודקים אורך לפני כל שליחה.
 
 ---
 
-## 12. dead code ב-routes — ה-clutter שמתרבה לאט
+## 12. נתיבים שאף אחד לא קורא להם
 
-מדי פעם הוספתי endpoint לפאנל אדמין כי "אצטרך אותו אחר כך". כעבור חצי שנה היו לי 12 routes ש-UI לא קרא לאף אחד מהם. כל אחד היה דורש לעבור עליו כשעשיתי refactor של auth, של logging, של error handling.
+נתיב בפאנל הניהול שנוסף כי "אצטרך אותו אחר כך" נשאר בקוד גם כשאף מסך לא משתמש בו. וכל שינוי רוחבי, בהרשאות, בלוגים, בטיפול בשגיאות, צריך לעבור גם עליו.
 
-לכל אחד עלות תחזוקה אמיתית, גם אם הוא לא רץ.
-
-**הכלל:** אם הוספת \`@app.route\`, חייב להיות באותו commit UI שקורא לו. אין "אצרוך את זה בקרוב". dead code מתרבה ולא הולך לבד.
+**הכלל:** נתיב חדש נכנס יחד עם הממשק שקורא לו, באותו commit. קוד מת לא נעלם לבד, הוא רק מצטבר.
 
 ---
 
-## סיכום
+## מה משותף לכולן
 
-המכנה המשותף לכל המלכודות האלה: **הן שקטות**. הן לא מפילות את האפליקציה. הן יוצרות באגים שמתגלים שבועות אחרי, אצל משתמשים, בערב שישי.
+אף אחת מהמלכודות האלה לא מפילה את הבוט. הן גורמות לדברים לא לקרות: שאלות שלא נרשמות, התראות שלא נשלחות, מונים שמתאפסים. ולכן גם התיקונים דומים:
 
-הדרך היחידה לתפוס אותן זה:
-1. **לוג כל כשל** — \`except: pass\` הוא אויב.
-2. **נקודת כניסה אחת** לכל לוגיקה משותפת — RAG, rate limit, consent.
-3. **סיגנלים בינאריים** בין שכבות — לא fuzzy matching.
-4. **טסטים שאוכפים סנכרון** בין דברים שצריכים להיות מסונכרנים — schema⇄prompt, get⇄count.
-5. **להכיר גבולות** של כל ערוץ/ספק לפני שמגיעים אליהם.
-
-לפעמים אני חושב שכל באג שתופס אותך בפרודקשן הוא הזדמנות להוסיף שכבת הגנה כללית — לא רק תיקון נקודתי. הרשימה הזאת היא בדיוק זה: כל מלכודת היא לקח שהפך לכלל. אני מקווה שתחסוך לכם כמה לילות.
-
----
-
-*מבוסס על לקחים מבניית צ'אטבוט AI שרץ בפרודקשן עם RAG, intent detection, ומספר ערוצים (Telegram, WhatsApp, web).*`
+1. כל כשל נרשם בלוג.
+2. לכל לוגיקה משותפת יש נקודת כניסה אחת: RAG, מגבלת שימוש, הסכמה.
+3. אותות בין ה-LLM לקוד הם חד-משמעיים, לא ניחוש על טקסט.
+4. דברים שחייבים להישאר מסונכרנים חולקים קוד אחד, או נבדקים בטסט: סכימה מול פרומפט, get מול count.
+5. מכירים את המגבלות של כל ערוץ וספק לפני שמגיעים אליהן.`
   },
   "whatsapp-bot-python-guide": {
     title: "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי",
@@ -1401,92 +1371,103 @@ class SimpleActivityReporter:
   "web-scraper-telegram-alerts": {
     title: "איך לבנות סורק אתרים עם התראות טלגרם — מדריך מהשטח",
     date: "22-03-2026",
-    content: `> מדריך מעשי לבניית פרויקט שסורק אתר בקביעות, מזהה נתונים רלוונטיים, ושולח התראות לטלגרם.
-> מבוסס על לקחים מפרויקט אמיתי שרץ בפרודקשן על VM עם 512MB RAM.
+    content: `בניתי לבעל עסק בוט שסורק קבוצות פייסבוק, מזהה פוסטים שנראים כמו לידים ושולח לו אותם לטלגרם. הוא רץ בפרודקשן על שרת קטן, עם 512MB זיכרון. רוב מה שלמדתי בדרך לא קשור לסריקה עצמה, אלא לשתי שאלות: איך לא לשלוח למשתמש את אותו פוסט פעמיים, ואיך לא לשלם על AI שלא היה צריך לרוץ בכלל.
+
+המדריך מסכם את הלקחים לפי הסדר שבו כל פריט עובר במערכת.
 
 ---
 
-## הפיפליין — מהזול ליקר
+## המסלול של כל פריט
 
-כל פרויקט סריקה+התראות עובד באותו פיפליין: **Scrape → Dedup → Filter → Classify → Notify**.
+כל פריט עובר את אותם שלבים, מהזול ליקר:
 
-כל שלב מפחית את כמות הפריטים — חוסך זמן, API calls, וספאם למשתמש. כל שכבה בקובץ נפרד — קל להחליף, לטסט, ולבודד באגים.
+1. סריקה — הורדת הפריטים מהאתר.
+2. סינון כפילויות — לפי מזהה, לפי תוכן, ובין קבוצות שונות.
+3. סינונים חינמיים — גיל הפוסט, רשימת חסימות, מילות מפתח.
+4. סיווג AI — רק למה ששרד עד כאן.
+5. התראה בטלגרם.
+
+הסדר הוא כל העניין. כל שלב חינמי שמסנן פריט לפני ה-AI חוסך קריאה בתשלום, וכל כפילות שנתפסת מוקדם חוסכת למשתמש הודעה מיותרת. כדאי שכל שלב יישב בקובץ משלו: קל להחליף אותו, לבדוק אותו לבד, וכשפריט לא מגיע, למצוא בדיוק באיזה שלב הוא נעצר.
 
 ---
 
-## בחירת טכנולוגיית סריקה
+## סריקה: להתחיל מהכלי הקל
 
-| טכנולוגיה | מתי להשתמש | זיכרון |
-|-----------|-----------|--------|
-| **requests + BeautifulSoup** | אתר סטטי, API גלוי | ~20MB |
-| **Playwright** | אתר דינמי, צריך JS/login | ~150-300MB |
-| **API ישיר** | יש API רשמי/לא רשמי | ~10MB |
+| כלי | מתי | זיכרון, בערך |
+|---|---|---|
+| requests + BeautifulSoup | התוכן מגיע מוכן ב-HTML | ~20MB |
+| Playwright | התוכן נבנה ב-JavaScript, או שצריך להתחבר | 150–300MB |
+| API ישיר | יש API, רשמי או לא | ~10MB |
 
-> **כלל אצבע:** התחל עם requests. עבור ל-Playwright רק אם חייבים JS rendering או login.
-
-### דפוס בסיסי — requests
+תתחילו עם requests. Playwright הוא דפדפן שלם, ועל שרת של 512MB ההבדל מורגש מיד. עוברים אליו רק כשאין ברירה.
 
 \`\`\`python
+import asyncio
 import requests
 from bs4 import BeautifulSoup
 
 async def scrape_page(url: str) -> list[dict]:
+    # requests חוסם, ולכן רץ ב-thread נפרד
     response = await asyncio.to_thread(
         requests.get, url, timeout=15, headers=HEADERS
     )
-    soup = BeautifulSoup(response.text, 'html.parser')
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+
     items = []
-    for element in soup.select('.item-selector'):
+    for element in soup.select(".item-selector"):
+        link = element.find("a", href=True)
         items.append({
-            "id": extract_id(element),
+            "id": link["href"] if link else None,
             "text": element.get_text(strip=True),
-            "url": element.find('a')['href'],
-            "has_real_url": True,
+            "has_real_url": link is not None,
         })
     return items
 \`\`\`
 
-### דפוס מתקדם — Playwright
+פריט בלי קישור לא מקבל מזהה מומצא. הוא מסומן ככזה, והסעיף על כפילויות מסביר למה זה חשוב.
+
+כשבכל זאת צריך דפדפן, פותחים אחד לכל ריצת הסריקה, ולכל דף מקבלים context חדש:
 
 \`\`\`python
-from playwright.async_api import async_playwright
+async def block_heavy(route):
+    if route.request.resource_type in {"image", "media", "font"}:
+        await route.abort()
+    else:
+        await route.continue_()
 
-async def scrape_with_browser(url: str) -> list[dict]:
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(
-            viewport={"width": 360, "height": 640},  # מובייל = קל יותר
-        )
+async def scrape_with_browser(browser, url: str) -> list[dict]:
+    context = await browser.new_context(
+        viewport={"width": 360, "height": 640},  # גרסת מובייל, קלה יותר
+    )
+    try:
         page = await context.new_page()
-        # חסימת משאבים כבדים — חוסך ~60% זיכרון
-        await page.route("**/*", lambda route: (
-            route.abort() if route.request.resource_type
-            in {"image", "media", "font"}
-            else route.continue_()
-        ))
+        await page.route("**/*", block_heavy)
         await page.goto(url, wait_until="domcontentloaded")
-        items = await smart_scroll_and_extract(page)
-        await browser.close()
-        return items
+        return await smart_scroll(page, seen_checker)
+    finally:
+        await context.close()
 \`\`\`
+
+ה-finally הוא לא קישוט. בלעדיו, כל שגיאה באמצע הדף משאירה context פתוח, ועל 512MB מספיקים כמה כאלה כדי שהשרת ייפול.
 
 ---
 
-## גלילה חכמה — מעקב לפי תוכן, לא אינדקס
+## גלילה: לעקוב אחרי תוכן, לא אחרי מיקום
 
-אתרים רבים משתמשים ב-DOM וירטואלי — אלמנטים נוספים ומוסרים תוך כדי גלילה. מעקב לפי אינדקס (\`elements[5:]\`) ישבר. תמיד לעקוב לפי **set של תוכן שכבר נראה**:
+אתרים כמו פייסבוק מחזיקים בדף רק את מה שנראה כרגע. כשגוללים, פריטים חדשים נוספים וישנים נמחקים. אם עוקבים לפי מיקום, "המשך מהפריט החמישי", המספרים זזים בין גלילה לגלילה, ופריטים מדולגים או נקראים פעמיים.
+
+הפתרון: לזכור מה כבר נקרא, לפי התוכן.
 
 \`\`\`python
 async def smart_scroll(page, seen_checker) -> list[dict]:
     seen_texts = set()
-    consecutive_known = 0       # רצף של פריטים מוכרים
+    consecutive_known = 0
     all_items = []
 
-    for scroll_num in range(MAX_SCROLLS):
-        elements = await page.query_selector_all('.item')
+    for _ in range(MAX_SCROLLS):
         new_in_scroll = 0
-
-        for el in elements:
+        for el in await page.query_selector_all(".item"):
             text = await el.inner_text()
             if text in seen_texts:
                 continue
@@ -1496,7 +1477,7 @@ async def smart_scroll(page, seen_checker) -> list[dict]:
             if item["has_real_url"] and seen_checker(item["id"]):
                 consecutive_known += 1
                 if consecutive_known >= 3:
-                    return all_items  # הגענו לפוסטים ישנים
+                    return all_items  # הגענו לפוסטים שכבר עובדו
                 continue
 
             consecutive_known = 0
@@ -1511,192 +1492,145 @@ async def smart_scroll(page, seen_checker) -> list[dict]:
     return all_items
 \`\`\`
 
-**למה רצף של 3 פריטים מוכרים?** פריט מוצמד (pinned) בראש הפיד כבר ב-DB — בדיקת פריט בודד תעצור מיד.
+למה לעצור רק אחרי שלושה פריטים מוכרים ברצף, ולא אחרי הראשון? כי בראש הקבוצה יש לפעמים פוסט נעוץ שכבר עובד מזמן. אם עוצרים על הפריט המוכר הראשון, הסריקה נגמרת לפני שראתה פוסט חדש אחד.
 
 ---
 
-## פיפליין סינון — מהזול ליקר
+## כפילויות: הלב של המערכת
 
-הסדר: **(1)** Dedup — **(2)** Content Dedup — **(3)** Age Filter — **(4)** Block Filter — **(5)** Pre-filter — **(6)** Cross-Group Dedup (כולם חינם) → **(7)** AI Classification ($$$).
+משתמש שמקבל את אותו ליד פעמיים מפסיק לסמוך על הבוט. לכן יש שלוש שכבות: לפי מזהה, לפי תוכן, ובין קבוצות שונות, כי אותו פוסט מתפרסם לא פעם בכמה קבוצות.
 
-כל שלב חינמי מפחית קריאות ל-AI. **סדר קריטי!**
+### מזהה מומצא שובר הכול
 
-### סינון מילות מפתח — מלכודת ה-\`any([])\`
+הטעות: לתת לפריט בלי קישור את כתובת הדף כמזהה.
 
 \`\`\`python
-def passes_keyword_filter(text: str, keywords: list[str]) -> bool:
-    if not keywords:
-        return True  # !! רשימה ריקה = אין סינון = הכל עובר
-    text_lower = text.lower()
-    return any(kw in text_lower for kw in keywords)
+# שגוי — כל הפריטים בלי קישור מקבלים את אותו מזהה
+item_id = extract_url(el) or page_url
 \`\`\`
 
-> **מלכודת:** \`any([])\` מחזיר \`False\` — בלי guard, רשימת מילות מפתח ריקה תחסום *הכל* בשקט.
+הסימפטום: אחרי שפריט אחד כזה נשמר, כל פריט בלי קישור שבא אחריו נראה "כבר מוכר" ונעלם. הפתרון הוא מה שראיתם בקוד הסריקה: דגל שאומר אם המזהה אמיתי, ובדיקת כפילות לפי מזהה רק כשהוא אמיתי. לשאר יש את בדיקת התוכן.
 
----
+### טביעת אצבע יציבה לתוכן
 
-## Dedup רב-שכבתי — הלב של המערכת
-
-### Content Hash יציב
-
-הבעיה: תוכן דינמי (תגובות, לייקים) משנה את ה-hash בין סריקות.
+הבעיה: אותו פוסט נראה אחרת בכל סריקה. נוספו לו לייקים, נוספו תגובות, והקישורים בו נושאים פרמטרי מעקב משתנים. Hash על הטקסט כמו שהוא משתנה כל פעם, והפוסט נשלח שוב ושוב.
 
 \`\`\`python
 import hashlib, re
 
 def stable_text_for_hash(text: str) -> str:
     text = text.lower()
-    text = re.sub(r'https?://\\S+', '', text)           # URLs עם tracking
-    text = re.sub(r'[\\uE000-\\uF8FF]', '', text)        # Private Use Area
-    lines = text.split('\\n')
+    text = re.sub(r"https?://\\S+", "", text)       # קישורים עם פרמטרי מעקב
+    text = re.sub(r"[\\uE000-\\uF8FF]", "", text)    # תווי אייקונים
     stable = []
-    for line in lines:
+    for line in text.split("\\n"):
         s = line.strip()
         if not s:
             continue
-        if re.match(r'^\\d[\\d,. ]*$', s):                # "5" (ספירת לייקים)
+        if re.match(r"^\\d[\\d,. ]*$", s):            # מונה לייקים
             continue
-        if ENGAGEMENT_RE.match(s):                       # "5 תגובות"
+        if ENGAGEMENT_RE.match(s):                   # "5 תגובות"
             continue
         stable.append(s)
-    return ' '.join(stable)
+    return " ".join(stable)
 
 def content_dedup_hash(text: str) -> str:
-    normalized = stable_text_for_hash(text)
-    words = normalized.split()[:12]    # 12 מילים ראשונות בלבד
-    core = ' '.join(words)
-    return hashlib.md5(core.encode()).hexdigest()
+    words = stable_text_for_hash(text).split()[:12]
+    return hashlib.md5(" ".join(words).encode()).hexdigest()
 \`\`\`
 
-**למה 12 מילים ולא 150 תווים?**
-- ליבת הפריט (כותרת + תחילת גוף) תמיד בהתחלה
-- תוכן דינמי (תגובות) בסוף
-- בפריטים קצרים, 150 תווים כולל חלק מתגובות — שמשתנות בין סריקות
+למה 12 המילים הראשונות, ולא 150 התווים הראשונים? בפוסט קצר, 150 תווים כבר נכנסים לתגובות, והתגובות משתנות בין סריקות. עיקר הפוסט, הכותרת ותחילת הגוף, תמיד בהתחלה. 12 מילים תופסות אותו ועוצרות לפני התגובות.
 
 ---
 
-## סיווג AI — באצ'ים עם Fallback
+## מילות מפתח: המלכודת של רשימה ריקה
 
 \`\`\`python
-def classify_batch(items: list[dict], batch_size=5) -> list[dict]:
-    all_results = []
+def passes_keyword_filter(text: str, keywords: list[str]) -> bool:
+    if not keywords:
+        return True  # אין מילות מפתח = אין סינון
+    text_lower = text.lower()
+    return any(kw in text_lower for kw in keywords)
+\`\`\`
+
+> **אזהרה:** בלי השורה הראשונה, רשימה ריקה חוסמת הכול: \`any([])\` מחזיר False. משתמש שמחק את כל מילות המפתח שלו מצפה לקבל הכול, ומקבל שקט מוחלט, בלי שום שגיאה.
+
+---
+
+## סיווג AI: באצ'ים, בלי לערבב ובלי להעלים
+
+שולחים לסיווג חמישה פריטים בקריאה אחת, כדי לחסוך. אבל צריך לשמור על שני דברים.
+
+\`\`\`python
+def classify_batch(items: list[dict], batch_size: int = 5) -> list[dict]:
+    results = []
     for i in range(0, len(items), batch_size):
         batch = items[i:i + batch_size]
         try:
-            response = call_api(batch)
-            temp = parse_response(response)  # רשימה זמנית!
-            if len(temp) != len(batch):
-                raise ValueError("אורך תשובה לא תואם")
-            all_results.extend(temp)          # רק אחרי הצלחה
+            parsed = parse_response(call_api(batch))
+            if len(parsed) != len(batch):
+                raise ValueError(f"expected {len(batch)}, got {len(parsed)}")
+            results.extend(parsed)  # רק אחרי שהבאץ' כולו הצליח
         except Exception:
+            logger.exception("batch failed, classifying one by one")
             for item in batch:
                 try:
-                    result = classify_single(item)
-                    all_results.append(result)
+                    results.append(classify_single(item))
                 except Exception:
-                    all_results.append({"relevant": False})
-    return all_results
+                    logger.exception("classification failed: %s", item["id"])
+                    results.append({"relevant": None, "failed": True})
+    return results
 \`\`\`
 
-**למה רשימה זמנית?** אם exception נופל באמצע ה-loop שמוסיף תוצאות, חלק כבר נוסף. ה-fallback מוסיף הכל שוב → \`zip()\` מתאים תוצאות לפריטים לא נכונים.
+הראשון: תוצאות נכנסות לרשימה רק אחרי שהבאץ' כולו הצליח. אם מוסיפים אותן תוך כדי ונופלים באמצע, חלק מהבאץ' כבר בפנים, הגיבוי מוסיף את כולו שוב, והתוצאות כבר לא מתאימות לפריטים שלהן. פוסט אחד מקבל את הסיווג של פוסט אחר.
+
+השני: כשהסיווג נכשל, לא מסמנים "לא רלוונטי". תקלה ב-API שנראית כמו "לא היו לידים היום" היא הדבר הכי קשה לגלות. פריט שנכשל מסומן ככזה, נרשם בלוג, ולא נשמר כ"כבר נראה", כך שהסריקה הבאה תנסה אותו שוב.
 
 ---
 
-## התראות טלגרם
+## התראה: לשמור רק אחרי ששלחתם
 
 \`\`\`python
 async def send_lead(item: dict, reason: str):
     text = format_lead(item, reason)
-    # חשוב! requests.post חוסם event loop — חייבים to_thread
-    success = await asyncio.to_thread(send_message, text)
+    success = await asyncio.to_thread(send_message, text)  # גם שליחה חוסמת
     if success:
         save_lead(item["id"], item["text"])
 \`\`\`
 
-**טיפ:** הפרידו ערוצים — לידים ללקוח, שגיאות טכניות למפתח.
+אם שומרים לפני השליחה והשליחה נכשלת, הליד מסומן כמטופל ולא יישלח לעולם. ועוד טיפ קטן: ערוץ אחד ללידים, וערוץ נפרד לשגיאות טכניות. המשתמש לא צריך לראות את השגיאות שלכם, ואתם לא רוצים לפספס אותן בין הלידים.
 
 ---
 
-## ניהול זיכרון ב-VM קטן
+## זיכרון על שרת של 512MB
 
-חמישה עקרונות ל-512MB:
-
-1. **גרסת מובייל** — אם יש, חוסך ~60% זיכרון
-2. **חסימת resources** — תמונות, פונטים, מדיה
-3. **\`about:blank\` בין דפים** — משחרר DOM
-4. **\`gc.collect()\`** — אחרי סגירת דפדפן, לפני AI
-5. **דפדפן אחד, context חדש** — לא פותחים מספר instances
+- גרסת מובייל של האתר, כשיש כזו. זה הצעד שחוסך הכי הרבה.
+- חסימה של תמונות, וידאו ופונטים, כמו בקוד למעלה.
+- דפדפן אחד לכל הריצה, ו-context חדש לכל דף, שנסגר תמיד.
+- מעבר ל-about:blank בין דפים, כדי לשחרר את הדף הקודם.
+- \`gc.collect()\` אחרי סגירת הדפדפן ולפני שלב ה-AI.
 
 ---
 
-## טעויות נפוצות (ופתרונות)
-
-### 1. קריאות sync חוסמות event loop
+## התחברות שפגה: לא לפחד מכל קישור התחברות
 
 \`\`\`python
-# שגוי
-async def send():
-    requests.post(...)      # חוסם!
-
-# נכון
-async def send():
-    await asyncio.to_thread(requests.post, ...)
-\`\`\`
-
-### 2. מעקב לפי אינדקס בגלילה
-
-\`\`\`python
-# שגוי — DOM וירטואלי שובר אינדקסים
-for i in range(last_index, len(elements)):
-    process(elements[i])
-
-# נכון
-seen_texts = set()
-for el in elements:
-    text = el.text
-    if text not in seen_texts:
-        seen_texts.add(text)
-        process(el)
-\`\`\`
-
-### 3. Fallback ID שובר dedup
-
-\`\`\`python
-# שגוי — כל הפריטים ללא URL מקבלים ID דומה
-id = extract_url(el) or page_url
-
-# נכון — flag שמסמן ID אמיתי
-id, has_real_id = extract_item_id(el, page_url)
-if has_real_id:
-    check_dedup(id)
-\`\`\`
-
-### 4. Session detection אגרסיבי
-
-\`\`\`python
-# שגוי — סימן אחד = "סשן פג" → false positive שובר הכל
+# שגוי — סימן אחד ומתחברים מחדש
 if any_login_link_found:
     re_login()
 
-# נכון — סף גבוה + בדיקה כפולה
+# נכון — רק כשהדף באמת נראה כמו דף התחברות
 if login_ratio > 0.75 and no_content and link_count >= 3:
     re_login()
 \`\`\`
 
+קישור "התחברות" מופיע לפעמים גם בדף תקין, בפינה. אם כל הופעה שלו נחשבת לסשן שפג, הבוט מתחבר מחדש בלי סוף, ובאתרים כמו פייסבוק התחברויות חוזרות הן בדיוק מה שגורם לחסימת החשבון.
+
 ---
 
-## עקרונות זהב — סיכום
+## בשורה התחתונה
 
-1. **פיפליין מהזול ליקר** — סינון חינמי לפני AI
-2. **Dedup רב-שכבתי** — ID + content hash + cross-group
-3. **Hash יציב** — נרמול עמוק, 12 מילים ראשונות בלבד
-4. **רשימה ריקה = אין סינון** — guard על \`any([])\`
-5. **מעקב לפי תוכן, לא אינדקס** — DOM וירטואלי שובר אינדקסים
-6. **Async בכל מקום** — \`asyncio.to_thread()\` לקריאות sync
-7. **באצ' = רשימה זמנית** — extend רק אחרי הצלחה מלאה
-8. **Session detection שמרני** — false positive שובר הכל
-9. **גרסת מובייל + חסימת resources** — חוסך 60%+ זיכרון
-10. **גיל פוסט = מקסימום** — timestamp ישן ביותר = יצירת הפוסט`
+אם זוכרים רק שלושה דברים: לסנן בחינם לפני שמשלמים על AI, לזהות כפילויות לפי תוכן יציב ולא לפי מה שנראה על המסך, ולוודא שכל כשל נראה כמו כשל, ולא כמו "לא היה כלום".`
   }
 };
 
