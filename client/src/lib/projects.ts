@@ -12,7 +12,7 @@ export interface ProjectData {
   /** תיאור מורחב לעמוד הפרויקט */
   fullDescription: string;
   tech: string[];
-  /** תמונת כרטיס בדף הבית (URL חיצוני או ריק) */
+  /** תמונת כרטיס בדף הבית (URL חיצוני, נתיב מקומי מתוך client/public, או ריק) */
   image: string;
   /** מיקום התמונה בכרטיס — ברירת מחדל center */
   imagePosition?: string;
@@ -24,6 +24,18 @@ export interface ProjectData {
   repoLabel?: string;
   challenges: string[];
   features: string[];
+  /**
+   * עמוד צ'אט עם סוכן AI על הפרויקט. רק לפרויקט שיש לו סוכן בשרת
+   * (server/agents.ts, לפי אותו slug) — בלי השדה אין כפתורי Ask AI ואין עמוד צ'אט.
+   */
+  askAi?: AskAiConfig;
+}
+
+export interface AskAiConfig {
+  /** פתיחת עמוד הצ'אט, אחרי "היי!": טקסט, שם מודגש, וטקסט שאחריו */
+  intro: { before: string; highlight: string; after: string };
+  /** שאלות לדוגמה שהמבקר יכול ללחוץ עליהן */
+  suggestions: string[];
 }
 
 export const projects: ProjectData[] = [
@@ -761,6 +773,122 @@ export const projects: ProjectData[] = [
       "ייצוא קטעי קוד ל-Gist ו-Pastebin",
       "גיבוי אוטומטי ל-Google Drive",
     ],
+    askAi: {
+      intro: {
+        before: "אני סוכן ה-AI של אמיר. אני יודע הכל על",
+        highlight: "CodeKeeper",
+        after: "— פרויקט הדגל שלו.",
+      },
+      suggestions: [
+        "מה הפרויקט הזה עושה?",
+        "איזה טכנולוגיות נמצאות בשימוש?",
+        "מה האתגר הטכני הגדול ביותר?",
+      ],
+    },
+  },
+  {
+    slug: "codekeeper-mcp",
+    title: "CodeKeeper MCP",
+    description:
+      "שרת MCP שמחבר סוכני AI כמו Claude לחשבון ב-CodeKeeper — קריאה וכתיבה של קבצים, פתקים ואוספים",
+    subtitle:
+      "שרת MCP מרוחק שחושף את CodeKeeper לסוכני AI, עם OAuth, הרשאות וגרסאות",
+    fullDescription:
+      "שרת ה-MCP של CodeKeeper הוא שירות נפרד שדרכו עוזר AI, כמו Claude, מתחבר לחשבון של משתמש ב-CodeKeeper. במקום להעתיק קוד מהבוט ולהדביק אותו בשיחה, המשתמש מחבר את Claude פעם אחת, ומאותו רגע Claude יכול למצוא, לקרוא, לשמור ולערוך קבצים, פתקים ואוספים — כשכל עריכה נשמרת כגרסה חדשה, וכל משתמש רואה רק את התוכן שלו.",
+    tech: [
+      "Python",
+      "MCP Python SDK",
+      "ASGI / uvicorn",
+      "Streamable HTTP",
+      "OAuth 2.1 + PKCE",
+      "MongoDB",
+      "Git Mirrors",
+      "PostHog",
+    ],
+    image: "/projects/codekeeper-mcp-card.webp",
+    screenshots: ["/projects/Screenshot_20261012_185327_Chrome.jpg"],
+    mermaidDiagram: `flowchart TB
+  subgraph Clients["Clients"]
+    CAI["claude.ai - Custom Connector"]
+    CC["Claude Code / Claude Desktop"]
+  end
+
+  subgraph Auth["Auth"]
+    OAUTH["OAuth 2.1 + PKCE"]
+    PAT["Personal Access Token"]
+  end
+
+  subgraph MCP["CodeKeeper MCP Service - ASGI / uvicorn"]
+    HTTP["Streamable HTTP /mcp - body size limit"]
+    PRIMER["Primer + Upload Endpoints"]
+    DISPATCH["Tool Dispatch - rate limit, scope and admin checks"]
+    READPOOL["Read Pool - parallel threads"]
+    WRITEQ["Write Queue - FIFO, single worker"]
+  end
+
+  subgraph Tools["33 Tools - output byte budget per response"]
+    FILES["Files + Versions"]
+    NOTES["Sticky Notes + Collections"]
+    DOCS["Docs Sections"]
+    REPOS["Repo Mirrors - admin, read only"]
+  end
+
+  subgraph Data["Shared Data"]
+    MONGO[("MongoDB - shared with WebApp + Bot")]
+    MIRRORS[("Git Mirrors on Disk")]
+  end
+
+  subgraph External["External"]
+    GITHUB["GitHub"]
+    POSTHOG["PostHog - privacy gate"]
+    PUSH["Push Notifications"]
+  end
+
+  CAI --> OAUTH --> HTTP
+  CC --> PAT --> HTTP
+  PAT --> PRIMER
+  HTTP --> DISPATCH
+  DISPATCH --> READPOOL
+  DISPATCH --> WRITEQ
+  READPOOL --> Tools
+  WRITEQ --> Tools
+  FILES --> MONGO
+  NOTES --> MONGO
+  DOCS --> MIRRORS
+  REPOS --> MIRRORS
+  GITHUB -.-> MIRRORS
+  DISPATCH -.-> POSTHOG
+  WRITEQ -.-> PUSH`,
+    demo: "https://amirbiron.github.io/CodeBot/mcp-server.html",
+    demoLabel: "Docs",
+    repo: "https://github.com/amirbiron/CodeBot/blob/main/mcp_server/README.md",
+    challenges: [
+      "מודל ריצה: קריאות במקביל, וכתיבות בתור FIFO עם worker יחיד",
+      "תקציב תשובה בבתים, שמותאם לתקרות של כל לקוח",
+      "גודל מאגר החוטים נגזר מזיכרון הקונטיינר, לא ממספר המעבדים",
+      "שער פרטיות לטלמטריה, עם רשימת היתר בלבד",
+      "גילוי כלים בטעינה מושהית, דרך בלוק instructions שנכנס בתקרה של הלקוח",
+    ],
+    features: [
+      "חיבור סוכן AI לחשבון ב-CodeKeeper: למשל מ-claude.ai ומ-Claude Code",
+      "33 כלים לקריאה וכתיבה של קבצים, פתקים ואוספים, וכלי ריפו לאדמין",
+      "קריאה ממוקדת: מפת כותרות, סעיף אחד או טווח שורות, במקום קובץ שלם",
+      "כל עריכה נשמרת כגרסה חדשה, ושום תוכן לא נדרס",
+      "הרשאות לפי בחירה: קריאה בלבד או קריאה וכתיבה, וכל משתמש רואה רק את התוכן שלו",
+      "פריימר: הוראות אישיות שהסוכן טוען בתחילת כל סשן",
+    ],
+    askAi: {
+      intro: {
+        before: "אני סוכן ה-AI של אמיר. אני מכיר לעומק את",
+        highlight: "שרת ה-MCP של CodeKeeper",
+        after: "— הארכיטקטורה, ההחלטות והלקחים מייצור.",
+      },
+      suggestions: [
+        "מה השרת הזה עושה?",
+        "איך שומרים על הפרטיות של המשתמשים?",
+        "אני בונה שרת MCP — מה כדאי לי לדעת?",
+      ],
+    },
   },
   {
     slug: "routine-anchors",

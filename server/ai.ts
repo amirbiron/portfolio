@@ -12,10 +12,16 @@ export interface AiProvider {
   model: string;
   /**
    * שולח את ההודעה יחד עם היסטוריית השיחה ומחזיר את טקסט התשובה.
+   * הנחיית המערכת מגיעה בכל קריאה, כי לכל פרויקט יש סוכן עם הנחיה משלו
+   * (ראה server/agents.ts), וכולם עובדים מול אותו ספק.
    * ערוץ הכשל היחיד הוא זריקה — כולל סירוב של המודל ותשובה בלי טקסט,
    * כדי שהמשתמש לא יקבל בועה ריקה כאילו הכל תקין.
    */
-  reply(history: ChatTurn[], message: string): Promise<string>;
+  reply(
+    systemPrompt: string,
+    history: ChatTurn[],
+    message: string
+  ): Promise<string>;
 }
 
 const DEFAULT_CLAUDE_MODEL = "claude-opus-5-5";
@@ -45,7 +51,7 @@ function readEnv(name: string): string | undefined {
  * מחזיר null כשאין ספק זמין. אין נפילה שקטה לספק השני: ספק שנבחר במפורש
  * בלי מפתח משבית את הסוכן עם אזהרה, ושאר השרת ממשיך לעבוד.
  */
-export function createAiProvider(systemPrompt: string): AiProvider | null {
+export function createAiProvider(): AiProvider | null {
   const anthropicKey = readEnv("ANTHROPIC_API_KEY");
   const geminiKey = readEnv("GEMINI_API_KEY");
   const requested = readEnv("AI_PROVIDER")?.toLowerCase();
@@ -79,7 +85,7 @@ export function createAiProvider(systemPrompt: string): AiProvider | null {
         return null;
       }
       const model = readEnv("ANTHROPIC_MODEL") ?? DEFAULT_CLAUDE_MODEL;
-      return createClaudeProvider(anthropicKey, model, systemPrompt);
+      return createClaudeProvider(anthropicKey, model);
     }
 
     if (!geminiKey) {
@@ -89,7 +95,7 @@ export function createAiProvider(systemPrompt: string): AiProvider | null {
       return null;
     }
     const model = readEnv("GEMINI_MODEL") ?? DEFAULT_GEMINI_MODEL;
-    return createGeminiProvider(geminiKey, model, systemPrompt);
+    return createGeminiProvider(geminiKey, model);
   } catch (err) {
     console.error(
       `Failed to initialize ${name} AI provider, AI agent will be unavailable:`,
@@ -99,11 +105,7 @@ export function createAiProvider(systemPrompt: string): AiProvider | null {
   }
 }
 
-function createClaudeProvider(
-  apiKey: string,
-  model: string,
-  systemPrompt: string
-): AiProvider {
+function createClaudeProvider(apiKey: string, model: string): AiProvider {
   const client = new Anthropic({
     apiKey,
     timeout: CLAUDE_TIMEOUT_MS,
@@ -113,13 +115,14 @@ function createClaudeProvider(
   return {
     name: "claude",
     model,
-    async reply(history, message) {
+    async reply(systemPrompt, history, message) {
       const response = await client.beta.messages.create({
         model,
         max_tokens: CLAUDE_MAX_TOKENS,
-        // הנחיית המערכת (כולל מסמך הידע הגדול) זהה בכל בקשה. נקודת cache מפורשת
-        // בסופה נותנת קריאה מה-cache גם לשיחות של מבקרים שונים, והנקודה האוטומטית
-        // ברמת הבקשה מכסה את השיחה שהולכת ומתארכת — שתיהן יחד מותרות.
+        // הנחיית המערכת (כולל מסמך הידע הגדול) זהה בכל בקשה לאותו פרויקט. נקודת
+        // cache מפורשת בסופה נותנת קריאה מה-cache גם לשיחות של מבקרים שונים, והנקודה
+        // האוטומטית ברמת הבקשה מכסה את השיחה שהולכת ומתארכת — שתיהן יחד מותרות.
+        // ה-cache הוא התאמת תחילית, ולכן לכל פרויקט נשמרת רשומה נפרדת.
         // מקור: https://platform.claude.com/docs/en/build-with-claude/prompt-caching
         system: [
           {
@@ -174,17 +177,13 @@ function createClaudeProvider(
   };
 }
 
-function createGeminiProvider(
-  apiKey: string,
-  model: string,
-  systemPrompt: string
-): AiProvider {
+function createGeminiProvider(apiKey: string, model: string): AiProvider {
   const ai = new GoogleGenAI({ apiKey });
 
   return {
     name: "gemini",
     model,
-    async reply(history, message) {
+    async reply(systemPrompt, history, message) {
       // בניית היסטוריית שיחה ל-Gemini
       const chat = ai.chats.create({
         model,

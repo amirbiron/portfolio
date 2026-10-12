@@ -348,17 +348,17 @@ export default function Home() {
                         {project.demoLabel || "Demo"}
                       </Button>
                     </div>
-                    {project.slug === "codekeeper" && (
+                    {project.askAi && (
                       <Button
                         size="sm"
                         className="w-full bg-accent/20 text-accent border border-accent hover:bg-accent hover:text-accent-foreground font-mono"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setLocation("/project/codekeeper/ask-ai");
+                          setLocation(`/project/${project.slug}/ask-ai`);
                         }}
                       >
                         <Bot className="mr-2 h-3 w-3" />
-                        Ask AI about CodeKeeper
+                        Ask AI about {project.title}
                       </Button>
                     )}
                   </div>
