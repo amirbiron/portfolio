@@ -1,9 +1,9 @@
 import express from "express";
 import { createServer } from "http";
 import path from "path";
-import fs from "fs";
 import { fileURLToPath } from "url";
 import { createAiProvider, type ChatTurn } from "./ai";
+import { isKnownAgent, loadAgents } from "./agents";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -114,47 +114,17 @@ async function startServer() {
     }
   });
 
-  // --- AI Agent endpoint עבור CodeKeeper ---
+  // --- AI Agent endpoint — סוכן נפרד לכל פרויקט שיש לו עמוד Ask AI ---
 
-  // טעינת מסמך הידע פעם אחת בעת עליית השרת
-  let knowledgeDoc = "";
-  try {
-    const docsPath = path.resolve(__dirname, "..", "docs", "CodeBot_Features_Summary.md");
-    knowledgeDoc = fs.readFileSync(docsPath, "utf-8");
-  } catch {
-    console.warn("Warning: CodeBot knowledge doc not found, AI agent will have limited knowledge");
-  }
-
-  const SYSTEM_PROMPT = `אתה סוכן AI המייצג את אמיר, מפתח Full-Stack ומערכות מורכבות. תפקידך הוא לענות למגייסים וללקוחות פוטנציאליים על פרויקט הדגל של אמיר: CodeKeeper (נקרא גם CodeBot).
-כשאתה נשאל על הפרויקט, השתמש במסמך סיכום הפיצ'רים והתכונות המצורף, אך פעל לפי הכללים הבאים:
-* אל תעתיק רשימות ארוכות: אם מישהו שואל 'אילו פיצ'רים יש בבוט?', תן לו 3-4 פיצ'רים מרכזיים, והצע לו לשאול על נושאים ספציפיים (למשל: 'תרצה לשמוע על הארכיטקטורה או על כלי ה-AI?').
-* הדגש את החשיבה ה'שורשית': כשאתה מתאר פתרון, תסביר למה אמיר בחר בו. למשל, 'אמיר השתמש ב-Redis כדי להבטיח זמני תגובה מהירים למערכת החיפוש', או 'אמיר בנה ארכיטקטורת CI/CD מלאה עם GitHub Actions כדי להבטיח יציבות'.
-* התאם את התשובה לקהל:
-  - אם השאלה טכנית (למשל 'איזה מסד נתונים יש?'), פרט על MongoDB, Motor אסינכרוני, והאינדקסים.
-  - אם השאלה עסקית/מוצרית (למשל 'מי קהל היעד?'), דבר על ה-Onboarding המקיף, ה-Live Preview, ומערכת ההרשאות.
-* ענה בעברית אלא אם השאלה נשאלה באנגלית.
-* שמור על תשובות קצרות וממוקדות — עד 3-4 פסקאות. הצע לשאול שאלת המשך.
-
-## סגנון ניסוח המענה לשאלות
-* ענה ישר לשאלה, בלי הקדמות
-* הימנע משפה גבוהה
-* הימנע משפה מתנשאת
-* דבר בגובה העיניים
-* שמור על טון צנוע אבל בטוח בעצמו
-* הימנע מהפרזה על איכות הפיצ'רים
-* ספק מידע טכני, אמין, ואמיתי, לפי הבנתך מקריאת מסמך התכונות של CodeBot שמצורף לך
-
-## צירוף אתר התיעוד
-* אם יש משתמש שנראה באמת מתעניין, ושואל מס' שאלות (~3) תוכל לצרף לו קישור לאתר התיעוד שלנו (זהו תיעוד מקיף במיוחד על CodeKeeper): https://amirbiron.github.io/CodeBot/
-* אל תצרף את הלינק יותר מפעם אחת פר שיחת משתמש
-
-מסמך סיכום הפיצ'רים ותכונות הפרויקט:
-${knowledgeDoc}`;
+  // טעינת מסמכי הידע והנחיות המערכת פעם אחת בעליית השרת (ראה server/agents.ts)
+  const agents = loadAgents(path.resolve(__dirname, "..", "docs"));
 
   // אתחול ספק ה-AI פעם אחת בעליית השרת — Claude או Gemini לפי משתני הסביבה (ראה server/ai.ts)
-  const aiProvider = createAiProvider(SYSTEM_PROMPT);
+  const aiProvider = createAiProvider();
   if (aiProvider) {
-    console.log(`AI agent: ${aiProvider.name} (model: ${aiProvider.model})`);
+    console.log(
+      `AI agent: ${aiProvider.name} (model: ${aiProvider.model}), projects: ${Array.from(agents.keys()).join(", ") || "none"}`
+    );
   }
 
   const MAX_MESSAGE_LENGTH = 2000;
@@ -178,7 +148,24 @@ ${knowledgeDoc}`;
         return;
       }
 
-      const { message, history } = req.body;
+      const { project, message, history } = req.body;
+      if (!project || typeof project !== "string") {
+        res.status(400).json({ error: "Project is required" });
+        return;
+      }
+      if (!isKnownAgent(project)) {
+        res.status(404).json({ error: "Unknown project" });
+        return;
+      }
+      // פרויקט מוכר שהסוכן שלו לא נטען בעלייה — הסיבה כתובה בלוג של העלייה
+      const agent = agents.get(project);
+      if (!agent) {
+        res
+          .status(500)
+          .json({ error: "AI agent for this project is not configured" });
+        return;
+      }
+
       if (!message || typeof message !== "string") {
         res.status(400).json({ error: "Message is required" });
         return;
@@ -206,7 +193,11 @@ ${knowledgeDoc}`;
           );
       }
 
-      const response = await aiProvider.reply(validatedHistory, message);
+      const response = await aiProvider.reply(
+        agent.systemPrompt,
+        validatedHistory,
+        message
+      );
 
       res.json({ response });
     } catch (err) {

@@ -1,3 +1,59 @@
+## [2026-10-12] פרויקט חדש CodeKeeper MCP עם סוכן AI משלו, וסוכני ה-AI הפכו לסוכן נפרד לכל פרויקט
+
+**קבצים שהשתנו:**
+- `server/agents.ts` — (נוסף) רשימת סוכני ה-AI לפי slug של פרויקט: קובץ מסמך הידע והנחיית המערכת של כל סוכן, וטעינה שלהם בעליית השרת
+- `server/ai.ts` — (שונה) הנחיית המערכת עוברת בכל קריאה ל-`reply` במקום פעם אחת ביצירת הספק
+- `server/index.ts` — (שונה) `/api/ask-ai` מקבל שדה `project` ועונה עם הסוכן של אותו פרויקט; ההנחיה של CodeKeeper עברה ל-`server/agents.ts`
+- `client/src/lib/projects.ts` — (שונה) שדה אופציונלי `askAi` לפרויקט, `askAi` ל-CodeKeeper, והפרויקט החדש `codekeeper-mcp` מיד אחרי CodeKeeper
+- `client/src/App.tsx` — (שונה) הנתיב `/project/codekeeper/ask-ai` הוחלף בנתיב כללי `/project/:slug/ask-ai`
+- `client/src/pages/AskAI.tsx` — (שונה) עמוד הצ'אט כללי: הטקסטים, הכותרת והקישור חזרה נלקחים מהפרויקט
+- `client/src/pages/Home.tsx`, `client/src/pages/ProjectPage.tsx` — (שונה) כפתורי Ask AI מופיעים בכל פרויקט שיש לו `askAi`, במקום רק ב-`codekeeper`
+- `docs/MCP-Knowledge-Base.md` — (נוסף) מסמך בסיס הידע של שרת ה-MCP (הגרסה `MCP-Knowledge-Base-v2.md` מ-CodeKeeper)
+- `client/public/projects/codekeeper-mcp-card.webp` — (נוסף) תמונת הכרטיס של הפרויקט בדף הבית
+- `client/public/projects/Screenshot_20261012_185327_Chrome.jpg` — (נוסף) צילום המסך בעמוד הפרויקט
+- `client/public/projects/4f6f65e0-c650-11f1-b097-a5c9a948a249.png` — (נמחק) המקור של תמונת הכרטיס, שהומר ל-WebP
+
+**פירוט:**
+נוסף לפורטפוליו פרויקט חדש, CodeKeeper MCP (שרת ה-MCP שדרכו סוכני AI כמו Claude מתחברים לחשבון ב-CodeKeeper), עם עמוד פרויקט רגיל ועם עמוד Ask AI משלו בכתובת `/project/codekeeper-mcp/ask-ai`, שבו סוכן AI עונה למבקרים מתוך מסמך בסיס ידע נפרד. כדי לא לשכפל את כל מנגנון הצ'אט, הסוכן הפך ממנגנון שכתוב עבור CodeKeeper בלבד למנגנון אחד שמשרת כל פרויקט שיש לו סוכן: בשרת יש טבלה של פרויקט ← מסמך ידע + הנחיית מערכת, ובצד הדפדפן יש שדה `askAi` בפרויקט. הוספת סוכן לפרויקט שלישי היא עכשיו רשומה אחת בכל אחד משני המקומות, בלי קוד חדש.
+
+מה המבקר רואה:
+- בדף הבית: כרטיס CodeKeeper MCP מיד אחרי CodeKeeper, עם כפתור "Ask AI about CodeKeeper MCP". לכרטיס של CodeKeeper יש את אותו כפתור כמו קודם.
+- בעמוד הפרויקט: הכפתורים Docs (עמוד התיעוד של שרת ה-MCP), Code (ה-README של `mcp_server` בריפו CodeBot) ו-Ask AI, 6 פיצ'רים, 5 אתגרים, צילום מסך ודיאגרמת ארכיטקטורה.
+- בעמוד הצ'אט: פתיחה, שאלות לדוגמה ותיבת הקלדה שמתאימות לפרויקט. בעמוד של CodeKeeper כל הטקסטים זהים לקודם.
+
+שינויי התנהגות בשרת:
+1. **מסמך ידע חסר משבית את הסוכן במקום לתת לו לענות בלי ידע.** עד עכשיו, אם `docs/CodeBot_Features_Summary.md` לא נקרא, השרת כתב אזהרה בלוג והסוכן המשיך לענות עם הנחיה שבסופה מסמך ריק, כלומר המודל ענה מהידע הכללי שלו והמציא פרטים על הפרויקט. עכשיו סוכן שהמסמך שלו לא נקרא (או ריק) לא נטען: בלוג העלייה נכתבת שגיאה עם הנתיב, בקשות אליו מקבלות 500 `{"error":"AI agent for this project is not configured"}` בלי לפנות למודל, ושאר הסוכנים ממשיכים לעבוד.
+2. **השדה `project` חובה בבקשה ל-`/api/ask-ai`.** בלי מחרוזת לא ריקה מתקבל 400 `Project is required`, ו-slug שאין לו סוכן מקבל 404 `Unknown project`. הבדיקה נעשית מול רשימת הסוכנים עם `hasOwnProperty` ו-`Map`, כך שערכים כמו `__proto__` או `constructor` מקבלים 404 ולא נופלים לשגיאה. לשונית שנשארה פתוחה על הגרסה הקודמת של האתר (בלי השדה) תקבל את הודעת השגיאה הרגילה של הצ'אט עד רענון.
+3. שורת הלוג בעלייה מציינת גם אילו סוכנים נטענו, למשל `AI agent: claude (model: claude-opus-5-5), projects: codekeeper, codekeeper-mcp`.
+
+הנחיית המערכת של CodeKeeper לא השתנתה: היא נבנית עכשיו מחלקים ב-`server/agents.ts` (כללי הסגנון וכללי השפה והאורך משותפים לשני הסוכנים ונכתבים פעם אחת), אבל הטקסט שנשלח למודל זהה תו-בתו לטקסט הקודם. ההנחיה של CodeKeeper MCP נכתבה בשבילו: היא מזהה שני סוגי מבקרים (מגייסים ולקוחות, ומפתחים שבונים שרת MCP משלהם, שלהם הסוכן מצביע רק על הלקחים שרלוונטיים לפרויקט שלהם), מורה לענות מתוך המסמך בלבד ולא להשלים מהזיכרון, לציין לאיזה תאריך נכון כל מספר שמצוטט, להפנות לסוכן של CodeKeeper בשאלות על הבוט והאתר, ולצרף פעם אחת בשיחה את הקישור לתיעוד המלא של שרת ה-MCP. ה-prompt caching ממשיך לעבוד כמו קודם, ולכל פרויקט נשמרת רשומת cache נפרדת כי ההנחיות שונות כבר מתחילתן.
+
+תמונת הכרטיס הועלתה כ-PNG בגודל 2.9MB, פי 11 עד 17 מתמונות הכרטיס של שאר הפרויקטים (170 עד 265KB, WebP). היא הומרה ל-WebP באיכות 90 באותה רזולוציה (2560×1440), ומשקלה 218KB.
+
+**ליישום מחדש:**
+1. להעתיק כמות שהם מהריפו הזה את `server/agents.ts`, `docs/MCP-Knowledge-Base.md`, `client/public/projects/codekeeper-mcp-card.webp` ו-`client/public/projects/Screenshot_20261012_185327_Chrome.jpg`.
+2. ב-`server/ai.ts`: `createAiProvider()` בלי פרמטר, ו-`reply(systemPrompt, history, message)` במקום `reply(history, message)`. ב-Claude ההנחיה נכנסת ל-`system` (עם אותו `cache_control`), וב-Gemini ל-`systemInstruction`. שאר הקריאה ל-API לא השתנתה.
+3. ב-`server/index.ts`: למחוק את טעינת `CodeBot_Features_Summary.md` ואת `SYSTEM_PROMPT` (ואת ה-import של `fs` שנשאר בלי שימוש), ובמקומם `const agents = loadAgents(path.resolve(__dirname, "..", "docs"));` ו-`createAiProvider()` בלי ארגומנט. בנקודת הקצה, אחרי בדיקת הספק ולפני בדיקת `message`: לקרוא את `project` מהגוף, להחזיר 400 אם אינו מחרוזת לא ריקה, 404 אם `isKnownAgent(project)` שקרי, ו-500 אם `agents.get(project)` ריק. הקריאה למודל היא `aiProvider.reply(agent.systemPrompt, validatedHistory, message)`. שאר ההגבלות (rate limit, אורך הודעה, 20 הודעות היסטוריה) לא השתנו.
+4. ב-`client/src/lib/projects.ts`: להוסיף את הממשק `AskAiConfig` (`intro: { before, highlight, after }` ו-`suggestions`) ואת השדה `askAi?: AskAiConfig` ל-`ProjectData`, להוסיף `askAi` לפרויקט `codekeeper` עם הטקסטים שהיו כתובים קודם ב-`AskAI.tsx`, ולהוסיף אחריו את הפרויקט `codekeeper-mcp` (להעתיק את כל הרשומה מהקובץ, כולל הדיאגרמה). התיעוד של השדה `image` עודכן: הוא יכול להיות גם נתיב מקומי מתוך `client/public`.
+5. ב-`client/src/App.tsx`: `<Route path={"/project/:slug/ask-ai"}>`, לפני `/project/:slug`.
+6. ב-`client/src/pages/AskAI.tsx`: הקומפוננטה הראשית קוראת את ה-slug עם `useParams`, מחזירה `<NotFound />` לפרויקט שאין לו `askAi`, ואחרת מרנדרת `<AskAIChat key={project.slug} project={project} askAi={project.askAi} />`, שבה נמצא כל הקוד הקודם של העמוד. ה-`key` חשוב: בלעדיו מעבר ישיר בין עמודי צ'אט של שני פרויקטים משאיר את השיחה הקודמת ושולח אותה כהיסטוריה לסוכן השני. הטקסטים: `Back to {title}`, `AI Agent — {title}`, הפתיחה מ-`askAi.intro`, השאלות מ-`askAi.suggestions`, ה-placeholder `שאלו אותי על {title}...`, והבקשה שולחת גם `project: project.slug`.
+7. ב-`Home.tsx` וב-`ProjectPage.tsx`: להחליף את `project.slug === "codekeeper"` ב-`project.askAi`, את הניווט ב-`` `/project/${project.slug}/ask-ai` ``, ואת "Ask AI about CodeKeeper" ב-`Ask AI about {project.title}`.
+
+**אימות:** שני שרתים, אחד מה-build של הקוד הקודם ואחד מה-build החדש, רצו מול שרת דמה מקומי שמתחזה ל-API של Anthropic (דרך `ANTHROPIC_BASE_URL`) ורושם כל בקשה. נבדקו:
+- **הנחיית CodeKeeper:** זהה תו-בתו בין הישן לחדש (96,014 תווים).
+- **הנחיית ה-MCP:** מסתיימת בדיוק בתוכן `docs/MCP-Knowledge-Base.md`.
+- **ההיסטוריה:** נשלחת בסדר הנכון.
+- **שגיאות:** כל מקרי השגיאה של `project` נענו בקוד הצפוי ולא הגיעו לשרת הדמה.
+- **מסמך חסר:** השרת החדש החזיר 500 בלי לפנות למודל, ו-CodeKeeper המשיך לענות. בבקרה על הקוד הישן, מסמך חסר החזיר 200 עם הנחיה שבסופה מסמך ריק.
+
+בדפדפן (Chromium דרך Playwright) עברו 24 בדיקות:
+- **דף הבית:** הכרטיס במקום הנכון, התמונה נטענה, והכפתורים קיימים. בבקרה, בשרת הישן יש כפתור Ask AI אחד.
+- **עמוד הפרויקט:** הדיאגרמה מרונדרת כ-SVG עם תוויות הצמתים, צילום המסך נטען, והכפתורים פותחים את הקישורים הנכונים.
+- **עמודי הצ'אט:** שתי שאלות בכל אחד, כשהבקשה נושאת את ה-`project` הנכון והתשובה נבנתה מההנחיה הנכונה. הטקסטים בעמוד של CodeKeeper זהים לשרת הישן.
+- **פרויקט בלי `askAi`:** מקבל 404.
+
+את בדיקת המעבר בין שני עמודי הצ'אט הרצתי גם על build בלי ה-`key`, והיא נכשלה: השאלה על CodeKeeper הופיעה בצ'אט של ה-MCP. מה שלא נבדק: קריאה אמיתית ל-API של Anthropic עם ההנחיה החדשה, כלומר איכות התשובות של סוכן ה-MCP.
+
 ## [2026-10-12] תמיכה ב-Claude בסוכן ה-AI של CodeKeeper, עם בחירת ספק ומודל דרך משתני סביבה
 
 **קבצים שהשתנו:**

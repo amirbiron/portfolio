@@ -26,7 +26,7 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
-      <Route path={"/project/codekeeper/ask-ai"}>
+      <Route path={"/project/:slug/ask-ai"}>
         <Suspense fallback={<LazyFallback />}>
           <AskAI />
         </Suspense>

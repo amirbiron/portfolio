@@ -264,11 +264,11 @@ export default function ProjectPage() {
               )}
               {project.repoLabel || "Code"}
             </Button>
-            {project.slug === "codekeeper" && (
+            {project.askAi && (
               <Button
                 size="sm"
                 className="bg-accent/20 text-accent border border-accent hover:bg-accent hover:text-accent-foreground"
-                onClick={() => setLocation("/project/codekeeper/ask-ai")}
+                onClick={() => setLocation(`/project/${project.slug}/ask-ai`)}
               >
                 <Bot className="mr-2 h-3 w-3" />
                 Ask AI
@@ -473,13 +473,13 @@ export default function ProjectPage() {
                 )}
                 {project.repoLabel || "Code"}
               </Button>
-              {project.slug === "codekeeper" && (
+              {project.askAi && (
                 <Button
                   className="bg-accent text-accent-foreground hover:bg-accent/90 neon-border"
-                  onClick={() => setLocation("/project/codekeeper/ask-ai")}
+                  onClick={() => setLocation(`/project/${project.slug}/ask-ai`)}
                 >
                   <Bot className="mr-2 h-4 w-4" />
-                  Ask AI about CodeKeeper
+                  Ask AI about {project.title}
                 </Button>
               )}
             </div>

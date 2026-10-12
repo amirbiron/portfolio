@@ -1,14 +1,16 @@
 /**
- * עמוד צ'אט עם סוכן AI על פרויקט CodeKeeper
+ * עמוד צ'אט עם סוכן ה-AI של פרויקט — לכל פרויקט שיש לו askAi ב-projects.ts
  */
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, Bot, User, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { Streamdown } from "streamdown";
+import { projects, type AskAiConfig, type ProjectData } from "@/lib/projects";
+import NotFound from "./NotFound";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -16,6 +18,23 @@ interface ChatMessage {
 }
 
 export default function AskAI() {
+  const params = useParams<{ slug: string }>();
+  const project = projects.find(p => p.slug === params.slug);
+  if (!project?.askAi) return <NotFound />;
+  // key לפי slug: מעבר ישיר מעמוד צ'אט של פרויקט אחד לאחר מתחיל שיחה חדשה,
+  // במקום להמשיך את השיחה של הפרויקט הקודם מול הסוכן של החדש
+  return (
+    <AskAIChat key={project.slug} project={project} askAi={project.askAi} />
+  );
+}
+
+function AskAIChat({
+  project,
+  askAi,
+}: {
+  project: ProjectData;
+  askAi: AskAiConfig;
+}) {
   const [, setLocation] = useLocation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -54,7 +73,11 @@ export default function AskAI() {
       const res = await fetch("/api/ask-ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, history }),
+        body: JSON.stringify({
+          project: project.slug,
+          message: trimmed,
+          history,
+        }),
       });
 
       if (!res.ok) {
@@ -97,15 +120,15 @@ export default function AskAI() {
           <Button
             variant="ghost"
             className="text-primary hover:text-primary/80"
-            onClick={() => setLocation("/project/codekeeper")}
+            onClick={() => setLocation(`/project/${project.slug}`)}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to CodeKeeper
+            Back to {project.title}
           </Button>
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-accent" />
             <span className="text-accent font-mono text-sm">
-              AI Agent — CodeKeeper
+              AI Agent — {project.title}
             </span>
           </div>
         </div>
@@ -135,23 +158,19 @@ export default function AskAI() {
                     <Bot className="h-6 w-6 text-accent shrink-0 mt-1" />
                     <div className="space-y-3">
                       <p className="text-foreground/90">
-                        <span className="text-accent font-bold">היי!</span> אני
-                        סוכן ה-AI של אמיר. אני יודע הכל על{" "}
+                        <span className="text-accent font-bold">היי!</span>{" "}
+                        {askAi.intro.before}{" "}
                         <span className="text-primary font-bold">
-                          CodeKeeper
+                          {askAi.intro.highlight}
                         </span>{" "}
-                        — פרויקט הדגל שלו.
+                        {askAi.intro.after}
                       </p>
                       <p className="text-foreground/70 text-sm">
                         אפשר לשאול אותי על הארכיטקטורה, הטכנולוגיות, הפיצ'רים,
                         או כל שאלה אחרת על הפרויקט. למשל:
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {[
-                          "מה הפרויקט הזה עושה?",
-                          "איזה טכנולוגיות נמצאות בשימוש?",
-                          "מה האתגר הטכני הגדול ביותר?",
-                        ].map((suggestion) => (
+                        {askAi.suggestions.map((suggestion) => (
                           <button
                             key={suggestion}
                             onClick={() => {
@@ -245,7 +264,7 @@ export default function AskAI() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="שאלו אותי על CodeKeeper..."
+            placeholder={`שאלו אותי על ${project.title}...`}
             dir="rtl"
             rows={1}
             className="bg-muted border-border text-foreground font-mono resize-none flex-1 min-h-[44px] max-h-[120px]"
