@@ -3,7 +3,7 @@ import { createServer } from "http";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { GoogleGenAI } from "@google/genai";
+import { createAiProvider, type ChatTurn } from "./ai";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -151,11 +151,10 @@ async function startServer() {
 מסמך סיכום הפיצ'רים ותכונות הפרויקט:
 ${knowledgeDoc}`;
 
-  // אתחול הקליינט פעם אחת בעליית השרת
-  const geminiApiKey = process.env.GEMINI_API_KEY;
-  const ai = geminiApiKey ? new GoogleGenAI({ apiKey: geminiApiKey }) : null;
-  if (!ai) {
-    console.warn("Warning: GEMINI_API_KEY not set, AI agent will be unavailable");
+  // אתחול ספק ה-AI פעם אחת בעליית השרת — Claude או Gemini לפי משתני הסביבה (ראה server/ai.ts)
+  const aiProvider = createAiProvider(SYSTEM_PROMPT);
+  if (aiProvider) {
+    console.log(`AI agent: ${aiProvider.name} (model: ${aiProvider.model})`);
   }
 
   const MAX_MESSAGE_LENGTH = 2000;
@@ -174,7 +173,7 @@ ${knowledgeDoc}`;
         return;
       }
 
-      if (!ai) {
+      if (!aiProvider) {
         res.status(500).json({ error: "AI service not configured" });
         return;
       }
@@ -192,12 +191,12 @@ ${knowledgeDoc}`;
       }
 
       // ולידציה והגבלת היסטוריית שיחה
-      let validatedHistory: { role: string; content: string }[] = [];
+      let validatedHistory: ChatTurn[] = [];
       if (Array.isArray(history)) {
         validatedHistory = history
           .slice(-MAX_HISTORY_LENGTH)
           .filter(
-            (msg: unknown): msg is { role: string; content: string } =>
+            (msg: unknown): msg is ChatTurn =>
               typeof msg === "object" &&
               msg !== null &&
               typeof (msg as Record<string, unknown>).role === "string" &&
@@ -207,26 +206,11 @@ ${knowledgeDoc}`;
           );
       }
 
-      // בניית היסטוריית שיחה ל-Gemini
-      const chatHistory = validatedHistory.map((msg) => ({
-        role: msg.role === "user" ? ("user" as const) : ("model" as const),
-        parts: [{ text: msg.content }],
-      }));
-
-      const chat = ai.chats.create({
-        model: "gemini-2.5-flash",
-        history: chatHistory,
-        config: {
-          systemInstruction: SYSTEM_PROMPT,
-        },
-      });
-
-      const result = await chat.sendMessage({ message });
-      const response = result.text ?? "";
+      const response = await aiProvider.reply(validatedHistory, message);
 
       res.json({ response });
     } catch (err) {
-      console.error("AI agent error:", err);
+      console.error(`AI agent error (${aiProvider?.name}):`, err);
       res.status(502).json({ error: "Failed to get AI response" });
     }
   });

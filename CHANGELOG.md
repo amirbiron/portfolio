@@ -1,3 +1,42 @@
+## [2026-10-12] תמיכה ב-Claude בסוכן ה-AI של CodeKeeper, עם בחירת ספק ומודל דרך משתני סביבה
+
+**קבצים שהשתנו:**
+- `server/ai.ts` — (נוסף) מודול ספקי ה-AI: בחירת ספק לפי משתני סביבה, וספק Claude וספק Gemini מאחורי ממשק אחד
+- `server/index.ts` — (שונה) נקודת הקצה `/api/ask-ai` עובדת מול הספק שנבחר במקום לקרוא ל-Gemini ישירות
+- `package.json`, `pnpm-lock.yaml` — (שונה) נוספה התלות `@anthropic-ai/sdk` בגרסה `^0.133.0`
+
+**פירוט:**
+סוכן ה-AI שעונה על שאלות לגבי CodeKeeper (`/project/codekeeper/ask-ai`) עבד עד עכשיו רק מול Gemini, עם מודל שהיה כתוב קבוע בקוד. עכשיו הוא יכול לעבוד גם מול Claude של Anthropic, והספק והמודל נבחרים דרך משתני סביבה בלי לשנות קוד. הפרונט (`client/src/pages/AskAI.tsx`) לא השתנה: החוזה של נקודת הקצה נשאר זהה (נכנסים `message` ו-`history`, יוצא `{ response }`).
+
+משתני הסביבה:
+
+| משתנה | משמעות | ברירת מחדל |
+|---|---|---|
+| `AI_PROVIDER` | `claude` או `gemini` (לא רגיש לאותיות גדולות). ערך אחר משבית את הסוכן עם אזהרה בלוג | כשלא מוגדר: `claude` אם `ANTHROPIC_API_KEY` מוגדר, אחרת `gemini` אם `GEMINI_API_KEY` מוגדר |
+| `ANTHROPIC_API_KEY` | מפתח ה-API של Anthropic | — |
+| `ANTHROPIC_MODEL` | מזהה מודל Claude, למשל `claude-sonnet-5-5` או `claude-haiku-5-5` | `claude-opus-5-5` |
+| `GEMINI_API_KEY` | מפתח ה-API של Gemini (קיים מקודם) | — |
+| `GEMINI_MODEL` | מזהה מודל Gemini | `gemini-2.5-flash` (המודל שהיה קבוע בקוד) |
+
+ערך ריק או רווחים בלבד נחשב כאילו המשתנה לא הוגדר. ספק שנבחר במפורש בלי המפתח שלו לא עובר בשקט לספק השני: הסוכן מושבת (תשובת 500 `AI service not configured`, כמו קודם כשלא היה מפתח) ונכתבת אזהרה בלוג. בעליית השרת נרשמת שורה שאומרת איזה ספק ואיזה מודל פעילים, למשל `AI agent: claude (model: claude-opus-5-5)`. שימו לב: כש-`AI_PROVIDER` לא מוגדר יש עדיפות ל-Claude, ולכן הוספת `ANTHROPIC_API_KEY` לבדה מעבירה את הסוכן ל-Claude. כדי להישאר על Gemini גם כשהמפתח קיים, מגדירים `AI_PROVIDER=gemini`.
+
+מה עושה ספק Claude (`createClaudeProvider` ב-`server/ai.ts`):
+1. לקוח אחד שנבנה בעליית השרת: `new Anthropic({ apiKey, timeout: 60_000, maxRetries: 1 })`. ה-timeout המפורש חשוב: ברירת המחדל של ה-SDK היא 10 דקות לכל ניסיון ועוד 2 ניסיונות חוזרים, והפרונט מחכה בלי timeout משלו, כך שבקשה תקועה הייתה משאירה את המבקר מול ספינר. עכשיו המקסימום הוא כשתי דקות, ואז מוצגת הודעת השגיאה הרגילה.
+2. קריאה ל-`client.beta.messages.create` עם: `model` מהמשתנה; `max_tokens: 16000` (התקרה כוללת גם את טוקני החשיבה של המודל); `system` כמערך של בלוק טקסט אחד (ה-`SYSTEM_PROMPT` הקיים) עם `cache_control: { type: "ephemeral" }`; `cache_control: { type: "ephemeral" }` גם ברמת הבקשה; `messages` = ההיסטוריה המאומתת ואחריה ההודעה החדשה בתפקיד `user`; ו-`betas: ["server-side-fallback-2026-07-01"]` יחד עם `fallbacks: "default"`.
+3. למה prompt caching: הנחיית המערכת כוללת את כל מסמך הידע (`docs/CodeBot_Features_Summary.md`, כ-96 אלף תווים), והיא זהה בכל בקשה. נקודת cache בסוף הנחיית המערכת חוסכת את רוב עלות הקלט, גם בין מבקרים שונים שמגיעים בטווח של 5 דקות, והנקודה ברמת הבקשה מכסה את השיחה שהולכת ומתארכת. השילוב של השתיים מותר לפי התיעוד של Anthropic.
+4. למה `fallbacks: "default"`: אם מסווג הבטיחות של המודל מסרב (למשל זיהוי שגוי של שאלה טכנית כסיכון סייבר), ה-API מריץ את אותה בקשה על המודל החלופי שמומלץ לקטגוריית הסירוב, בתוך אותה קריאה. לפי התיעוד זה נתמך ב-Opus וב-Fable מדור 5 וב-Sonnet 5.5, וב-Haiku 5.5 הסירוב פשוט נשאר. מודלים מדור 4.x לא מוזכרים בתיעוד ולא נבדקו.
+5. עיבוד התשובה: `stop_reason` של `refusal` נזרק כשגיאה (המבקר מקבל את הודעת השגיאה הרגילה). מהתוכן נלקחים רק בלוקים מסוג `text`, כלומר בלוקי `thinking` ו-`fallback` מסוננים. תשובה בלי טקסט נזרקת כשגיאה. תשובה שנקטעה (`max_tokens` או `model_context_window_exceeded`) מוחזרת עם הסימון `*(התשובה נקטעה)*` בסופה, ונכתבת אזהרה בלוג.
+
+ספק Gemini (`createGeminiProvider`): זה הקוד שהיה ב-`server/index.ts` (`ai.chats.create` עם `history` ו-`systemInstruction`, ואז `chat.sendMessage`), עם שני הבדלים: המודל נלקח מ-`GEMINI_MODEL`, ותשובה בלי טקסט נזרקת כשגיאה במקום להחזיר `{ response: "" }`. קודם המבקר היה מקבל במקרה כזה בועת תשובה ריקה, כאילו הכל תקין.
+
+**ליישום מחדש:**
+1. להתקין: `pnpm add @anthropic-ai/sdk@^0.133.0`.
+2. ליצור את `server/ai.ts` ולהעתיק אותו כמות שהוא מהריפו הזה. מה שיש בו: ממשק `ChatTurn` (`role: "user" | "assistant"`, `content: string`); ממשק `AiProvider` (`name`, `model`, ו-`reply(history, message): Promise<string>` שזורק בכל כשל); הפונקציה `createAiProvider(systemPrompt)` שמממשת את טבלת משתני הסביבה למעלה ועטופה ב-try/catch שמחזיר `null`, כדי שכשל באתחול לא יפיל את עליית השרת; והפונקציות `createClaudeProvider` ו-`createGeminiProvider` כמתואר למעלה.
+3. ב-`server/index.ts`: להחליף את ה-import של `GoogleGenAI` ב-`import { createAiProvider, type ChatTurn } from "./ai";`. להחליף את אתחול `GoogleGenAI` ב-`const aiProvider = createAiProvider(SYSTEM_PROMPT);` ואחריו שורת לוג של הספק והמודל. בנקודת הקצה: לבדוק `if (!aiProvider)` במקום `if (!ai)`, לתת ל-`validatedHistory` ול-type guard של הסינון את הטיפוס `ChatTurn`, ולהחליף את כל בניית השיחה מול Gemini בשורה `const response = await aiProvider.reply(validatedHistory, message);`. בלוג השגיאה לציין את שם הספק. ההגבלות הקיימות (אורך הודעה, 20 הודעות היסטוריה, rate limit) לא השתנו.
+4. בסביבת הריצה (Render): להוסיף `ANTHROPIC_API_KEY`, ואם רוצים מודל אחר מברירת המחדל גם `ANTHROPIC_MODEL`.
+
+**אימות:** אין בסביבת הפיתוח מפתח Anthropic, ולכן ספק Claude נבדק מול שרת דמה מקומי שמתחזה ל-API של Anthropic (דרך `ANTHROPIC_BASE_URL`) ורושם כל בקשה, על build פרודקשן של השרת. נבדק שהבקשה שיוצאת נושאת את המודל ממשתנה הסביבה (ו-`claude-opus-5-5` כשהוא לא מוגדר או ריק), את המפתח בכותרת `x-api-key`, את הכותרת `anthropic-beta: server-side-fallback-2026-07-01`, את `fallbacks: "default"`, את שתי נקודות ה-cache ואת ההיסטוריה בסדר הנכון. נבדקו התרחישים: תשובה רגילה (בלוק `thinking` מסונן), נפילה למודל חלופי (200 עם הטקסט של המודל החלופי), סירוב (502), תשובה ריקה (502), חיתוך (200 עם הסימון), שגיאת 400 (502, והמפתח לא מופיע בלוג), שרת שלא עונה (הבקשה נחתכת אחרי 60 שניות, ניסיון חוזר אחד, ואז 502), ובחירת ספק (`AI_PROVIDER=Gemini` גובר על מפתח Anthropic קיים, `AI_PROVIDER=claude` בלי מפתח ו-`AI_PROVIDER=openai` משביתים עם אזהרה). בדפדפן (Chromium דרך Playwright) נשאלו שתי שאלות בעמוד הצ'אט: שתי התשובות הוצגו, והבקשה השנייה נשאה את השאלה והתשובה הראשונות כהיסטוריה. ספק Gemini נבדק מול ה-API האמיתי: עם המודל ברירת המחדל התקבלה תשובה תקינה, ועם `GEMINI_MODEL` לא קיים גוגל החזיר 404 שנוקב בשם המודל, כלומר הערך מהמשתנה באמת נשלח. מה שלא נבדק: קריאה אמיתית ל-API של Anthropic, ובפרט שה-API מקבל את `fallbacks: "default"` ואת נקודות ה-cache ושה-cache אכן נקרא בפועל (`usage.cache_read_input_tokens`).
+
 ## [2026-10-10] שכתוב שני מאמרים בבלוג: "12 מלכודות בצ'אטבוט AI" ו"סורק אתרים עם התראות טלגרם"
 
 **קבצים שהשתנו:**
