@@ -100,7 +100,7 @@ export default function Home() {
     {
       title: "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי",
       date: "14-03-2026",
-      excerpt: "הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן — עם דוגמאות קוד ב-Python ו-FastAPI.",
+      excerpt: "הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן, עם דוגמאות קוד ב-Python וב-FastAPI.",
       slug: "whatsapp-bot-python-guide"
     },
     {
