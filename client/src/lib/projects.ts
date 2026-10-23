@@ -679,10 +679,11 @@ export const projects: ProjectData[] = [
   {
     slug: "codekeeper",
     title: "CodeKeeper",
-    description: "בוט טלגרם לגיבוי ריפוזיטורי + אתר למפתחים לשמירת קוד",
-    subtitle: "בוט טלגרם + אפליקציית ווב לגיבוי ושמירת קוד",
+    description:
+      "מקום לשמור קוד, מסמכים ופתקים, שסוכני AI מתחברים אליו, קוראים בו וכותבים בו. הבסיס לתיעוד חי של הפרויקט.",
+    subtitle: "קוד, מסמכים ופתקים, שהסוכן שלך קורא ומעדכן",
     fullDescription:
-      "CodeKeeper (קודלי) היא פלטפורמה מלאה לניהול קוד — בוט טלגרם שמאפשר לשמור קטעי קוד, לגבות ריפוזיטורי מ-GitHub,ליצור ריפו חדש ע\"י העלאת קובץ ZIP ולחפש בקוד. כולל אפליקציית ווב עם דשבורד, דפדפן ריפוזיטורי, ספריית snippets קהילתית ועוד כלים למפתחים.",
+      "CodeKeeper הוא WebApp (ובוט טלגרם) לשמירת קוד ומסמכי Markdown, עם לוחות פתקים, אוספים של קבצים וחיפוש סמנטי בקבצים שלך. דרך שרת MCP, סוכנים כמו Claude Code, Claude.ai ו-Gemini קוראים וכותבים בקבצים ובפתקים. הם מעדכנים מסמך תיעוד לכל נושא מורכב, כך שסשן חדש מתחיל מההחלטות שכבר התקבלו. הבוט מגבה ריפואים מגיטהאב לקובץ ZIP ומשחזר אותם בלחיצה.",
     tech: [
       "Python",
       "Flask",
@@ -695,83 +696,77 @@ export const projects: ProjectData[] = [
       "Prometheus",
       "Grafana",
     ],
-    image:
-      "https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-2_1771100624000_na1fn_cHJvamVjdC1jb2Rpbmc.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTJfMTc3MTEwMDYyNDAwMF9uYTFmbl9jSEp2YW1WamRDMWpiMlJwYm1jLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzE5MjAsaF8xOTIwL2Zvcm1hdCx3ZWJwL3F1YWxpdHkscV84MCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=cczxpmQLFghuYIWKnZTrKQCqvReB6IBdYFIRByU7Hi1v5Exr1aR8Xen2kpCUCq5MMWievn8JzYNg6Ad2q3yB8W~AUPgTXWX8ibEOvwqE4KH8eKHurtheh5Rd1N5tY9KboAHKxonjgkNEGiuNW6dW5S8Z6kbWvwIaa24UDUbqmxocLDFep6G3biufpG7QFCiHibFBeLYXw9XcRtWTq7v9tuuMzDIY~tF9hgsU3-amHyJGPrfiKq70XvtYoWjv3a9vOlSvffjfy3VhGpSv3KBkfLpwpLF16044-RSpmVHrxQ~al5-4uhVnJfIymw70z27P72Vq6C5nDFuDrzQ8AsDEUA__",
+    image: "/projects/codekeeper-card.jpg",
     screenshots: [
       "/projects/Screenshot_20260313_202612_Telegram.jpg",
       "/projects/Screenshot_20260313_202856_Telegram.jpg",
       "/projects/Screenshot_20260313_203519_Chrome.jpg",
       "/projects/Screenshot_20260313_203916_Chrome.jpg",
     ],
-    mermaidDiagram: `graph TB
-    subgraph Clients["לקוחות"]
-        TG["Telegram Client"]
-        Browser["Web Browser"]
-    end
-    subgraph TelegramBot["Telegram Bot Layer"]
-        Main["main.py - Entry Point"]
-        Handlers["handlers/ - Conversation Flows"]
-    end
-    subgraph WebApp["Flask WebApp"]
-        FlaskApp["Flask Application"]
-        Routes["Routes - Auth, Dashboard, Files, Repo, Settings"]
-        APIs["REST APIs - Collections, Bookmarks, Backup, Code Tools"]
-    end
-    subgraph Services["Services Layer"]
-        CoreServices["AI Explain, Code Formatter, Code Execution, Embedding"]
-        IntegrationServices["GitHub, Google Drive, Repo Sync, Git Mirror"]
-        SearchServices["Repo Search, Code Indexer, Query Profiler"]
-    end
-    subgraph DataLayer["Database Layer"]
-        MongoDB[("MongoDB")]
-        Redis[("Redis Cache")]
-    end
-    subgraph External["External"]
-        GitHubAPI["GitHub API"]
-        GDriveAPI["Google Drive API"]
-        TelegramAPI["Telegram Bot API"]
-    end
-    subgraph Observability["Observability"]
-        Sentry["Sentry"]
-        Prometheus["Prometheus"]
-        Grafana["Grafana"]
-    end
-    TG --> TelegramAPI
-    TelegramAPI --> Main
-    Browser --> FlaskApp
-    Main --> Handlers
-    Handlers --> Services
-    FlaskApp --> Routes
-    FlaskApp --> APIs
-    Routes --> Services
-    APIs --> Services
-    Services --> DataLayer
-    IntegrationServices --> GitHubAPI
-    IntegrationServices --> GDriveAPI
-    DataLayer --> MongoDB
-    DataLayer --> Redis
-    Main -.-> Sentry
-    FlaskApp -.-> Sentry
-    Prometheus -.-> Grafana`,
+    mermaidDiagram: `flowchart TB
+  subgraph Clients["לקוחות"]
+    direction LR
+    TG["Telegram"]
+    WB["Web Browser"]
+    AG["AI Agents<br/>Claude Code · Claude.ai · Gemini"]
+  end
+
+  subgraph Services["Render"]
+    direction LR
+    BOT["Telegram Bot · Oregon<br/>handlers · AI Advisor<br/>single-instance lock"]
+    WEB["Flask WebApp · Oregon<br/>notes · threads · reminders<br/>semantic search · observability"]
+    MCP["MCP Server · Frankfurt<br/>tools · FIFO write queue<br/>privacy gate · Agent Primer"]
+  end
+
+  MONGO[("MongoDB Atlas · Frankfurt<br/>files · notes · vectors")]
+
+  subgraph External["External"]
+    direction LR
+    GH["GitHub"]
+    GD["Google Drive"]
+    GEM["Gemini<br/>embeddings · LLM"]
+    PUSH["Web Push"]
+  end
+
+  subgraph Ops["Docs & Monitoring"]
+    direction LR
+    GHA["GitHub Actions<br/>docs build + sections export"]
+    MON["Monitoring<br/>Sentry · PostHog"]
+  end
+
+  TG --> BOT
+  WB --> WEB
+  AG --> MCP
+  BOT --> MONGO
+  WEB --> MONGO
+  MCP --> MONGO
+  BOT --> GH
+  MCP --> GH
+  WEB --> GD
+  BOT --> GEM
+  WEB --> GEM
+  WEB --> PUSH
+  GHA --> WEB
+  Services -.-> MON`,
     demo: "https://code-keeper-webapp.onrender.com",
     repo: "https://github.com/amirbiron/CodeBot",
     challenges: [
-      "ניהול קבצים גדולים (מעל 20MB) דרך Telegram עם חלוקה אוטומטית",
-      "אינדקסור קוד עם Embeddings לחיפוש סמנטי",
-      "ארכיטקטורת Domain-Driven Design עם הפרדת שכבות מלאה",
-      "מערכת Observability מלאה — Prometheus, Grafana, Sentry, Jaeger",
+      "פרסור של Markdown, כך שהסוכן מקבל את רשימת הכותרות עם הגודל בבתים של כל סעיף, וקורא רק את הסעיף שהוא צריך, גם ממסמך של 100KB.",
+      "חיפוש סמנטי בעברית: חיתוך קבצים לפי תקציב בבתים, כי מודל האמבדינג חותך בשקט כל מה שעובר את המגבלה. בנוסף יש סינון של קטעים \"מספריים\", שהסף שלו כויל על כל הקטעים בפרודקשן.",
+      "ערכות עיצוב מיובאות: מיפוי של ערכות VS Code לטוקנים של הממשק של CodeKeeper",
     ],
     features: [
-      "תצוגת מארקדאון מלאה לקבצי מארקדאון",
-      "תפריט תוכן עניינים צף אוטומטי לקבצי מארקדאון",
-      "פתקים דביקים עם אפשרות ליצירת תזכורות פוש",
-      "מערכת סימניות",
-      "חיפוש סמנטי בקוד עם AI",
-      "דשבורד עם הסטוריית פעולות אחרונות ועוד",
-      "בונה ערכות נושא מובנה לממשק",
-      "מערכת \"האוספים שלי\" לשמירת קטעי קוד לפי קטגוריות",
-      "ייצוא קטעי קוד ל-Gist ו-Pastebin",
-      "גיבוי אוטומטי ל-Google Drive",
+      "תיעוד חי לפי נושא: מסמכים שהסוכן קורא לפני עבודה ומעדכן עם הממצאים",
+      "הוראות לסוכן (פריימר) שמגיעות לכל סשן חדש של Claude Code תוך דקה מהעריכה",
+      "לוחות פתקים בכתב יד, עם Markdown מלא, תזכורות והתראות פוש",
+      "שרשורי תגובות על פתקים בין המשתמש לסוכן, עם התראה בשני הכיוונים",
+      // התו \u200E (LRM) לפני ".md": בלעדיו הנקודה, שיושבת בין מילה עברית לאנגלית, מקבלת את כיוון הפסקה (RTL) ומוצגת כ-"md."
+      "תצוגת Markdown מלאה למסמכי \u200E.md עם סימניות ותוכן עניינים צף לניווט נוח ומהיר",
+      "ייצוא Markdown ל-HTML מעוצב",
+      "ייבוא ערכות עיצוב בפורמט של VS Code",
+      "היסטוריית גרסאות מלאה לכל קובץ",
+      "גיבוי אוטומטי של כל הקבצים, הפתקים והאוספים לשרת או ל-Google Drive",
+      "גיבוי ריפואים מגיטהאב ל-ZIP, שחזור, ויצירת ריפו חדש מ-ZIP",
     ],
     askAi: {
       intro: {
