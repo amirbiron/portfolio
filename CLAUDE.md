@@ -11,7 +11,7 @@ Static portfolio site built with React + TypeScript + Vite, served by Express in
 - `pnpm dev` — Start dev server
 - `pnpm build` — Build for production
 - `pnpm start` — Run production server
-- `pnpm check` — TypeScript type check
+- `pnpm check` — TypeScript type check, plus `scripts/check-bidi.mjs` (fails on invisible BiDi marks such as U+200F in code; write them as visible escapes like `"\u200E"` instead)
 - `pnpm format` — Prettier formatting
 
 ## Language
