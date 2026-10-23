@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Github, Mail, ExternalLink, Code2, GitBranch, Cpu, User, ArrowLeft, Send, MessageSquareQuote, Bot } from "lucide-react";
+import { Github, Mail, ExternalLink, Code2, GitBranch, User, ArrowLeft, Send, MessageSquareQuote, Bot } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -70,14 +70,6 @@ export default function Home() {
   };
 
 
-  const skills = [
-    { category: "Languages", items: ["Python", "JavaScript/TypeScript", "SQL"], level: 95 },
-    { category: "Backend", items: ["Node.js", "Flask", "FastAPI", "MongoDB", "PostgreSQL", "Redis"], level: 90 },
-    { category: "Bots & APIs", items: ["Telegram Bot API", "WhatsApp API (WPP, PyWa)", "Facebook Graph API"], level: 95 },
-    { category: "Frontend", items: ["PWA", "HTML/CSS", "CSS Variables"], level: 80 },
-    { category: "DevOps", items: ["Docker", "Prometheus", "Grafana", "Sentry", "GitHub Actions"], level: 85 }
-  ];
-
   const blogPosts = [
     {
       title: "12 מלכודות בבניית צ'אטבוט AI לפרודקשן",
@@ -117,7 +109,7 @@ export default function Home() {
       <section 
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
         style={{
-          backgroundImage: `url('https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-1_1771100628000_na1fn_aGVyby10ZXJtaW5hbC1iZw.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTFfMTc3MTEwMDYyODAwMF9uYTFmbl9hR1Z5YnkxMFpYSnRhVzVoYkMxaVp3LnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzE5MjAsaF8xOTIwL2Zvcm1hdCx3ZWJwL3F1YWxpdHkscV84MCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=k3yJSTBDdb5QOu52Tqx6EMqb2JWdsa~Zuk6wUMEm3cIKHg5dAF1Pn78Tc-nbQnlFqI5hv6WCWX4GYD0vVYY7aNmQrtsWI15sxscxR5zSUAXtMeAGSaqLFG7gDXBFJ1hVAlX0uIuXqJs6DqQu75k-raQ90ug7hr5LiVXYRz5QxLndMfxuHXDfiMZs8mIegiXC3UhzE9U5YAs4~8BGAHA8H8O8mqLeHz0GzniXM2gnZ32y6itvEmcqUuoRKYlCHZgYemBvCYTOmUXw6YSN1L7IV4l6j0DGDfLu4ZlTICEoX3qkv~J1mJbK7QHdnGo66Gg-QiWmiF01cLNOwsFFqH1MMw__')`,
+          backgroundImage: "url('/hero-bg.jpg')",
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -444,82 +436,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Skills Matrix Section */}
-      <section 
-        className="py-20 relative"
-        style={{
-          backgroundImage: `url('https://private-us-east-1.manuscdn.com/sessionFile/iZqkMR8hDZfDPcDJFadzMD/sandbox/iV6qLqFHcv9NxJKZPGTqj2-img-5_1771100635000_na1fn_c2tpbGxzLWFic3RyYWN0.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvaVpxa01SOGhEWmZEUGNESkZhZHpNRC9zYW5kYm94L2lWNnFMcUZIY3Y5TnhKS1pQR1RxajItaW1nLTVfMTc3MTEwMDYzNTAwMF9uYTFmbl9jMnRwYkd4ekxXRmljM1J5WVdOMC5wbmc~eC1vc3MtcHJvY2Vzcz1pbWFnZS9yZXNpemUsd18xOTIwLGhfMTkyMC9mb3JtYXQsd2VicC9xdWFsaXR5LHFfODAiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTg3NjE2MDB9fX1dfQ__&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=HO4Ce07djAsVaW5MipFbUtvt9PuVJkZCX6rco1gFB8FoQAi5YBSVBFuUt~iGkjrI8L~nrI1g~1ZRYGloe-m-4TLeekdSW3Jq6HWaADiAatSa3Qkq6fuiAG~w1cyA3he18tXR-mS9n1NpfW3i~hYjZmbe06hELM-ROAYPOCXCx-ajst13PD8HSnddZcZ2m6JOcq9wyQoeujn91Cijx3mF3K3mJQ13cvG6z6IliNZDy1bcDZ40bqp6um5NdebFFz0juGCh5JJt9yadN4tNkxDaiHbZNt1c1bUEenvqizQ-WYZTJEDq7zh1zQK2-F4TGwj~bMJrnA9NvNJcOhEp2~41Bg__')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        <div className="absolute inset-0 bg-background/90" />
-        
-        <div className="container relative z-10">
-          <FadeInSection>
-            <div className="mb-12">
-              <div className="flex items-center gap-3 mb-4">
-                <Cpu className="h-8 w-8 text-accent" />
-                <h2 className="text-3xl md:text-4xl font-bold text-accent neon-glow">
-                  $ cat skills.json
-                </h2>
-              </div>
-              <p dir="rtl" className="text-muted-foreground text-lg">
-                שליטה טכנית לאורך כל מחסנית הפיתוח
-              </p>
-            </div>
-          </FadeInSection>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-            {skills.map((skill, idx) => (
-              <FadeInSection key={idx} delay={idx * 0.1}>
-              <div className="terminal-window h-full">
-                <div className="terminal-header">
-                  <div className="terminal-dot border-primary" />
-                  <div className="terminal-dot border-accent" />
-                  <div className="terminal-dot border-destructive" />
-                  <span className="text-xs text-muted-foreground ml-2">
-                    {skill.category.toLowerCase()}.skill
-                  </span>
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-bold text-primary">
-                      {skill.category}
-                    </h3>
-                    <span className="text-sm text-accent font-mono">
-                      {skill.level}%
-                    </span>
-                  </div>
-                  
-                  <div className="h-2 bg-muted border border-border mb-4 overflow-hidden">
-                    <div 
-                      className="h-full bg-primary neon-border transition-all duration-1000"
-                      style={{ width: `${skill.level}%` }}
-                    />
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2">
-                    {skill.items.map((item, i) => (
-                      <span 
-                        key={i}
-                        className="text-xs px-3 py-1 bg-primary/10 border border-primary text-primary"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              </FadeInSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Blog Section */}
-      <section className="py-20 bg-card/50">
+      <section className="py-20">
         <div className="container">
           <FadeInSection>
             <div className="mb-12">
@@ -573,7 +491,7 @@ export default function Home() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20">
+      <section id="contact" className="py-20 bg-card/50">
         <div className="container max-w-3xl">
           <FadeInSection>
           <div className="mb-12">
