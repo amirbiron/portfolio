@@ -56,7 +56,7 @@ export const projects: ProjectData[] = [
       "SQLite",
       "Telegram Bot API",
     ],
-    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/ai-business-bot-n5bkLYBJ6Xz5GCL2gLyvfN.webp",
+    image: "/projects/ai-business-bot-card.webp",
     screenshots: [
       "/projects/Screenshot_20260313_215842_Telegram.jpg",
       "/projects/Screenshot_20260313_213735_Chrome.jpg",
@@ -158,7 +158,7 @@ export const projects: ProjectData[] = [
       "Claude Sonnet",
       "Render",
     ],
-    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/myagent-7Lod562R8dLjThpijRkjRn.webp",
+    image: "/projects/myagent-card.webp",
     screenshots: ["/projects/Screenshot_20260511_190937_Chrome.jpg"],
     mermaidDiagram: `graph TB
     subgraph Users["משתמשים"]
@@ -239,7 +239,7 @@ export const projects: ProjectData[] = [
       "SQLite",
       "Telegram Bot API",
     ],
-    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/fb-leads-scanner-YyVXVKwyqsGwG9UZCVeERV.webp",
+    image: "/projects/fb-leads-scanner-card.webp",
     screenshots: [
       "/projects/Screenshot_20260313_213118_Chrome.jpg",
       "/projects/Screenshot_20260313_213141_Chrome.jpg",
@@ -335,7 +335,7 @@ export const projects: ProjectData[] = [
       "Render",
       "Supabase",
     ],
-    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/leadsflow-Hab8u6YTDprDoPcciCNpYj.webp",
+    image: "/projects/leadsflow-card.webp",
     screenshots: ["/projects/Screenshot_20260516_121229_Chrome.jpg"],
     mermaidDiagram: `graph TB
     subgraph Channels["ערוצי כניסה"]
@@ -426,7 +426,7 @@ export const projects: ProjectData[] = [
       "Tailwind",
       "Render",
     ],
-    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/contentflow-EBa2b5dteRp3ZzuJDjF3mU.webp",
+    image: "/projects/contentflow-card.webp",
     screenshots: [
       "/projects/Screenshot_20260523_223347_Chrome.jpg",
       "/projects/Screenshot_20260523_223356_Chrome.jpg",
@@ -509,7 +509,7 @@ export const projects: ProjectData[] = [
       "Cloudflare R2",
       "Render",
     ],
-    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/offerflow-2CDpNggdSfmGNBbDEYjzn9.webp",
+    image: "/projects/offerflow-card.webp",
     screenshots: ["/projects/Screenshot_20260523_223540_Chrome.jpg"],
     mermaidDiagram: `graph TB
     subgraph Owner["בעל העסק"]
@@ -612,7 +612,7 @@ export const projects: ProjectData[] = [
       "Zustand",
       "React Query",
     ],
-    image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/mentorios-dp9UZSZMBXWsxobfqR7dac.webp",
+    image: "/projects/mentoros-card.webp",
     screenshots: [
       "/projects/mentoros_memory.jpg",
       "/projects/mentoros_profile.jpg",
@@ -911,8 +911,7 @@ export const projects: ProjectData[] = [
       "Web Push",
       "AWS S3",
     ],
-    image:
-      "https://d2xsxph8kpxj0f.cloudfront.net/310519663036748622/C8CMzJWXcynJDR75BV9TgK/routine-anchors-hznWo9CY8YAPAQLCxoMCmN.webp",
+    image: "/projects/routine-anchors-card.webp",
     imagePosition: "bottom",
     screenshots: [
       "/projects/routine_home.jpg",

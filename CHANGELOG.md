@@ -1,3 +1,28 @@
+## [2026-10-23] תמונות הכרטיסים של 8 פרויקטים נשמרות בריפו במקום בשרתים של Manus
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) השדה `image` של 8 פרויקטים מצביע על קובץ מקומי במקום על כתובת ב-`d2xsxph8kpxj0f.cloudfront.net`
+- `client/public/projects/ai-business-bot-card.webp` — (נוסף) תמונת הכרטיס של `ai-business-bot`
+- `client/public/projects/myagent-card.webp` — (נוסף) תמונת הכרטיס של `myagent`
+- `client/public/projects/fb-leads-scanner-card.webp` — (נוסף) תמונת הכרטיס של `fb-leads-scanner`
+- `client/public/projects/leadsflow-card.webp` — (נוסף) תמונת הכרטיס של `leadsflow`
+- `client/public/projects/contentflow-card.webp` — (נוסף) תמונת הכרטיס של `contentflow`
+- `client/public/projects/offerflow-card.webp` — (נוסף) תמונת הכרטיס של `offerflow`
+- `client/public/projects/mentoros-card.webp` — (נוסף) תמונת הכרטיס של `mentoros`
+- `client/public/projects/routine-anchors-card.webp` — (נוסף) תמונת הכרטיס של `routine-anchors`
+
+**פירוט:**
+שלוש תמונות באתר הפסיקו להיטען: הכרטיס של CodeKeeper, הרקע של ה-Hero והרקע של אזור הכישורים. שלושתן היו קישורים זמניים וחתומים מתוך סשן עבודה של Manus (`private-us-east-1.manuscdn.com/sessionFile/...`), והשרת שלהם מחזיר עכשיו 403 עם `InvalidKey — Unknown Key`, כלומר מפתח החתימה הוחלף ואף קישור שנחתם בו לא ייפתח שוב. גם באתר של Manus הן מוצגות שבורות. תמונות הכרטיסים של שמונה פרויקטים אחרים עדיין נטענו, אבל גם הן ישבו באחסון של Manus (`d2xsxph8kpxj0f.cloudfront.net`), מחוץ לשליטה של הפרויקט. כדי שלא ייעלמו באותה צורה, הן הורדו לריפו כמו שהן, בלי המרה ובלי דחיסה, לפי מוסכמת השמות של `codekeeper-mcp-card.webp`: ‏`<slug>-card.webp`. המבקר באתר רואה את אותן תמונות, באותה רזולוציה ובאותה איכות; ההבדל היחיד הוא שהדפדפן מבקש אותן מהשרת של האתר ולא מ-CloudFront.
+
+התמונות זהות בייט-לבייט לקבצים שבאחסון של Manus: לכל אחד משמונת הקבצים, ה-MD5 של מה שהורד שווה ל-ETag שהשרת של Manus (S3) מחזיר לאותו אובייקט, והקובץ שנכתב לדיסק נקרא שוב והושווה. אחרי `pnpm build` הקבצים ב-`dist/public/projects` זהים לאלה שב-`client/public/projects`, השרת מגיש כל אחד מהם עם `Content-Type: image/webp`, ובדפדפן Chromium כל שמונת הכרטיסים נטענים מהאתר עצמו ברזולוציה המקורית.
+
+שלוש התמונות השבורות לא טופלו בשינוי הזה, כי הקבצים שלהן כבר לא קיימים בשום מקום נגיש. ההחלפה שלהן תתועד ברשומה נפרדת.
+
+**ליישום מחדש:**
+1. להעתיק כמות שהם מהריפו הזה את שמונת הקבצים `client/public/projects/*-card.webp` שברשימה למעלה. לא לייצא ולא להמיר אותם מחדש, כדי לשמור על הקובץ המקורי.
+2. ב-`client/src/lib/projects.ts`, בכל אחד משמונת הפרויקטים, להחליף את הערך של `image` בנתיב `"/projects/<slug>-card.webp"`, כאשר `<slug>` הוא ה-`slug` של אותו פרויקט. בפרויקט `mentoros` שם הקובץ הוא `mentoros-card.webp`, אף שבכתובת הישנה היה כתוב `mentorios`.
+3. לא לגעת ב-`image` של `codekeeper` ושל `codekeeper-mcp`, ולא בתמונות הרקע ב-`client/src/pages/Home.tsx`.
+
 ## [2026-10-22] תיקונים במאמר בוט ה-WhatsApp בעקבות סקירת קוד
 
 **קבצים שהשתנו:**
