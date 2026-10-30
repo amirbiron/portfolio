@@ -1,3 +1,13 @@
+## [2026-10-30] כתובת חדשה לכפתור ה-Demo של CodeKeeper
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) השדה `demo` ברשומה `codekeeper`
+
+**פירוט:**
+הכתובת של ה-WebApp של CodeKeeper השתנתה, והכפתור עודכן אליה: `https://codekeeper-webapp.onrender.com` במקום `https://code-keeper-webapp.onrender.com` (בלי המקף בין code ל-keeper). זה הכפתור שנפתח בלשונית חדשה מהכרטיס בדף הבית ומשני המקומות בעמוד הפרויקט, ושלושתם קוראים את אותו שדה. ה-`demoLabel` לא מוגדר ברשומה, ולכן הכפתור ממשיך להיקרא "Demo". מסמך הידע של סוכן ה-AI (`docs/CodeBot_Features_Summary.md`) לא מכיל את הכתובת, ולכן לא השתנה.
+
+**ליישום מחדש:** ב-`client/src/lib/projects.ts`, ברשומה `slug: "codekeeper"`, להחליף את הערך של `demo` ל-`https://codekeeper-webapp.onrender.com`.
+
 ## [2026-10-23] תמונה חדשה ותוכן מעודכן לפרויקט CodeKeeper
 
 **קבצים שהשתנו:**

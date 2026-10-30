@@ -748,7 +748,7 @@ export const projects: ProjectData[] = [
   WEB --> PUSH
   GHA --> WEB
   Services -.-> MON`,
-    demo: "https://code-keeper-webapp.onrender.com",
+    demo: "https://codekeeper-webapp.onrender.com",
     repo: "https://github.com/amirbiron/CodeBot",
     challenges: [
       "פרסור של Markdown, כך שהסוכן מקבל את רשימת הכותרות עם הגודל בבתים של כל סעיף, וקורא רק את הסעיף שהוא צריך, גם ממסמך של 100KB.",
