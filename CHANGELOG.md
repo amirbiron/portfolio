@@ -17,14 +17,14 @@
 5. **קישור המייל בפוטר:** `<Button asChild ...><a href="mailto:amirbiron@gmail.com">`, בלי `target`, כי `mailto:` נפתח בתוכנת המייל. לשלושת האייקונים בפוטר נוסף `aria-label` ("GitHub", "Telegram", "Email").
 6. **פוסטי הבלוג במקור אחד:** עד עכשיו הפוסטים הופיעו פעמיים: המפה המלאה (כותרת, תאריך ותוכן) ב-`BlogPost.tsx`, ועותק של הכותרות והתאריכים עם תקציר ב-`Home.tsx`. המפה עברה כמו שהיא ל-`client/src/lib/blog.ts` (התוכן הושווה תו בתו לפני ואחרי), לכל פוסט נוסף השדה `excerpt` מדף הבית, והסדר הוא מהחדש לישן, כמו בדף הבית. הקובץ מייצא את `blogPosts` ואת `blogSlugs` (רשימת המפתחות, באותו סדר). דף הבית עובר על `blogSlugs`, ועמוד הפוסט מייבא את שניהם. כתוצאה מכך גם "פוסטים נוספים" שבתחתית פוסט מוצגים עכשיו מהחדש לישן.
 7. **מפת אתר ו-robots.txt:** ב-`vite.config.ts` נוסף הפלאגין `vitePluginSitemap` (‏`apply: "build"`), שמייבא את `projects`, `testimonials` ו-`blogSlugs` ישירות מהקבצים ב-`client/src/lib` (ולכן הקבצים האלה לא יכולים לייבא דבר). ב-`generateBundle` הוא פולט שני קבצים לשורש הבנייה: `sitemap.xml` עם 19 כתובות (דף הבית, `/project/<slug>`, `/testimonial/<slug>`, `/blog/<slug>`), ו-`robots.txt` עם `User-agent: *`, `Allow: /` והשורה `Sitemap: <כתובת האתר>/sitemap.xml`. עמודי ה-Ask AI לא נכנסים למפה, כי הם חלון צ'אט בלי תוכן משלהם. אין `<lastmod>`, כי גוגל משתמש בו רק כשהוא מדויק, ואין תאריך עדכון אמין לכל עמוד.
-8. **`VITE_SITE_URL` חובה בבנייה:** המפה ו-robots.txt חייבים כתובות מלאות, ולכן הפלאגין קורא את `VITE_SITE_URL` (מ-`config.env`, אותו מקור שממלא את תגיות ה-og ב-`index.html`), ומפיל את הבנייה עם הודעה ברורה כשהמשתנה חסר או אינו כתובת `http(s)`. בלי הבדיקה הזו Vite רק מזהיר, ומשאיר בעמוד את הטקסט `%VITE_SITE_URL%` כמו שהוא.
+8. **`VITE_SITE_URL` נדרש למפה:** המפה ו-robots.txt צריכים כתובות מלאות, ולכן הפלאגין קורא את `VITE_SITE_URL` (מ-`config.env`, אותו מקור שממלא את תגיות ה-og ב-`index.html`). כשהמשתנה חסר או אינו כתובת `http(s)` מלאה, הבנייה **לא** נכשלת, כדי לא לעצור פריסה בגלל קובץ SEO: היא כותבת אזהרה בלוג הבנייה (`[sitemap] VITE_SITE_URL is missing...`), לא מייצרת `sitemap.xml`, ומייצרת `robots.txt` בלי השורה `Sitemap`.
 
 **ליישום מחדש:**
 1. להעתיק את `client/src/components/ExternalLinkButton.tsx` ואת `client/src/lib/blog.ts` מהריפו הזה כמו שהם.
 2. ב-`BlogPost.tsx`: למחוק את `const blogPosts = {...}` ואת `const blogSlugs = ...`, ולייבא `import { blogPosts, blogSlugs } from "@/lib/blog"`. ב-`Home.tsx`: למחוק את המערך `blogPosts`, ולעבור על `blogSlugs.map((slug, idx) => { const post = blogPosts[slug]; ... })`.
 3. בכל העמודים, להחליף כל ניווט לפי סעיפים 1–5 למעלה. אחרי השינוי לא נשארים בתיקייה `client/src/pages` אף `setLocation`, `useLocation` או `window.open`.
 4. להעתיק ל-`vite.config.ts` את שלושת ה-imports מ-`./client/src/lib`, את `vitePluginSitemap`, `resolveSiteUrl` ו-`escapeXml`, ולהוסיף את `vitePluginSitemap()` למערך `plugins`.
-5. לוודא שבסביבת הבנייה מוגדר `VITE_SITE_URL` עם הכתובת המלאה של האתר באותה סביבה (למשל `https://example.com`), אחרת הבנייה תיכשל.
+5. לוודא שבסביבת הבנייה מוגדר `VITE_SITE_URL` עם הכתובת המלאה של האתר באותה סביבה (למשל `https://example.com`). בלעדיו האתר נבנה, אבל בלי מפת אתר (ראו סעיף 8).
 
 ## [2026-10-30] כתובת חדשה לכפתור ה-Demo של CodeKeeper
 

@@ -166,9 +166,13 @@ function vitePluginManusDebugCollector(): Plugin {
  * מקור: https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap
  * הקובץ robots.txt מתיר הכול ומפנה למפה. השורה Sitemap חייבת כתובת מלאה.
  * מקור: https://developers.google.com/search/docs/crawling-indexing/robots/create-robots-txt
+ *
+ * המפה צריכה את הכתובת המלאה של האתר (VITE_SITE_URL). כשהיא חסרה או לא תקינה, הבנייה לא נכשלת
+ * (כדי לא לעצור פריסה בגלל קובץ SEO): היא מזהירה בלוג של הבנייה, מדלגת על sitemap.xml, ו-robots.txt
+ * נוצר בלי השורה Sitemap. ה-CI מריץ את scripts/check-sitemap.mjs, שנכשל כשהמפה לא נוצרה.
  */
 function vitePluginSitemap(): Plugin {
-  let siteUrl = "";
+  let siteUrl: string | null = null;
 
   return {
     name: "sitemap",
@@ -176,10 +180,23 @@ function vitePluginSitemap(): Plugin {
 
     configResolved(config) {
       // אותו משתנה שממלא את תגיות ה-og ב-index.html (config.env כולל את משתני VITE_ מהסביבה ומקבצי .env)
-      siteUrl = resolveSiteUrl(config.env.VITE_SITE_URL);
+      const raw = config.env.VITE_SITE_URL;
+      siteUrl = resolveSiteUrl(raw);
+      if (!siteUrl) {
+        config.logger.warn(
+          `[sitemap] VITE_SITE_URL is missing or is not a full http(s) address (got ${JSON.stringify(raw)}). ` +
+            "sitemap.xml was NOT generated and robots.txt has no Sitemap line. " +
+            "The og tags in index.html are broken too."
+        );
+      }
     },
 
     generateBundle() {
+      if (!siteUrl) {
+        this.emitFile({ type: "asset", fileName: "robots.txt", source: "User-agent: *\nAllow: /\n" });
+        return;
+      }
+
       const paths = [
         "/",
         ...projects.map((p) => `/project/${encodeURIComponent(p.slug)}`),
@@ -205,23 +222,17 @@ function vitePluginSitemap(): Plugin {
 }
 
 /**
- * הכתובת המלאה של האתר, בלי / בסוף. הבנייה נכשלת כשהיא חסרה או לא תקינה, כי המפה ו-robots.txt
- * חייבים כתובות מלאות. בלעדיה גם תגיות ה-og נשברות בשקט: Vite רק מזהיר ומשאיר בעמוד את הטקסט
- * "%VITE_SITE_URL%" כמו שהוא.
+ * הכתובת המלאה של האתר, בלי / בסוף, או null כשהיא חסרה או אינה כתובת http(s) מלאה.
  */
-function resolveSiteUrl(raw: string | undefined): string {
-  const fail = () =>
-    new Error(
-      `VITE_SITE_URL must be the site's full address, for example https://example.com (got ${JSON.stringify(raw)}). ` +
-        "It is required for sitemap.xml, robots.txt and the og tags in index.html."
-    );
+function resolveSiteUrl(raw: string | undefined): string | null {
   let url: URL;
   try {
     url = new URL(raw ?? "");
   } catch {
-    throw fail();
+    // לא כתובת בכלל (חסרה, או בלי פרוטוקול) — הקורא מזהיר בלוג של הבנייה
+    return null;
   }
-  if (url.protocol !== "https:" && url.protocol !== "http:") throw fail();
+  if (url.protocol !== "https:" && url.protocol !== "http:") return null;
   return url.href.replace(/\/+$/, "");
 }
 
