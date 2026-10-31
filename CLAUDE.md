@@ -13,6 +13,10 @@ Static portfolio site built with React + TypeScript + Vite, served by Express in
 - `pnpm start` — Run production server
 - `pnpm check` — TypeScript type check, plus `scripts/check-bidi.mjs` (fails on invisible BiDi marks such as U+200F in code; write them as visible escapes like `"\u200E"` instead)
 - `pnpm format` — Prettier formatting
+- `node scripts/check-sitemap.mjs` — run after `pnpm build`, with the same `VITE_SITE_URL`: starts the production server and checks that `/sitemap.xml` and `/robots.txt` are served and list every project, testimonial and blog post. The build itself only warns when `VITE_SITE_URL` is missing, so this script is what fails.
+
+## CI
+`.github/workflows/ci.yml` runs on every PR and every push to `main`: `pnpm check`, `pnpm build`, then `scripts/check-sitemap.mjs`.
 
 ## Language
 

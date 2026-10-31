@@ -14,10 +14,10 @@ import {
   Bot,
 } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { toast } from "sonner";
-import { useLocation, useParams } from "wouter";
+import { Link, useParams } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import mermaid from "mermaid";
+import { ExternalLinkButton } from "@/components/ExternalLinkButton";
 import { projects } from "@/lib/projects";
 
 // הגדרות Mermaid לערכת נושא כהה
@@ -200,7 +200,6 @@ function ScreenshotGallery({ images }: { images: string[] }) {
 
 export default function ProjectPage() {
   const params = useParams<{ slug: string }>();
-  const [, setLocation] = useLocation();
 
   // גלילה לראש העמוד בכניסה
   useEffect(() => {
@@ -216,9 +215,11 @@ export default function ProjectPage() {
           <p className="text-destructive text-lg mb-4">
             פרויקט לא נמצא
           </p>
-          <Button onClick={() => setLocation("/")}>
-            <ArrowRight className="mr-2 h-4 w-4" />
-            חזרה לדף הבית
+          <Button asChild>
+            <Link href="/">
+              <ArrowRight className="mr-2 h-4 w-4" />
+              חזרה לדף הבית
+            </Link>
           </Button>
         </div>
       </div>
@@ -231,31 +232,31 @@ export default function ProjectPage() {
       <header className="border-b border-border py-4">
         <div className="container flex items-center justify-between">
           <Button
+            asChild
             variant="ghost"
             className="text-primary hover:text-primary/80"
-            onClick={() => setLocation("/")}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Portfolio
+            <Link href="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Portfolio
+            </Link>
           </Button>
           <div className="flex gap-3">
-            <Button
+            <ExternalLinkButton
+              href={project.demo}
+              unavailableMessage="Demo link - Feature coming soon"
               size="sm"
               className="bg-primary/20 text-primary border border-primary hover:bg-primary hover:text-primary-foreground"
-              onClick={() => {
-                if (project.demo === "#") { toast.info("Demo link - Feature coming soon"); } else { window.open(project.demo, "_blank"); }
-              }}
             >
               <ExternalLink className="mr-2 h-3 w-3" />
               {project.demoLabel || "Demo"}
-            </Button>
-            <Button
+            </ExternalLinkButton>
+            <ExternalLinkButton
+              href={project.repo}
+              unavailableMessage="הקוד עדיין לא זמין"
               size="sm"
               variant="outline"
               className="border-accent text-accent hover:bg-accent/10"
-              onClick={() => {
-                if (project.repo === "#") { toast.info("הקוד עדיין לא זמין"); } else { window.open(project.repo, "_blank"); }
-              }}
             >
               {project.repoLabel ? (
                 <ExternalLink className="mr-2 h-3 w-3" />
@@ -263,15 +264,17 @@ export default function ProjectPage() {
                 <Github className="mr-2 h-3 w-3" />
               )}
               {project.repoLabel || "Code"}
-            </Button>
+            </ExternalLinkButton>
             {project.askAi && (
               <Button
+                asChild
                 size="sm"
                 className="bg-accent/20 text-accent border border-accent hover:bg-accent hover:text-accent-foreground"
-                onClick={() => setLocation(`/project/${project.slug}/ask-ai`)}
               >
-                <Bot className="mr-2 h-3 w-3" />
-                Ask AI
+                <Link href={`/project/${project.slug}/ask-ai`}>
+                  <Bot className="mr-2 h-3 w-3" />
+                  Ask AI
+                </Link>
               </Button>
             )}
           </div>
@@ -442,29 +445,29 @@ export default function ProjectPage() {
         <div className="container max-w-5xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
             <Button
+              asChild
               variant="ghost"
               className="text-primary"
-              onClick={() => setLocation("/")}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Portfolio
+              <Link href="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Portfolio
+              </Link>
             </Button>
             <div className="flex gap-3">
-              <Button
+              <ExternalLinkButton
+                href={project.demo}
+                unavailableMessage="Demo link - Feature coming soon"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
-                onClick={() => {
-                  if (project.demo === "#") { toast.info("Demo link - Feature coming soon"); } else { window.open(project.demo, "_blank"); }
-                }}
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
                 {project.demoLabel || "Demo"}
-              </Button>
-              <Button
+              </ExternalLinkButton>
+              <ExternalLinkButton
+                href={project.repo}
+                unavailableMessage="הקוד עדיין לא זמין"
                 variant="outline"
                 className="border-accent text-accent hover:bg-accent/10"
-                onClick={() => {
-                  if (project.repo === "#") { toast.info("הקוד עדיין לא זמין"); } else { window.open(project.repo, "_blank"); }
-                }}
               >
                 {project.repoLabel ? (
                   <ExternalLink className="mr-2 h-4 w-4" />
@@ -472,14 +475,16 @@ export default function ProjectPage() {
                   <Github className="mr-2 h-4 w-4" />
                 )}
                 {project.repoLabel || "Code"}
-              </Button>
+              </ExternalLinkButton>
               {project.askAi && (
                 <Button
+                  asChild
                   className="bg-accent text-accent-foreground hover:bg-accent/90 neon-border"
-                  onClick={() => setLocation(`/project/${project.slug}/ask-ai`)}
                 >
-                  <Bot className="mr-2 h-4 w-4" />
-                  Ask AI about {project.title}
+                  <Link href={`/project/${project.slug}/ask-ai`}>
+                    <Bot className="mr-2 h-4 w-4" />
+                    Ask AI about {project.title}
+                  </Link>
                 </Button>
               )}
             </div>
@@ -492,18 +497,16 @@ export default function ProjectPage() {
             if (!nextProject || nextProject.slug === params.slug) return null;
             return (
               <div className="flex justify-center">
-                <button
-                  onClick={() => {
-                    setLocation(`/project/${nextProject.slug}`);
-                    window.scrollTo(0, 0);
-                  }}
+                {/* הגלילה לראש העמוד נעשית ב-useEffect שבראש הקומפוננטה, כשה-slug מתחלף */}
+                <Link
+                  href={`/project/${nextProject.slug}`}
                   className="terminal-window p-4 hover:scale-[1.02] transition-all duration-200 cursor-pointer max-w-md w-full"
                 >
                   <p className="text-xs text-muted-foreground font-mono mb-2 text-center">$ cd ../next-project</p>
                   <h3 className="text-sm font-bold text-primary text-center">
                     {nextProject.title}
                   </h3>
-                </button>
+                </Link>
               </div>
             );
           })()}

@@ -1,0 +1,42 @@
+# בדיקות על כל PR ועל כל push ל-main: בדיקת טיפוסים וסימני כיוון, בנייה, ובדיקה שמפת האתר
+# ו-robots.txt נוצרו ומוגשים מהשרת. הבנייה עצמה לא נכשלת כשמפת האתר לא נוצרה (ראה vite.config.ts),
+# ולכן scripts/check-sitemap.mjs הוא מה שמכשיל כאן.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # כתובת לבדיקה בלבד. הבנייה ב-Render מקבלת את הכתובת האמיתית מההגדרות של השירות
+      VITE_SITE_URL: https://example.com
+    steps:
+      - uses: actions/checkout@v7
+
+      # גרסת pnpm נלקחת מהשדה packageManager ב-package.json.
+      # היא צריכה להיות מותקנת לפני setup-node, כדי ש-cache: pnpm יעבוד
+      - uses: pnpm/action-setup@v6
+
+      # אותה גרסה ראשית של Node כמו ב-render.yaml
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Type check and BiDi check
+        run: pnpm check
+
+      - name: Build
+        run: pnpm build
+
+      - name: Check sitemap.xml and robots.txt
+        run: node scripts/check-sitemap.mjs

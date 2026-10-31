@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, Bot, User, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useParams } from "wouter";
+import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { Streamdown } from "streamdown";
 import { projects, type AskAiConfig, type ProjectData } from "@/lib/projects";
@@ -35,7 +35,6 @@ function AskAIChat({
   project: ProjectData;
   askAi: AskAiConfig;
 }) {
-  const [, setLocation] = useLocation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -118,12 +117,14 @@ function AskAIChat({
       <header className="border-b border-border py-4 shrink-0">
         <div className="container flex items-center justify-between">
           <Button
+            asChild
             variant="ghost"
             className="text-primary hover:text-primary/80"
-            onClick={() => setLocation(`/project/${project.slug}`)}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to {project.title}
+            <Link href={`/project/${project.slug}`}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to {project.title}
+            </Link>
           </Button>
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5 text-accent" />

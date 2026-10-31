@@ -5,13 +5,12 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLocation, useParams } from "wouter";
+import { Link, useParams } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { testimonials } from "@/lib/testimonials";
 
 export default function TestimonialPage() {
   const params = useParams<{ slug: string }>();
-  const [, setLocation] = useLocation();
   const [lightbox, setLightbox] = useState(false);
 
   // גלילה לראש העמוד בכניסה
@@ -38,9 +37,11 @@ export default function TestimonialPage() {
           <p className="text-destructive text-lg mb-4">
             המלצה לא נמצאה
           </p>
-          <Button onClick={() => setLocation("/")}>
-            <ArrowRight className="mr-2 h-4 w-4" />
-            חזרה לדף הבית
+          <Button asChild>
+            <Link href="/">
+              <ArrowRight className="mr-2 h-4 w-4" />
+              חזרה לדף הבית
+            </Link>
           </Button>
         </div>
       </div>
@@ -53,12 +54,14 @@ export default function TestimonialPage() {
       <header className="border-b border-border py-4">
         <div className="container flex items-center justify-between">
           <Button
+            asChild
             variant="ghost"
             className="text-primary hover:text-primary/80"
-            onClick={() => setLocation("/")}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Portfolio
+            <Link href="/">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Portfolio
+            </Link>
           </Button>
         </div>
       </header>
@@ -117,12 +120,14 @@ export default function TestimonialPage() {
           {/* כפתור חזרה */}
           <div className="mt-8 flex justify-center">
             <Button
+              asChild
               variant="ghost"
               className="text-primary"
-              onClick={() => setLocation("/")}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Portfolio
+              <Link href="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Portfolio
+              </Link>
             </Button>
           </div>
         </div>

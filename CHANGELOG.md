@@ -1,3 +1,31 @@
+## [2026-10-31] קישורים אמיתיים במקום כפתורי ניווט, ומפת אתר (sitemap.xml) ו-robots.txt שנבנים אוטומטית
+
+**קבצים שהשתנו:**
+- `client/src/components/ExternalLinkButton.tsx` — (נוסף) כפתור שהוא קישור חיצוני אמיתי, שנפתח בלשונית חדשה
+- `client/src/lib/blog.ts` — (נוסף) פוסטי הבלוג, כמקור יחיד לדף הבית, לעמוד הפוסט ולמפת האתר
+- `client/src/pages/Home.tsx` — (שונה) כל הניווט דרך קישורים; רשימת הבלוג נקראת מ-`lib/blog.ts`
+- `client/src/pages/ProjectPage.tsx`, `client/src/pages/BlogPost.tsx`, `client/src/pages/TestimonialPage.tsx`, `client/src/pages/AskAI.tsx`, `client/src/pages/NotFound.tsx` — (שונו) כל הניווט דרך קישורים; ב-`BlogPost.tsx` הוסרה מפת הפוסטים, שעברה ל-`lib/blog.ts`
+- `vite.config.ts` — (שונה) פלאגין שמייצר `sitemap.xml` ו-`robots.txt` בזמן הבנייה
+
+**פירוט:**
+עד עכשיו כל הניווט באתר נעשה בכפתורים עם `onClick` (‏`setLocation` של wouter, או `window.open` לכתובות חיצוניות), ולא היה באתר אף קישור `<a href>`. גוגל עוקב רק אחרי קישורים כאלה ("Google can only crawl your link if it's an `<a>` HTML element with an `href` attribute", מתוך https://developers.google.com/search/docs/crawling-indexing/links-crawlable), כך שהעמודים הפנימיים לא היו נגישים לו מדף הבית. גם מבקרים לא יכלו לפתוח פרויקט בלשונית חדשה או להעתיק אליו קישור. עכשיו כל רכיב ניווט הוא קישור אמיתי, והמראה לא השתנה, חוץ משינוי קטן ב"פוסטים נוספים" שמתואר בסעיף 3 (נבדק בהשוואת פיקסלים של כל רכיב לפני ואחרי). בנוסף, האתר מגיש מפת אתר ו-robots.txt שנבנים מהנתונים עצמם, כך שפרויקט, המלצה או פוסט חדש נכנסים אליהם לבד.
+
+1. **ניווט פנימי:** כל כפתור שקרא ל-`setLocation(...)` הפך ל-`<Button asChild><Link href="...">...</Link></Button>` (‏`Link` מ-wouter מייצר `<a href>`, מנווט בלי טעינה מחדש, ומשאיר לדפדפן קליק עם Ctrl או קליק אמצעי, שפותחים לשונית חדשה). הקלאסים של הכפתור לא השתנו. `useLocation` הוסר מכל העמודים.
+2. **כרטיסי ההמלצות והבלוג בדף הבית:** הכרטיס כולו עטוף ב-`<Link href="..." className="block h-full">`, וה-`onClick` הוסר מה-`Card`. הכפתור "Open_Attachment.exe" שבתוך כרטיס ההמלצה הפך ל-`<Button asChild ...><span>Open_Attachment.exe</span></Button>`: הוא נראה אותו דבר, אבל אינו רכיב לחיץ נפרד, כי קישור לא יכול להכיל רכיב לחיץ נוסף.
+3. **"הפרויקט הבא" ו"פוסטים נוספים":** ה-`<button>` הפך ל-`<Link>` עם אותו `className`. הקריאה ל-`window.scrollTo(0, 0)` שהייתה בקליק הוסרה, כי ה-`useEffect` שבראש העמוד כבר גולל לראש כשה-slug מתחלף. שינוי קטן במראה של "פוסטים נוספים": כפתור (`<button>`) ממרכז את התוכן שלו אנכית, ולכן בכרטיס עם כותרת של שורה אחת, ליד כרטיס עם כותרת של שתי שורות, הכותרת העליונה (הנקודות ושם הקובץ) "צנחה" כ-9 פיקסלים. בקישור התוכן מתחיל מלמעלה, והכותרות מיושרות בכל השורה, כמו בשאר חלונות הטרמינל באתר.
+4. **קישורים חיצוניים:** קומפוננטה חדשה `ExternalLinkButton` (קובץ חדש), שמקבלת `href`, `unavailableMessage` אופציונלי וכל ה-props של `Button`, ומחזירה `<Button asChild><a href={href} target="_blank" rel="noopener">`. כשה-`href` הוא `"#"` (קישור שעוד לא זמין בנתוני הפרויקטים), היא מחזירה כפתור רגיל שמציג `toast.info(unavailableMessage)`, כמו קודם. היא משמשת לכפתורי GitHub ו-Telegram בדף הבית (למעלה ובפוטר), ל-Demo בכרטיס הפרויקט, ול-Demo ול-Code בעמוד הפרויקט (למעלה ולמטה). ‏`rel="noopener"` בלי `noreferrer`, כדי שהאתר שנפתח ימשיך לקבל את ה-Referer כמו עם `window.open`.
+5. **קישור המייל בפוטר:** `<Button asChild ...><a href="mailto:amirbiron@gmail.com">`, בלי `target`, כי `mailto:` נפתח בתוכנת המייל. לשלושת האייקונים בפוטר נוסף `aria-label` ("GitHub", "Telegram", "Email").
+6. **פוסטי הבלוג במקור אחד:** עד עכשיו הפוסטים הופיעו פעמיים: המפה המלאה (כותרת, תאריך ותוכן) ב-`BlogPost.tsx`, ועותק של הכותרות והתאריכים עם תקציר ב-`Home.tsx`. המפה עברה כמו שהיא ל-`client/src/lib/blog.ts` (התוכן הושווה תו בתו לפני ואחרי), לכל פוסט נוסף השדה `excerpt` מדף הבית, והסדר הוא מהחדש לישן, כמו בדף הבית. הקובץ מייצא את `blogPosts` ואת `blogSlugs` (רשימת המפתחות, באותו סדר). דף הבית עובר על `blogSlugs`, ועמוד הפוסט מייבא את שניהם. כתוצאה מכך גם "פוסטים נוספים" שבתחתית פוסט מוצגים עכשיו מהחדש לישן.
+7. **מפת אתר ו-robots.txt:** ב-`vite.config.ts` נוסף הפלאגין `vitePluginSitemap` (‏`apply: "build"`), שמייבא את `projects`, `testimonials` ו-`blogSlugs` ישירות מהקבצים ב-`client/src/lib` (ולכן הקבצים האלה לא יכולים לייבא דבר). ב-`generateBundle` הוא פולט שני קבצים לשורש הבנייה: `sitemap.xml` עם 19 כתובות (דף הבית, `/project/<slug>`, `/testimonial/<slug>`, `/blog/<slug>`), ו-`robots.txt` עם `User-agent: *`, `Allow: /` והשורה `Sitemap: <כתובת האתר>/sitemap.xml`. עמודי ה-Ask AI לא נכנסים למפה, כי הם חלון צ'אט בלי תוכן משלהם. אין `<lastmod>`, כי גוגל משתמש בו רק כשהוא מדויק, ואין תאריך עדכון אמין לכל עמוד.
+8. **`VITE_SITE_URL` נדרש למפה:** המפה ו-robots.txt צריכים כתובות מלאות, ולכן הפלאגין קורא את `VITE_SITE_URL` (מ-`config.env`, אותו מקור שממלא את תגיות ה-og ב-`index.html`). כשהמשתנה חסר או אינו כתובת `http(s)` מלאה, הבנייה **לא** נכשלת, כדי לא לעצור פריסה בגלל קובץ SEO: היא כותבת אזהרה בלוג הבנייה (`[sitemap] VITE_SITE_URL is missing...`), לא מייצרת `sitemap.xml`, ומייצרת `robots.txt` בלי השורה `Sitemap`.
+
+**ליישום מחדש:**
+1. להעתיק את `client/src/components/ExternalLinkButton.tsx` ואת `client/src/lib/blog.ts` מהריפו הזה כמו שהם.
+2. ב-`BlogPost.tsx`: למחוק את `const blogPosts = {...}` ואת `const blogSlugs = ...`, ולייבא `import { blogPosts, blogSlugs } from "@/lib/blog"`. ב-`Home.tsx`: למחוק את המערך `blogPosts`, ולעבור על `blogSlugs.map((slug, idx) => { const post = blogPosts[slug]; ... })`.
+3. בכל העמודים, להחליף כל ניווט לפי סעיפים 1–5 למעלה. אחרי השינוי לא נשארים בתיקייה `client/src/pages` אף `setLocation`, `useLocation` או `window.open`.
+4. להעתיק ל-`vite.config.ts` את שלושת ה-imports מ-`./client/src/lib`, את `vitePluginSitemap`, `resolveSiteUrl` ו-`escapeXml`, ולהוסיף את `vitePluginSitemap()` למערך `plugins`.
+5. לוודא שבסביבת הבנייה מוגדר `VITE_SITE_URL` עם הכתובת המלאה של האתר באותה סביבה (למשל `https://example.com`). בלעדיו האתר נבנה, אבל בלי מפת אתר (ראו סעיף 8).
+
 ## [2026-10-30] כתובת חדשה לכפתור ה-Demo של CodeKeeper
 
 **קבצים שהשתנו:**

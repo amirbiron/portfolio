@@ -5,6 +5,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import { blogSlugs } from "./client/src/lib/blog";
+import { projects } from "./client/src/lib/projects";
+import { testimonials } from "./client/src/lib/testimonials";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -150,7 +153,99 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+// =============================================================================
+// מפת אתר (sitemap.xml) ו-robots.txt
+// =============================================================================
+
+/**
+ * בונה את sitemap.xml ואת robots.txt בזמן הבנייה, מאותם נתונים שהאתר מציג:
+ * פרויקט, המלצה או פוסט חדש נכנסים למפה לבד, בלי לערוך אותה ביד.
+ *
+ * עמודי ה-Ask AI לא נכנסים בכוונה: הם חלון צ'אט, בלי תוכן משלהם לחיפוש.
+ * אין <lastmod>, כי גוגל משתמש בו רק כשהוא מדויק באופן עקבי, ואין לנו תאריך עדכון אמין לכל עמוד.
+ * מקור: https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap
+ * הקובץ robots.txt מתיר הכול ומפנה למפה. השורה Sitemap חייבת כתובת מלאה.
+ * מקור: https://developers.google.com/search/docs/crawling-indexing/robots/create-robots-txt
+ *
+ * המפה צריכה את הכתובת המלאה של האתר (VITE_SITE_URL). כשהיא חסרה או לא תקינה, הבנייה לא נכשלת
+ * (כדי לא לעצור פריסה בגלל קובץ SEO): היא מזהירה בלוג של הבנייה, מדלגת על sitemap.xml, ו-robots.txt
+ * נוצר בלי השורה Sitemap. ה-CI מריץ את scripts/check-sitemap.mjs, שנכשל כשהמפה לא נוצרה.
+ */
+function vitePluginSitemap(): Plugin {
+  let siteUrl: string | null = null;
+
+  return {
+    name: "sitemap",
+    apply: "build",
+
+    configResolved(config) {
+      // אותו משתנה שממלא את תגיות ה-og ב-index.html (config.env כולל את משתני VITE_ מהסביבה ומקבצי .env)
+      const raw = config.env.VITE_SITE_URL;
+      siteUrl = resolveSiteUrl(raw);
+      if (!siteUrl) {
+        config.logger.warn(
+          `[sitemap] VITE_SITE_URL is missing or is not a full http(s) address (got ${JSON.stringify(raw)}). ` +
+            "sitemap.xml was NOT generated and robots.txt has no Sitemap line. " +
+            "The og tags in index.html are broken too."
+        );
+      }
+    },
+
+    generateBundle() {
+      if (!siteUrl) {
+        this.emitFile({ type: "asset", fileName: "robots.txt", source: "User-agent: *\nAllow: /\n" });
+        return;
+      }
+
+      const paths = [
+        "/",
+        ...projects.map((p) => `/project/${encodeURIComponent(p.slug)}`),
+        ...testimonials.map((t) => `/testimonial/${encodeURIComponent(t.slug)}`),
+        ...blogSlugs.map((slug) => `/blog/${encodeURIComponent(slug)}`),
+      ];
+      const urls = paths
+        .map((p) => `  <url>\n    <loc>${escapeXml(siteUrl + p)}</loc>\n  </url>`)
+        .join("\n");
+
+      this.emitFile({
+        type: "asset",
+        fileName: "sitemap.xml",
+        source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,
+      });
+      this.emitFile({
+        type: "asset",
+        fileName: "robots.txt",
+        source: `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`,
+      });
+    },
+  };
+}
+
+/**
+ * הכתובת המלאה של האתר, בלי / בסוף, או null כשהיא חסרה או אינה כתובת http(s) מלאה.
+ */
+function resolveSiteUrl(raw: string | undefined): string | null {
+  let url: URL;
+  try {
+    url = new URL(raw ?? "");
+  } catch {
+    // לא כתובת בכלל (חסרה, או בלי פרוטוקול) — הקורא מזהיר בלוג של הבנייה
+    return null;
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+  return url.href.replace(/\/+$/, "");
+}
+
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginSitemap()];
 
 export default defineConfig({
   plugins,
