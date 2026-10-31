@@ -5,6 +5,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import { blogSlugs } from "./client/src/lib/blog";
+import { projects } from "./client/src/lib/projects";
+import { testimonials } from "./client/src/lib/testimonials";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -150,7 +153,88 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+// =============================================================================
+// מפת אתר (sitemap.xml) ו-robots.txt
+// =============================================================================
+
+/**
+ * בונה את sitemap.xml ואת robots.txt בזמן הבנייה, מאותם נתונים שהאתר מציג:
+ * פרויקט, המלצה או פוסט חדש נכנסים למפה לבד, בלי לערוך אותה ביד.
+ *
+ * עמודי ה-Ask AI לא נכנסים בכוונה: הם חלון צ'אט, בלי תוכן משלהם לחיפוש.
+ * אין <lastmod>, כי גוגל משתמש בו רק כשהוא מדויק באופן עקבי, ואין לנו תאריך עדכון אמין לכל עמוד.
+ * מקור: https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap
+ * הקובץ robots.txt מתיר הכול ומפנה למפה. השורה Sitemap חייבת כתובת מלאה.
+ * מקור: https://developers.google.com/search/docs/crawling-indexing/robots/create-robots-txt
+ */
+function vitePluginSitemap(): Plugin {
+  let siteUrl = "";
+
+  return {
+    name: "sitemap",
+    apply: "build",
+
+    configResolved(config) {
+      // אותו משתנה שממלא את תגיות ה-og ב-index.html (config.env כולל את משתני VITE_ מהסביבה ומקבצי .env)
+      siteUrl = resolveSiteUrl(config.env.VITE_SITE_URL);
+    },
+
+    generateBundle() {
+      const paths = [
+        "/",
+        ...projects.map((p) => `/project/${encodeURIComponent(p.slug)}`),
+        ...testimonials.map((t) => `/testimonial/${encodeURIComponent(t.slug)}`),
+        ...blogSlugs.map((slug) => `/blog/${encodeURIComponent(slug)}`),
+      ];
+      const urls = paths
+        .map((p) => `  <url>\n    <loc>${escapeXml(siteUrl + p)}</loc>\n  </url>`)
+        .join("\n");
+
+      this.emitFile({
+        type: "asset",
+        fileName: "sitemap.xml",
+        source: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`,
+      });
+      this.emitFile({
+        type: "asset",
+        fileName: "robots.txt",
+        source: `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`,
+      });
+    },
+  };
+}
+
+/**
+ * הכתובת המלאה של האתר, בלי / בסוף. הבנייה נכשלת כשהיא חסרה או לא תקינה, כי המפה ו-robots.txt
+ * חייבים כתובות מלאות. בלעדיה גם תגיות ה-og נשברות בשקט: Vite רק מזהיר ומשאיר בעמוד את הטקסט
+ * "%VITE_SITE_URL%" כמו שהוא.
+ */
+function resolveSiteUrl(raw: string | undefined): string {
+  const fail = () =>
+    new Error(
+      `VITE_SITE_URL must be the site's full address, for example https://example.com (got ${JSON.stringify(raw)}). ` +
+        "It is required for sitemap.xml, robots.txt and the og tags in index.html."
+    );
+  let url: URL;
+  try {
+    url = new URL(raw ?? "");
+  } catch {
+    throw fail();
+  }
+  if (url.protocol !== "https:" && url.protocol !== "http:") throw fail();
+  return url.href.replace(/\/+$/, "");
+}
+
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), vitePluginSitemap()];
 
 export default defineConfig({
   plugins,

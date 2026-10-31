@@ -13,10 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Github, Mail, ExternalLink, Code2, GitBranch, User, ArrowLeft, Send, MessageSquareQuote, Bot } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { useLocation } from "wouter";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
+import { ExternalLinkButton } from "@/components/ExternalLinkButton";
 import { projects } from "@/lib/projects";
 import { testimonials } from "@/lib/testimonials";
+import { blogPosts, blogSlugs } from "@/lib/blog";
 import { useHomeScrollRestoration } from "@/hooks/useScrollRestoration";
 
 // קומפוננטת עזר לאנימציית כניסה בגלילה
@@ -35,7 +37,6 @@ function FadeInSection({ children, className = "", delay = 0 }: { children: Reac
 }
 
 export default function Home() {
-  const [, setLocation] = useLocation();
   useHomeScrollRestoration();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -68,40 +69,6 @@ export default function Home() {
       resetTimerRef.current = setTimeout(() => setContactStatus("idle"), 4000);
     }
   };
-
-
-  const blogPosts = [
-    {
-      title: "12 מלכודות בבניית צ'אטבוט AI לפרודקשן",
-      date: "05-05-2026",
-      excerpt: "12 כללים ממדריך הפיתוח של צ'אטבוט AI לעסקים — מ-except: pass שמעלים כשלים, דרך העברה לנציג לפי ניחוש של טקסט, ועד מגבלות האורך של כל ערוץ.",
-      slug: "chatbot-ai-antipatterns"
-    },
-    {
-      title: "מדריך ליצירת בוט טרמינל לטלגרם בפייתון — הרצת קוד מרחוק דרך הצ'אט",
-      date: "27-03-2026",
-      excerpt: "איך לבנות בוט טלגרם שמאפשר הרצת קוד Python, JavaScript ופקודות shell — עם מערכת הרשאות, ניהול סשנים, ופריסה ב-Docker.",
-      slug: "telegram-terminal-bot-guide"
-    },
-    {
-      title: "איך לבנות סורק אתרים עם התראות טלגרם — מדריך מהשטח",
-      date: "22-03-2026",
-      excerpt: "מדריך מעשי לבניית פייפליין סריקה: scraping, סינון חכם, dedup רב-שכבתי, סיווג AI, והתראות טלגרם — מבוסס על פרויקט אמיתי ב-512MB RAM.",
-      slug: "web-scraper-telegram-alerts"
-    },
-    {
-      title: "איך לבנות בוט WhatsApp שעובד כמו מוצר אמיתי",
-      date: "14-03-2026",
-      excerpt: "הלקחים, הדפוסים והמלכודות מבניית בוט WhatsApp שרץ בפרודקשן, עם דוגמאות קוד ב-Python וב-FastAPI.",
-      slug: "whatsapp-bot-python-guide"
-    },
-    {
-      title: "Distributed Lock במונגו – פתרון ל-telegram.error.Conflict",
-      date: "15-02-2026",
-      excerpt: "בזמן האחרון נתקלתי בבעיה מעצבנת: הבוט שלי רץ על כמה אינסטנסים. הפתרון? מנגנון נעילה מבוזר (Distributed Lock) מבוסס MongoDB.",
-      slug: "distributed-lock-mongo"
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -164,23 +131,23 @@ export default function Home() {
               </div>
               
               <div dir="ltr" className="flex flex-wrap gap-4">
-                <Button
+                <ExternalLinkButton
+                  href="https://github.com/amirbiron"
                   className="bg-primary text-primary-foreground hover:bg-primary/90 neon-border transition-all hover:scale-105"
-                  onClick={() => window.open('https://github.com/amirbiron', '_blank')}
                 >
                   <Github className="mr-2 h-4 w-4" />
                   GitHub Profile
-                </Button>
-                <Button 
-                  variant="outline" 
+                </ExternalLinkButton>
+                <ExternalLinkButton
+                  href="https://t.me/AndroidAndAI"
+                  variant="outline"
                   className="border-destructive text-destructive hover:bg-destructive/10 transition-all hover:scale-105"
-                  onClick={() => window.open('https://t.me/AndroidAndAI', '_blank')}
                 >
                   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
                   </svg>
                   Telegram Channel
-                </Button>
+                </ExternalLinkButton>
                 <Button 
                   variant="outline" 
                   className="border-accent text-accent hover:bg-accent/10 transition-all hover:scale-105"
@@ -317,40 +284,36 @@ export default function Home() {
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-3">
                       <Button
+                        asChild
                         size="sm"
                         className="flex-1 bg-primary/20 text-primary border border-primary hover:bg-primary hover:text-primary-foreground"
-                        onClick={() => setLocation(`/project/${project.slug}`)}
                       >
-                        <ArrowLeft className="mr-2 h-3 w-3" />
-                        Details
+                        <Link href={`/project/${project.slug}`}>
+                          <ArrowLeft className="mr-2 h-3 w-3" />
+                          Details
+                        </Link>
                       </Button>
-                      <Button
+                      <ExternalLinkButton
+                        href={project.demo}
+                        unavailableMessage="Demo link - Feature coming soon"
                         size="sm"
                         variant="outline"
                         className="flex-1 border-accent text-accent hover:bg-accent/10"
-                        onClick={() => {
-                          if (project.demo === "#") {
-                            toast.info("Demo link - Feature coming soon");
-                          } else {
-                            window.open(project.demo, "_blank");
-                          }
-                        }}
                       >
                         <ExternalLink className="mr-2 h-3 w-3" />
                         {project.demoLabel || "Demo"}
-                      </Button>
+                      </ExternalLinkButton>
                     </div>
                     {project.askAi && (
                       <Button
+                        asChild
                         size="sm"
                         className="w-full bg-accent/20 text-accent border border-accent hover:bg-accent hover:text-accent-foreground font-mono"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLocation(`/project/${project.slug}/ask-ai`);
-                        }}
                       >
-                        <Bot className="mr-2 h-3 w-3" />
-                        Ask AI about {project.title}
+                        <Link href={`/project/${project.slug}/ask-ai`}>
+                          <Bot className="mr-2 h-3 w-3" />
+                          Ask AI about {project.title}
+                        </Link>
                       </Button>
                     )}
                   </div>
@@ -382,9 +345,10 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {testimonials.map((testimonial, idx) => (
               <FadeInSection key={idx} delay={idx * 0.1}>
+                {/* הכרטיס כולו הוא קישור אחד לעמוד ההמלצה */}
+                <Link href={`/testimonial/${testimonial.slug}`} className="block h-full">
                 <Card
                   className="terminal-window overflow-hidden group hover:scale-105 transition-all duration-300 h-full !py-0 !gap-0 cursor-pointer"
-                  onClick={() => setLocation(`/testimonial/${testimonial.slug}`)}
                 >
                   <div className="terminal-header">
                     <div className="terminal-dot border-primary" />
@@ -417,19 +381,18 @@ export default function Home() {
                       )}
                     </div>
 
-                    {/* כפתור פתיחה */}
+                    {/* כפתור פתיחה — נראה ככפתור, אבל הוא חלק מהקישור של הכרטיס ולכן span:
+                        קישור לא יכול להכיל רכיב לחיץ נוסף */}
                     <Button
+                      asChild
                       size="sm"
                       className="w-full bg-accent/20 text-accent border border-accent hover:bg-accent hover:text-accent-foreground font-mono"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setLocation(`/testimonial/${testimonial.slug}`);
-                      }}
                     >
-                      Open_Attachment.exe
+                      <span>Open_Attachment.exe</span>
                     </Button>
                   </div>
                 </Card>
+                </Link>
               </FadeInSection>
             ))}
           </div>
@@ -454,17 +417,13 @@ export default function Home() {
           </FadeInSection>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {blogPosts.map((post, idx) => (
+            {blogSlugs.map((slug, idx) => {
+              const post = blogPosts[slug];
+              return (
               <FadeInSection key={idx} delay={idx * 0.1}>
+              <Link href={`/blog/${slug}`} className="block h-full">
               <Card
                 className="terminal-window hover:scale-105 transition-all duration-300 cursor-pointer h-full !py-0 !gap-0"
-                onClick={() => {
-                  if (post.slug) {
-                    setLocation(`/blog/${post.slug}`);
-                  } else {
-                    toast.info("Blog post - Feature coming soon");
-                  }
-                }}
               >
                 <div className="terminal-header">
                   <div className="terminal-dot border-primary" />
@@ -484,8 +443,10 @@ export default function Home() {
                   </p>
                 </div>
               </Card>
+              </Link>
               </FadeInSection>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -579,31 +540,37 @@ export default function Home() {
               $ echo "© 2026 Developer Portfolio. Built with React + Tailwind"
             </p>
             <div className="flex gap-4">
-              <Button 
-                size="sm" 
-                variant="ghost" 
+              <ExternalLinkButton
+                href="https://github.com/amirbiron"
+                aria-label="GitHub"
+                size="sm"
+                variant="ghost"
                 className="text-primary hover:text-primary/80"
-                onClick={() => window.open('https://github.com/amirbiron', '_blank')}
               >
                 <Github className="h-5 w-5" />
-              </Button>
-              <Button 
-                size="sm" 
-                variant="ghost" 
+              </ExternalLinkButton>
+              <ExternalLinkButton
+                href="https://t.me/AndroidAndAI"
+                aria-label="Telegram"
+                size="sm"
+                variant="ghost"
                 className="text-destructive hover:text-destructive/80"
-                onClick={() => window.open('https://t.me/AndroidAndAI', '_blank')}
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
                 </svg>
-              </Button>
-              <Button 
-                size="sm" 
-                variant="ghost" 
+              </ExternalLinkButton>
+              {/* mailto נפתח בתוכנת המייל, ולכן קישור רגיל בלי לשונית חדשה */}
+              <Button
+                asChild
+                aria-label="Email"
+                size="sm"
+                variant="ghost"
                 className="text-accent hover:text-accent/80"
-                onClick={() => window.open('mailto:amirbiron@gmail.com', '_blank')}
               >
-                <Mail className="h-5 w-5" />
+                <a href="mailto:amirbiron@gmail.com">
+                  <Mail className="h-5 w-5" />
+                </a>
               </Button>
             </div>
           </div>
