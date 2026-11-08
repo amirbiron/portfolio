@@ -128,6 +128,13 @@
   direction: ltr;
 }
 
+/* בלוק טקסט שרובו עברית: rehype-rtl-code-blocks.ts מוסיף לו את המחלקה rtl-code, והיא מגיעה ל-div
+   שעוטף את ה-pre. רק ה-pre מתהפך, ופס הכותרת עם הכפתורים נשאר כמו בשאר הבלוקים */
+.prose [data-code-block].rtl-code pre {
+  direction: rtl;
+  text-align: right;
+}
+
 .prose [data-code-block-header] span {
   text-transform: capitalize;
 }

@@ -12,6 +12,7 @@ import { Streamdown, defaultRehypePlugins, type StreamdownProps } from 'streamdo
 import { harden } from "rehype-harden";
 import { blogPosts, blogSlugs } from "@/lib/blog";
 import { rehypeDirAuto } from "@/lib/rehype-dir-auto";
+import { rehypeRtlCodeBlocks } from "@/lib/rehype-rtl-code-blocks";
 
 /**
  * תוספי ה-rehype של המאמר: אותם תוספים ובאותו סדר כמו ברירת המחדל של Streamdown,
@@ -21,6 +22,7 @@ import { rehypeDirAuto } from "@/lib/rehype-dir-auto";
  *    של Streamdown 1.4.0. מקור: node_modules/rehype-harden/dist/index.js (parseUrl, transformUrl)
  *    ו-README של streamdown, "Customizing Plugins".
  * 2. rehypeDirAuto בסוף: dir="auto" לקוד בתוך שורה ולתאי טבלה (ראו את הקובץ שלו).
+ * 3. rehypeRtlCodeBlocks: מסמן בלוק טקסט שרובו עברית, ש-blog-styles.css מציג מימין לשמאל.
  */
 const rehypePlugins: StreamdownProps["rehypePlugins"] = [
   [
@@ -35,6 +37,7 @@ const rehypePlugins: StreamdownProps["rehypePlugins"] = [
   defaultRehypePlugins.raw,
   defaultRehypePlugins.katex,
   rehypeDirAuto,
+  rehypeRtlCodeBlocks,
 ];
 
 /**
