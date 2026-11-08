@@ -3,6 +3,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Tailwind לא סורק את node_modules, ולכן בלי השורה הזו לא נוצרות המחלקות ש-Streamdown משתמש בהן.
+   בלי dark:hidden ו-dark:block, כל בלוק קוד הוצג בגרסה הבהירה של Shiki (רקע לבן) גם באתר הכהה,
+   ובבלוקי text הטקסט יצא בצבע בהיר על לבן. הנתיב יחסי לקובץ הזה. מקור: README של streamdown, Installation */
+@source "../../node_modules/streamdown/dist/index.js";
+
 /* Terminal Aesthetic Design System
  * Movement: Retro-Futurism with 1980s Terminal Aesthetic
  * Palette: Matrix green, neon pink/cyan, deep black
