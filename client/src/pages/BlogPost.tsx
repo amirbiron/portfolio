@@ -8,8 +8,34 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Copy } from "lucide-react";
 import { Link, useRoute } from "wouter";
-import { Streamdown } from 'streamdown';
+import { Streamdown, defaultRehypePlugins, type StreamdownProps } from 'streamdown';
+import { harden } from "rehype-harden";
 import { blogPosts, blogSlugs } from "@/lib/blog";
+import { rehypeDirAuto } from "@/lib/rehype-dir-auto";
+
+/**
+ * תוספי ה-rehype של המאמר: אותם תוספים ובאותו סדר כמו ברירת המחדל של Streamdown,
+ * עם שני שינויים.
+ * 1. ל-harden נוסף defaultOrigin. בלעדיו, rehype-harden חוסם כל קישור ותמונה עם נתיב יחסי
+ *    (כמו /blog/...png), כי הוא לא מצליח לפרסר אותם ככתובת. שאר ההגדרות הן ברירת המחדל
+ *    של Streamdown 1.4.0. מקור: node_modules/rehype-harden/dist/index.js (parseUrl, transformUrl)
+ *    ו-README של streamdown, "Customizing Plugins".
+ * 2. rehypeDirAuto בסוף: dir="auto" לקוד בתוך שורה ולתאי טבלה (ראו את הקובץ שלו).
+ */
+const rehypePlugins: StreamdownProps["rehypePlugins"] = [
+  [
+    harden,
+    {
+      allowedImagePrefixes: ["*"],
+      allowedLinkPrefixes: ["*"],
+      defaultOrigin: window.location.origin,
+      allowDataImages: true,
+    },
+  ],
+  defaultRehypePlugins.raw,
+  defaultRehypePlugins.katex,
+  rehypeDirAuto,
+];
 
 /**
  * כפתור שמעתיק את המאמר כולו (Markdown גולמי) ללוח.
@@ -141,13 +167,10 @@ export default function BlogPost() {
 
               {/* Content with Markdown rendering */}
               <div className="prose prose-invert max-w-none">
-                <Streamdown>{
-                  post.content
-                    // שורה ריקה אחרי סגירת בלוק קוד — מונע פרסור שגוי
-                    .replace(/```\n(?!\n)/g, '```\n\n')
-                    // שורה ריקה לפני --- — מונע setext heading (טקסט + --- = h2)
-                    .replace(/([^\n])\n---/g, '$1\n\n---')
-                }</Streamdown>
+                {/* התוכן עובר ל-Streamdown כמו שהוא. בעבר רצו כאן שתי החלפות שהוסיפו שורות ריקות
+                    אחרי ``` ולפני ---, והן נגעו גם בתוך בלוקי קוד. נמדד שבלעדיהן חמשת המאמרים
+                    שהיו אז בבלוג מרונדרים זהה. אם מאמר חדש נשבר כאן, מתקנים את ה-Markdown שלו */}
+                <Streamdown rehypePlugins={rehypePlugins}>{post.content}</Streamdown>
               </div>
 
               {/* העתקת המאמר גם בסוף, בלי לגלול חזרה למעלה */}
