@@ -18,6 +18,9 @@
   font-size: 0.9em;
   color: var(--accent);
   border: 1px solid var(--border);
+  /* בלי ליגטורות: JetBrains Mono מחבר למשל את -- לסימן אחד, ולכן --flag מוצג "-- flag" עם רווח.
+     בקוד שקוראים ומעתיקים, כל תו מוצג כמו שהוא נכתב */
+  font-variant-ligatures: none;
 }
 
 .prose pre {
@@ -127,7 +130,9 @@
   text-transform: capitalize;
 }
 
-/* טבלאות — יישור RTL */
+/* טבלאות. כל תא מקבל dir="auto" (client/src/lib/rehype-dir-auto.ts), ולכן היישור הוא start:
+   תא עברי מיושר לימין, ותא שמתחיל באות לטינית, כמו C++, מיושר לשמאל.
+   לא לכתוב כאן direction: כלל CSS גובר על התכונה dir, בלי שום שגיאה. */
 .prose table {
   width: 100%;
   border-collapse: collapse;
@@ -135,7 +140,7 @@
 }
 
 .prose th, .prose td {
-  text-align: right;
+  text-align: start;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--border);
 }
