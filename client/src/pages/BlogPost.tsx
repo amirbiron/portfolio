@@ -4,7 +4,7 @@
  */
 
 import "../blog-styles.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Check, Copy } from "lucide-react";
 import { Link, useRoute } from "wouter";
@@ -12,6 +12,8 @@ import { Streamdown, defaultRehypePlugins, type StreamdownProps } from 'streamdo
 import { harden } from "rehype-harden";
 import { blogPosts, blogSlugs } from "@/lib/blog";
 import { rehypeDirAuto } from "@/lib/rehype-dir-auto";
+import { rehypeRtlCodeBlocks } from "@/lib/rehype-rtl-code-blocks";
+import { useRtlCodeTokens } from "@/lib/rtl-code-tokens";
 
 /**
  * תוספי ה-rehype של המאמר: אותם תוספים ובאותו סדר כמו ברירת המחדל של Streamdown,
@@ -21,6 +23,7 @@ import { rehypeDirAuto } from "@/lib/rehype-dir-auto";
  *    של Streamdown 1.4.0. מקור: node_modules/rehype-harden/dist/index.js (parseUrl, transformUrl)
  *    ו-README של streamdown, "Customizing Plugins".
  * 2. rehypeDirAuto בסוף: dir="auto" לקוד בתוך שורה ולתאי טבלה (ראו את הקובץ שלו).
+ * 3. rehypeRtlCodeBlocks: מסמן בלוק טקסט שרובו עברית, ש-blog-styles.css מציג מימין לשמאל.
  */
 const rehypePlugins: StreamdownProps["rehypePlugins"] = [
   [
@@ -35,6 +38,7 @@ const rehypePlugins: StreamdownProps["rehypePlugins"] = [
   defaultRehypePlugins.raw,
   defaultRehypePlugins.katex,
   rehypeDirAuto,
+  rehypeRtlCodeBlocks,
 ];
 
 /**
@@ -89,6 +93,9 @@ function CopyArticleButton({ markdown, compact = false }: { markdown: string; co
 
 export default function BlogPost() {
   const [, params] = useRoute("/blog/:slug");
+  // הערות ומחרוזות בעברית בתוך בלוקי קוד מוצגות מימין לשמאל (ראו rtl-code-tokens.ts)
+  const contentRef = useRef<HTMLDivElement>(null);
+  useRtlCodeTokens(contentRef);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -166,7 +173,7 @@ export default function BlogPost() {
               </div>
 
               {/* Content with Markdown rendering */}
-              <div className="prose prose-invert max-w-none">
+              <div ref={contentRef} className="prose prose-invert max-w-none">
                 {/* התוכן עובר ל-Streamdown כמו שהוא. בעבר רצו כאן שתי החלפות שהוסיפו שורות ריקות
                     אחרי ``` ולפני ---, והן נגעו גם בתוך בלוקי קוד. נמדד שבלעדיהן חמשת המאמרים
                     שהיו אז בבלוג מרונדרים זהה. אם מאמר חדש נשבר כאן, מתקנים את ה-Markdown שלו */}
