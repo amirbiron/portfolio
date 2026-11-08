@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { Streamdown } from "streamdown";
 import { projects, type AskAiConfig, type ProjectData } from "@/lib/projects";
 import NotFound from "./NotFound";
+import { useRtlCodeTokens } from "@/lib/rtl-code-tokens";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -39,6 +40,10 @@ function AskAIChat({
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // הערות ומחרוזות בעברית בתוך בלוקי קוד בתשובות מוצגות מימין לשמאל (ראו rtl-code-tokens.ts).
+  // ה-ref על המיכל של כל ההודעות, כדי שגם הודעה שנוספת אחרי שהעמוד עלה תטופל
+  const messagesRef = useRef<HTMLDivElement>(null);
+  useRtlCodeTokens(messagesRef);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // גלילה לתחתית בכל הודעה חדשה
@@ -137,7 +142,7 @@ function AskAIChat({
 
       {/* הודעת פתיחה + אזור הודעות */}
       <div className="flex-1 overflow-y-auto">
-        <div className="container max-w-3xl py-8 space-y-6">
+        <div ref={messagesRef} className="container max-w-3xl py-8 space-y-6">
           {/* הודעת פתיחה */}
           {messages.length === 0 && (
             <motion.div
