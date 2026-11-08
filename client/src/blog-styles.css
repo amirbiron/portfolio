@@ -97,7 +97,9 @@
 }
 
 .prose blockquote {
-  border-right: 4px solid var(--primary);
+  /* הקו רק בצד שממנו קוראים (ימין, בעמוד עברי). ה-border: 0 מבטל את border-l-4 שבמחלקות של Streamdown */
+  border: 0;
+  border-inline-start: 4px solid var(--primary);
   padding-right: 1rem;
   margin: 1.5rem 0;
   color: var(--muted-foreground);
