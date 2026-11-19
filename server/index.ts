@@ -257,6 +257,20 @@ async function startServer() {
 
   // Handle client-side routing - serve index.html for all routes
   app.get("*", (req, res) => {
+    // אותו עמוד עם לוכסן בסוף (/project/x/): הנתב בדפדפן (wouter, דרך regexparam) מציג אותו כעמוד הפרויקט,
+    // אבל req.path שומר את הלוכסן, ולכן הוא לא נמצא במפה והיה מקבל את ה-head של דף הבית.
+    // הפניה קבועה לכתובת הקנונית נותנת לכל עמוד כתובת אחת, גם לשרת, גם לדפדפן וגם לסורקים.
+    // מקור: parse ב-node_modules/regexparam/dist/index.mjs (התבנית נגמרת ב-\/?$), ו-req.path ב-express/lib/request.js
+    if (req.path.length > 1 && req.path.endsWith("/")) {
+      const canonicalPath = req.path.slice(0, -1);
+      if (renderPage(canonicalPath) !== undefined) {
+        // הנתיב מגיע מהמפה ולא מהבקשה. מהבקשה נשמרת רק מחרוזת השאילתה, שמתחילה ב-? ולכן לא יכולה להפוך לכתובת של אתר אחר
+        const queryStart = req.url.indexOf("?");
+        res.redirect(301, canonicalPath + (queryStart === -1 ? "" : req.url.slice(queryStart)));
+        return;
+      }
+    }
+
     // חיפוש מדויק במפה שנבנתה מהנתונים: הנתיב מהבקשה רק משמש מפתח, ולא נכנס ל-HTML ולא לנתיב קובץ
     const html = renderPage(req.path);
     if (html !== undefined) {

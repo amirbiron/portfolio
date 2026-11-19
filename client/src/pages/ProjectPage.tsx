@@ -18,6 +18,7 @@ import { Link, useParams } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import mermaid from "mermaid";
 import { ExternalLinkButton } from "@/components/ExternalLinkButton";
+import { ClientProjectBadge } from "@/components/ClientProjectBadge";
 import { projects } from "@/lib/projects";
 
 // הגדרות Mermaid לערכת נושא כהה
@@ -312,6 +313,13 @@ export default function ProjectPage() {
             >
               {project.fullDescription}
             </p>
+
+            {/* בפרויקט ללקוח אין דמו פתוח וקישור לקוד: התווית מסבירה למה, במקום הכפתורים שאין */}
+            {project.clientProject && (
+              <div dir="rtl" className="mb-6">
+                <ClientProjectBadge className="text-sm" />
+              </div>
+            )}
 
             {/* Tech Stack */}
             <div className="flex flex-wrap gap-2">

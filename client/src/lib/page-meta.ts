@@ -28,6 +28,11 @@ export interface PageMeta {
   type: "website" | "article";
   /** האם העמוד נכנס למפת האתר. עמודי ה-Ask AI בחוץ בכוונה: הם חלון צ'אט, בלי תוכן משלהם לחיפוש */
   inSitemap: boolean;
+  /**
+   * תמונת השיתוף של העמוד (og:image), כמו שהיא בנתונים: נתיב מתוך client/public או כתובת מלאה.
+   * בלי השדה העמוד מקבל את תמונת השיתוף של האתר (ראו SHARE_IMAGE ב-vite.config.ts).
+   */
+  image?: string;
 }
 
 /** כותרת של עמוד פנימי: קודם העמוד, ואחריו השם. כך הכותרת נשארת מזוהה גם כשהלשונית צרה וחותכת את הסוף */
@@ -47,12 +52,15 @@ const HOME: PageMeta = {
 export const pages: PageMeta[] = [
   HOME,
   ...projects.flatMap((project): PageMeta[] => {
+    // תמונת הכרטיס של הפרויקט היא גם תמונת השיתוף שלו, ושל עמוד ה-Ask AI שלו. כרטיס בלי תמונה מקבל את של האתר
+    const image = project.image || undefined;
     const projectPage: PageMeta = {
       path: `/project/${encodeURIComponent(project.slug)}`,
       title: withSiteName(project.title),
       description: project.description,
       type: "website",
       inSitemap: true,
+      image,
     };
     if (!project.askAi) return [projectPage];
     // הכותרת כמו הכותרת שבראש עמוד הצ'אט, והתיאור הוא משפט הפתיחה של הסוכן באותו עמוד
@@ -65,6 +73,7 @@ export const pages: PageMeta[] = [
         description: `${before} ${highlight} ${after}`,
         type: "website",
         inSitemap: false,
+        image,
       },
     ];
   }),

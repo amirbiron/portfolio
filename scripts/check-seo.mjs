@@ -140,12 +140,16 @@ async function checkPageHead(pagePath) {
   const { titles, metas, links } = parseHead(html);
   const meta = getPageMeta(pagePath);
 
-  // כל תגית בדיוק פעם אחת: תגית כפולה (שארית של דף הבית לצד של העמוד) היא בדיוק הבאג שהבדיקה מחפשת
+  // כל תגית בדיוק פעם אחת: תגית כפולה (שארית של דף הבית לצד של העמוד) היא בדיוק הבאג שהבדיקה מחפשת.
+  // כשהספירה שגויה כבר נרשם כשל, ולכן מוחזר MISSING וההשוואה מדלגת עליו. תגית שמופיעה פעם אחת בלי ערך
+  // מחזירה undefined, וזה כן נכשל בהשוואה
   const one = (label, values) => {
-    if (values.length !== 1)
+    if (values.length !== 1) {
       failures.push(
         `${pagePath}: ${label} מופיע ${values.length} פעמים במקום פעם אחת`
       );
+      return MISSING;
+    }
     return values[0];
   };
   const property = name =>
@@ -159,7 +163,7 @@ async function checkPageHead(pagePath) {
       metas.filter(m => m.name === name).map(m => m.content)
     );
   const expectEqual = (label, actual, wanted) => {
-    if (actual !== undefined && actual !== wanted) {
+    if (actual !== MISSING && actual !== wanted) {
       failures.push(
         `${pagePath}: ${label} הוא ${JSON.stringify(actual)} ולא ${JSON.stringify(wanted)}`
       );
@@ -192,21 +196,85 @@ async function checkPageHead(pagePath) {
     property("og:type"),
     pagePath.startsWith("/blog/") ? "article" : "website"
   );
-  expectEqual("og:image", property("og:image"), `${siteUrl}/og-preview.png`);
-  expectEqual(
-    "twitter:image",
-    named("twitter:image"),
-    `${siteUrl}/og-preview.png`
-  );
-  if (pagePath.startsWith("/blog/") && title !== undefined) {
+  // תמונת השיתוף: בעמוד פרויקט ובעמוד ה-Ask AI שלו, תמונת הכרטיס של הפרויקט; בכל השאר og-preview.png
+  const projectImage = projectOfPath(pagePath)?.image;
+  const wantedImage = !projectImage
+    ? `${siteUrl}/og-preview.png`
+    : /^https?:\/\//i.test(projectImage)
+      ? projectImage
+      : siteUrl + projectImage;
+  const ogImage = property("og:image");
+  expectEqual("og:image", ogImage, wantedImage);
+  expectEqual("twitter:image", named("twitter:image"), wantedImage);
+  const imageWidths = metas.filter(m => m.property === "og:image:width");
+  const imageHeights = metas.filter(m => m.property === "og:image:height");
+  if (projectImage) {
+    // לתמונות הפרויקטים אין מידות ב-head (ראו renderPageHead ב-vite.config.ts), ולכן גם מידות שגויות לא ייכנסו בטעות
+    if (imageWidths.length + imageHeights.length > 0)
+      failures.push(
+        `${pagePath}: יש og:image:width/height לתמונת הפרויקט, שהבנייה לא מודדת`
+      );
+  } else {
+    expectEqual("og:image:width", property("og:image:width"), "1200");
+    expectEqual("og:image:height", property("og:image:height"), "630");
+  }
+  // og:image:type חייב להתאים למה שהשרת באמת שולח עם התמונה, והתמונה חייבת להיות מוגשת
+  const imageType = property("og:image:type");
+  if (ogImage !== MISSING && ogImage !== undefined) {
+    const served = await fetchImage(new URL(ogImage).pathname);
+    if (served.status !== 200)
+      failures.push(
+        `${pagePath}: התמונה ${ogImage} החזירה סטטוס ${served.status}`
+      );
+    expectEqual("og:image:type", imageType, served.contentType);
+  }
+
+  if (pagePath.startsWith("/blog/") && typeof title === "string") {
     const post = blogPosts[decodeURIComponent(pagePath.slice("/blog/".length))];
     if (!title.includes(post.title))
       failures.push(
         `${pagePath}: הכותרת ${JSON.stringify(title)} לא כוללת את כותרת הפוסט`
       );
   }
-  return title;
+
+  // אותו עמוד עם לוכסן בסוף מופנה בהפניה קבועה לכתובת הקנונית, עם מחרוזת השאילתה
+  if (pagePath !== "/") {
+    const redirect = await fetch(`${base}${pagePath}/?ref=check`, {
+      redirect: "manual",
+    });
+    const location = redirect.headers.get("location");
+    if (redirect.status !== 301 || location !== `${pagePath}?ref=check`)
+      failures.push(
+        `${pagePath}/ החזיר ${redirect.status} עם Location ${JSON.stringify(location)} במקום 301 אל ${pagePath}?ref=check`
+      );
+  }
+  return typeof title === "string" ? title : undefined;
 }
+
+// הפרויקט שהעמוד שייך לו (עמוד הפרויקט או עמוד ה-Ask AI שלו), לפי הנתיבים שמוגדרים ב-App.tsx
+function projectOfPath(pagePath) {
+  const slug = pagePath.match(/^\/project\/([^/]+)(?:\/ask-ai)?$/)?.[1];
+  return slug === undefined
+    ? undefined
+    : projects.find(p => p.slug === decodeURIComponent(slug));
+}
+
+// כל תמונה נשלפת פעם אחת: כמה עמודים חולקים אותה תמונה
+const imageResponses = new Map();
+function fetchImage(imagePath) {
+  if (!imageResponses.has(imagePath)) {
+    imageResponses.set(
+      imagePath,
+      fetch(base + imagePath).then(async r => {
+        await r.arrayBuffer();
+        return { status: r.status, contentType: r.headers.get("content-type") };
+      })
+    );
+  }
+  return imageResponses.get(imagePath);
+}
+
+const MISSING = Symbol("missing");
 
 const failures = [];
 let urlCount = 0;

@@ -160,12 +160,22 @@ function vitePluginManusDebugCollector(): Plugin {
 const PAGE_META_PLACEHOLDER = "<!-- page-meta -->";
 
 /**
- * תמונת התצוגה המקדימה בשיתוף, אותה תמונה לכל העמודים. לעמודים אין עדיין תמונות משלהן בפורמט שמתאים
- * לתצוגה מקדימה: 9 מתוך 10 תמונות הכרטיס של הפרויקטים הן WebP, ותמונה של CodeKeeper שוקלת 3MB.
+ * תמונת השיתוף של האתר, לכל עמוד שאין לו תמונה משלו (PageMeta.image). עמוד פרויקט מקבל את תמונת הכרטיס שלו.
  * הגודל והסוג ב-og:image:width/height/type עוזרים לפייסבוק להציג את התמונה כבר בשיתוף הראשון.
  * מקור: https://developers.facebook.com/docs/sharing/webmasters/#images
  */
 const SHARE_IMAGE = { path: "/og-preview.png", width: 1200, height: 630, type: "image/png" };
+
+/**
+ * og:image:type לפי סיומת, לסוגי התמונות שיש באתר. סיומת אחרת מקבלת תמונה בלי og:image:type: תגית חסרה עדיפה על ניחוש.
+ * scripts/check-seo.mjs משווה את הערך ל-Content-Type שהשרת באמת שולח עם התמונה.
+ */
+const IMAGE_TYPES: Record<string, string> = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+};
 
 /**
  * תגיות SEO מאותם נתונים שהאתר מציג (client/src/lib/page-meta.ts), כך שעמוד חדש נכנס אליהן לבד:
@@ -301,7 +311,7 @@ function resolveSiteUrl(raw: string | undefined): string | null {
  */
 function renderPageHead(page: PageMeta, siteUrl: string | null): string {
   const pageUrl = siteUrl && siteUrl + page.path;
-  const imageUrl = siteUrl && siteUrl + SHARE_IMAGE.path;
+  const image = siteUrl ? shareImage(page, siteUrl) : null;
   const tags = [
     `<title>${escapeHtml(page.title)}</title>`,
     `<meta name="description" content="${escapeHtml(page.description)}" />`,
@@ -311,18 +321,35 @@ function renderPageHead(page: PageMeta, siteUrl: string | null): string {
     `<meta property="og:title" content="${escapeHtml(page.title)}" />`,
     `<meta property="og:description" content="${escapeHtml(page.description)}" />`,
     pageUrl && `<meta property="og:url" content="${escapeHtml(pageUrl)}" />`,
-    imageUrl && `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`,
-    imageUrl && `<meta property="og:image:width" content="${SHARE_IMAGE.width}" />`,
-    imageUrl && `<meta property="og:image:height" content="${SHARE_IMAGE.height}" />`,
-    imageUrl && `<meta property="og:image:type" content="${SHARE_IMAGE.type}" />`,
+    image && `<meta property="og:image" content="${escapeHtml(image.url)}" />`,
+    image?.width && `<meta property="og:image:width" content="${image.width}" />`,
+    image?.height && `<meta property="og:image:height" content="${image.height}" />`,
+    image?.type && `<meta property="og:image:type" content="${escapeHtml(image.type)}" />`,
     `<meta property="og:locale" content="he_IL" />`,
     `<meta property="og:site_name" content="Amir Biron Portfolio" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${escapeHtml(page.title)}" />`,
     `<meta name="twitter:description" content="${escapeHtml(page.description)}" />`,
-    imageUrl && `<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />`,
+    image && `<meta name="twitter:image" content="${escapeHtml(image.url)}" />`,
   ];
   return tags.filter(Boolean).join("\n    ");
+}
+
+/**
+ * תמונת השיתוף של עמוד, בכתובת מלאה. לתמונת האתר יש מידות ידועות. לתמונה של עמוד אין מידות:
+ * הבנייה לא מודדת קבצי תמונה, ומידות שגויות גרועות מחסרות. ווטסאפ וטלגרם לא צריכים אותן,
+ * ובפייסבוק בלעדיהן התמונה עלולה לא להופיע בשיתוף הראשון של הקישור (ראו SHARE_IMAGE).
+ */
+function shareImage(
+  page: PageMeta,
+  siteUrl: string
+): { url: string; width?: number; height?: number; type?: string } {
+  if (!page.image) {
+    return { url: siteUrl + SHARE_IMAGE.path, width: SHARE_IMAGE.width, height: SHARE_IMAGE.height, type: SHARE_IMAGE.type };
+  }
+  // נתיב מתוך client/public מקבל את כתובת האתר לפניו, כמו og:url; כתובת מלאה נשארת כמו שהיא
+  const url = /^https?:\/\//i.test(page.image) ? page.image : siteUrl + page.image;
+  return { url, type: IMAGE_TYPES[path.posix.extname(new URL(url).pathname).toLowerCase()] };
 }
 
 /** בריחה לטקסט של תגית ולערך של מאפיין בגרשיים כפולים: אלה ארבעת התווים שיכולים לשבור אותם */

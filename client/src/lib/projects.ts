@@ -27,6 +27,12 @@ export interface ProjectData {
   /** קישור לקוד, או לדף אחר לפי repoLabel. בלי השדה אין כפתור, כמו ב-demo */
   repo?: string;
   repoLabel?: string;
+  /**
+   * פרויקט שנבנה ללקוח: המערכת והקוד שלו, ולכן אין לו קישור לקוד, ולרובם גם לא דמו פתוח.
+   * מוצגת לו התווית "פרויקט ללקוח · קוד סגור" (ClientProjectBadge) בכרטיס ובעמוד הפרויקט,
+   * כדי שהיעדר הכפתורים יוסבר ולא ייראה כמו משהו שחסר.
+   */
+  clientProject?: true;
   challenges: string[];
   features: string[];
   /**
@@ -146,6 +152,7 @@ export const projects: ProjectData[] = [
   {
     slug: "myagent",
     title: "myAgent",
+    clientProject: true,
     description:
       "סוכן מכירות אישי לוואטסאפ וטלגרם — מנהל בשבילך שיחות התעניינות כשאתה לא זמין",
     subtitle: "סוכן AI אישי לוואטסאפ וטלגרם עם בסיס ידע אישי ודשבורד ניהול",
@@ -229,6 +236,7 @@ export const projects: ProjectData[] = [
   {
     slug: "fb-leads-scanner",
     title: "FB Leads Scanner",
+    clientProject: true,
     description:
       "בוט שסורק קבוצות פייסבוק ושולח לך פוסטים שאתה מחשיב ללידים + פאנל ווב לניהול",
     subtitle: "סורק קבוצות פייסבוק אוטומטי עם סיווג AI + פאנל ניהול",
@@ -317,6 +325,7 @@ export const projects: ProjectData[] = [
   {
     slug: "leadsflow",
     title: "LeadsFlow",
+    clientProject: true,
     description:
       "מערכת ניהול תקשורת ולידים רב-ערוצית — מייל, וואטסאפ, מסנג'ר ואינסטגרם בתיבה אחת עם טיוטות AI",
     subtitle: "Inbox מאוחד לכל ערוצי הלידים עם סיווג AI וטיוטת תשובה אוטומטית",
@@ -411,6 +420,7 @@ export const projects: ProjectData[] = [
   {
     slug: "contentflow",
     title: "ContentFlow",
+    clientProject: true,
     description:
       "מחולל תוכן שיווקי לעסקים — יוצר פוסטים בעברית בסגנון שלך לפי דוגמאות שסיפקת",
     subtitle: "מחולל פוסטים שיווקיים בעברית עם פרופיל עסק וניתוח דוגמאות סגנון",
@@ -489,6 +499,7 @@ export const projects: ProjectData[] = [
   {
     slug: "offerflow",
     title: "OfferFlow",
+    clientProject: true,
     description:
       "מחולל הצעות מחיר וחוזים ב-AI — מתיאור חופשי ל-PDF ממותג ב-60 שניות, עם חתימה דיגיטלית ו-tracking",
     subtitle: "מחולל הצעות מחיר וחוזים בעברית עם AI, חתימה דיגיטלית ומעקב פתיחה",
@@ -590,6 +601,7 @@ export const projects: ProjectData[] = [
   {
     slug: "mentoros",
     title: "MentorOS",
+    clientProject: true,
     description:
       "מנטור אישי מבוסס AI עם זיכרון ארוך טווח — מזהה דפוסים, מנתח החלטות ומלווה צמיחה אישית",
     subtitle:

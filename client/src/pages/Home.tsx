@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ExternalLinkButton } from "@/components/ExternalLinkButton";
+import { ClientProjectBadge } from "@/components/ClientProjectBadge";
 import { projects } from "@/lib/projects";
 import { testimonials } from "@/lib/testimonials";
 import { blogPosts, blogSlugs } from "@/lib/blog";
@@ -281,6 +282,12 @@ export default function Home() {
                     ))}
                   </div>
                   
+                  {project.clientProject && (
+                    <div dir="rtl" className="mb-4">
+                      <ClientProjectBadge />
+                    </div>
+                  )}
+
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-3">
                       <Button
