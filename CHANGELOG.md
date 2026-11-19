@@ -49,29 +49,32 @@
 6. ב-`client/src/App.tsx`, להוסיף את `useLocation` ל-import מ-wouter, `useEffect` ל-import מ-react, `import { getPageMeta } from "./lib/page-meta";`, ואת `usePageTitle` לפי סעיף 6.
 7. לוודא שהבנייה רצה עם `VITE_SITE_URL` המלא של אותה סביבה. אחרי `pnpm build`, ב-`dist` צריך להיות `page-html.json` ליד `public`, ו-`curl <אתר>/blog/<slug>` צריך להחזיר את כותרת הפוסט ב-`<title>`.
 
-## [2026-11-19] כפתורי Demo ו-Code מוצגים רק כשיש להם קישור, ופרויקט ללקוח מקבל את התווית "פרויקט ללקוח · קוד סגור"
+## [2026-11-19] כפתור Demo מוצג רק כשיש לו קישור, וכפתור Code בפרויקט ללקוח מסביר שהקוד סגור
 
 **קבצים שהשתנו:**
 - `client/src/lib/projects.ts` — (שונה) `demo` ו-`repo` אופציונליים, והערכים `"#"` נמחקו; שדה חדש `clientProject` לשישה פרויקטים
 - `client/src/components/ExternalLinkButton.tsx` — (שונה) בלי המצב של קישור לא זמין (`"#"` ו-`unavailableMessage`)
-- `client/src/components/ClientProjectBadge.tsx` — (נוסף) התווית "פרויקט ללקוח · קוד סגור"
-- `client/src/pages/Home.tsx` — (שונה) כפתור ה-Demo בכרטיס הפרויקט מוצג רק כשיש `demo`; התווית בכרטיס של פרויקט ללקוח
-- `client/src/pages/ProjectPage.tsx` — (שונה) כפתורי Demo ו-Code, למעלה ולמטה, מוצגים רק כשיש להם קישור, ומיכל הכפתורים מוצג רק כשיש בו משהו; התווית בראש עמוד של פרויקט ללקוח
+- `client/src/pages/Home.tsx` — (שונה) כפתור ה-Demo בכרטיס הפרויקט מוצג רק כשיש `demo`
+- `client/src/pages/ProjectPage.tsx` — (שונה) כפתור Demo מוצג רק כשיש `demo`; כפתור Code הוא קישור כשיש `repo`, ובפרויקט ללקוח בלי `repo` הוא מציג "קוד סגור - פרויקט ללקוח"; מיכל הכפתורים מוצג רק כשיש בו משהו
 
 **פירוט:**
-ב-4 פרויקטים (myAgent, LeadsFlow, ContentFlow, OfferFlow) כפתור ה-Demo הוביל ל-`"#"`, ובשישה כפתור ה-Code (גם FB Leads Scanner ו-MentorOS). לחיצה עליהם הקפיצה רק הודעה "Demo link - Feature coming soon" או "הקוד עדיין לא זמין", ולמבקר זה נראה כמו אתר שלא נגמר. עכשיו כפתור בלי יעד לא מוצג בכלל. בכרטיס בדף הבית כפתור Details תופס את כל השורה כשאין דמו. בעמוד פרויקט בלי דמו, קוד ו-Ask AI, גם המיכל של הכפתורים לא מרונדר, כדי שלא יישאר רווח ריק: בנייד התחתית של העמוד ירדה מ-88 ל-36 פיקסלים. כל ששת הפרויקטים האלה נבנו ללקוחות, ולכן מוצגת בהם התווית "פרויקט ללקוח · קוד סגור", שמסבירה למה אין קישור לקוד ולרובם גם לא דמו.
+ב-4 פרויקטים (myAgent, LeadsFlow, ContentFlow, OfferFlow) כפתור ה-Demo הוביל ל-`"#"`, ובשישה כפתור ה-Code (גם FB Leads Scanner ו-MentorOS). לחיצה עליהם הקפיצה רק הודעה "Demo link - Feature coming soon" או "הקוד עדיין לא זמין", ולמבקר זה נראה כמו אתר שלא נגמר. כל ששת הפרויקטים האלה נבנו ללקוחות. עכשיו:
+- **כפתור Demo** (בכרטיס בדף הבית ובעמוד הפרויקט) מוצג רק כשיש קישור. בכרטיס בדף הבית כפתור Details תופס את כל השורה כשאין דמו.
+- **כפתור Code** בעמוד הפרויקט: כשיש `repo` הוא קישור, כמו קודם. בפרויקט ללקוח בלי `repo` הוא נשאר באותו מראה (אייקון GitHub והטקסט Code), ולחיצה עליו מציגה את ההודעה "קוד סגור - פרויקט ללקוח", באותו עיצוב של ההודעה הקודמת (`toast.info` של sonner). כך מי שמחפש את הקוד מקבל תשובה כנה, במקום "עדיין לא זמין". בפרויקט שאינו ללקוח ואין לו `repo`, אין כפתור Code.
+- בעמוד פרויקט שאין לו אף כפתור (בלי דמו, בלי קוד, לא ללקוח ובלי Ask AI), גם המיכל של הכפתורים לא מרונדר, כדי שלא יישאר רווח ריק.
 
-1. **`projects.ts`:** בממשק `ProjectData`, `demo?: string` ו-`repo?: string` (היו חובה), עם הערה שהיעדר השדה פירושו שאין כפתור. עשר השורות `demo: "#",` ו-`repo: "#",` נמחקו. השדות `demoLabel` ו-`repoLabel` לא השתנו. שדה חדש `clientProject?: true` (פרויקט שנבנה ללקוח), עם הערה. הוא מוגדר כ-`clientProject: true,` מיד אחרי השורה `title` בשישה פרויקטים: `myagent`, `fb-leads-scanner`, `leadsflow`, `contentflow`, `offerflow`, `mentoros`. השדה מפורש, ולא נגזר מהיעדר קישורים: AI Business Chatbot, למשל, אינו פרויקט ללקוח.
+1. **`projects.ts`:** בממשק `ProjectData`, `demo?: string` ו-`repo?: string` (היו חובה), עם הערה שהיעדר השדה פירושו שאין כפתור. עשר השורות `demo: "#",` ו-`repo: "#",` נמחקו. השדות `demoLabel` ו-`repoLabel` לא השתנו. שדה חדש `clientProject?: true` (פרויקט שנבנה ללקוח), עם הערה. הוא מוגדר כ-`clientProject: true,` מיד אחרי השורה `title` בשישה פרויקטים: `myagent`, `fb-leads-scanner`, `leadsflow`, `contentflow`, `offerflow`, `mentoros`. השדה מפורש, ולא נגזר מהיעדר קישורים: AI Business Chatbot, למשל, אינו פרויקט ללקוח. השדה משפיע רק על כפתור Code, לא על כפתור הדמו.
 2. **`ExternalLinkButton.tsx`:** נמחקו ה-prop `unavailableMessage`, הבדיקה `href === "#"` וה-import של `toast`. הרכיב תמיד מחזיר `<Button {...buttonProps} asChild><a href={href} target="_blank" rel="noopener">`.
 3. **`Home.tsx`:** כפתור ה-Demo בכרטיס עטוף ב-`{project.demo && (...)}`, בלי `unavailableMessage`.
-4. **`ProjectPage.tsx`:** אחרי הבדיקה שהפרויקט קיים, `const hasActions = Boolean(project.demo || project.repo || project.askAi);`. בכותרת ובתחתית העמוד, ה-`div` עם `flex gap-3` עטוף ב-`{hasActions && (...)}`, וכל אחד מכפתורי Demo ו-Code בתוכו עטוף ב-`{project.demo && (...)}` / `{project.repo && (...)}`, בלי `unavailableMessage`.
-5. **התווית `ClientProjectBadge`** (קובץ חדש, מקור יחיד לנוסח ולמראה): `<span dir="rtl">` עם `cn("inline-flex items-center gap-1.5 border border-dashed border-muted-foreground/50 px-2 py-1 font-mono text-xs text-muted-foreground", className)`, ובתוכו `<Lock className="h-3 w-3 shrink-0" aria-hidden="true" />` (מ-lucide-react) והטקסט `פרויקט ללקוח · קוד סגור`. המסגרת המקווקוות מבדילה אותה מתגיות הטכנולוגיות, והיא לא נראית כמו כפתור. מקומות:
-   - **בכרטיס בדף הבית:** אחרי תגיות הטכנולוגיות ולפני שורת הכפתורים: `{project.clientProject && (<div dir="rtl" className="mb-4"><ClientProjectBadge /></div>)}`.
-   - **בעמוד הפרויקט:** ב-Hero, אחרי `fullDescription` ולפני תגיות הטכנולוגיות: `{project.clientProject && (<div dir="rtl" className="mb-6"><ClientProjectBadge className="text-sm" /></div>)}`.
+4. **`ProjectPage.tsx`:**
+   - `import { toast } from "sonner";` ו-`type ComponentProps` ב-import מ-react. מעל `ProjectPage`, רכיב קטן שהנוסח שלו במקום אחד: `function ClosedCodeButton(props: Omit<ComponentProps<typeof Button>, "onClick">) { return <Button {...props} onClick={() => toast.info("קוד סגור - פרויקט ללקוח")} />; }`.
+   - אחרי הבדיקה שהפרויקט קיים: `const hasActions = Boolean(project.demo || project.repo || project.clientProject || project.askAi);`. בכותרת ובתחתית העמוד, ה-`div` עם `flex gap-3` עטוף ב-`{hasActions && (...)}`.
+   - כפתור Demo עטוף ב-`{project.demo && (...)}`, בלי `unavailableMessage`.
+   - כפתור Code: `{project.repo ? (<ExternalLinkButton ...> כמו קודם, בלי unavailableMessage) : (project.clientProject && (<ClosedCodeButton ...>))}`. ל-`ClosedCodeButton` אותם `size`, `variant="outline"` ו-`className` של כפתור ה-Code באותו מקום, ובתוכו `<Github className="mr-2 h-3 w-3" />` (למעלה) או `h-4 w-4` (למטה) והטקסט `Code`.
 
-**אימות:** ב-Chromium מול build פרודקשן, עם אותה מדידה על build בלי השינוי: בכרטיסים של ארבעת הפרויקטים בלי דמו אין כפתור (בבקרה: כפתור "Demo" שלא מוביל לשום מקום), ו-Details ברוחב 100% מהשורה במקום 48%. בעמוד myAgent הכותרת והתחתית מכילות רק את "Back to Portfolio". בעמוד FB Leads Scanner מוצג רק "Landing Page", בלי Code. ב-CodeKeeper מוצגים Demo, Code ו-Ask AI עם הקישורים הנכונים. התווית מופיעה בכרטיסים של ששת הפרויקטים ללקוח ובעמוד myAgent, עם `direction: rtl`, ולא מופיעה ב-AI Business Chatbot, ב-CodeKeeper, ב-CodeKeeper MCP ובשגרה בחוסר שגרה. השגיאות ב-console זהות לבקרה, ואין שגיאות חדשות. כולן מסקריפט האנליטיקס ב-`index.html`, שהכתובת שלו נשארת `%VITE_ANALYTICS_ENDPOINT%/umami` כשהמשתנה לא מוגדר. זו בעיה קיימת, שלא קשורה לשינוי הזה.
+**אימות:** ב-Chromium מול build פרודקשן, עם אותה מדידה על build בלי השינוי: בכרטיסים של ארבעת הפרויקטים בלי דמו אין כפתור (בבקרה: כפתור "Demo" שלא מוביל לשום מקום), ו-Details ברוחב 100% מהשורה במקום 48%. בעמוד myAgent בכותרת יש רק כפתור Code, ובעמודי FB Leads Scanner ו-MentorOS קישור Landing Page וכפתור Code. לחיצה על Code בשלושתם, למעלה ולמטה, מציגה "קוד סגור - פרויקט ללקוח". ב-AI Business Chatbot, ב-CodeKeeper ובשגרה בחוסר שגרה כל הכפתורים קישורים, עם היעדים הנכונים, כמו קודם. השגיאות ב-console זהות לבקרה, ואין שגיאות חדשות. כולן מסקריפט האנליטיקס ב-`index.html`, שהכתובת שלו נשארת `%VITE_ANALYTICS_ENDPOINT%/umami` כשהמשתנה לא מוגדר. זו בעיה קיימת, שלא קשורה לשינוי הזה.
 
-**ליישום מחדש:** לפי סעיפים 1–5. אחרי השינוי לא נשאר `"#"` ב-`projects.ts`, לא נשאר `unavailableMessage` בשום קובץ, ו-`clientProject: true` מופיע בדיוק בשישה פרויקטים.
+**ליישום מחדש:** לפי סעיפים 1–4. אחרי השינוי לא נשאר `"#"` ב-`projects.ts`, לא נשאר `unavailableMessage` בשום קובץ, ו-`clientProject: true` מופיע בדיוק בשישה פרויקטים.
 
 ## [2026-11-08] הערות ומחרוזות בעברית בתוך קוד נקראות נכון, בבלוג ובצ'אט ה-AI
 
