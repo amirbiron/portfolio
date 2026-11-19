@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import { imageSize } from "image-size";
 import { getPageMeta, pages, type PageMeta } from "./client/src/lib/page-meta";
 import { PAGE_HTML_FILE, type PageHtmlFile } from "./shared/const";
 
@@ -204,11 +205,14 @@ const IMAGE_TYPES: Record<string, string> = {
  */
 function vitePluginSeo(): Plugin {
   let siteUrl: string | null = null;
+  let publicDir = "";
 
   return {
     name: "seo",
 
     configResolved(config) {
+      // התיקייה client/public, כנתיב מלא: משם נמדדות תמונות השיתוף של העמודים
+      publicDir = config.publicDir;
       // config.env כולל את משתני VITE_ מהסביבה ומקבצי .env
       const raw = config.env.VITE_SITE_URL;
       siteUrl = resolveSiteUrl(raw);
@@ -253,11 +257,14 @@ function vitePluginSeo(): Plugin {
 
       // index.html נשמר פעם אחת, מפוצל סביב ה-head, ולכל עמוד נשמר רק ה-head שלו: הקובץ כולל סקריפט מוטמע
       // של כ-360KB (מ-vite-plugin-manus-runtime), ועותק מלא לכל עמוד היה מנפח את הקובץ לכ-6MB
+      const imageSizes = measureShareImages(publicDir, (message) => this.warn(message));
       const pageHtml: PageHtmlFile = {
         before: parts[0],
         after: parts[1],
         heads: Object.fromEntries(
-          pages.filter((page) => page.path !== "/").map((page) => [page.path, renderPageHead(page, siteUrl)])
+          pages
+            .filter((page) => page.path !== "/")
+            .map((page) => [page.path, renderPageHead(page, siteUrl, imageSizes)])
         ),
       };
       fs.writeFileSync(path.join(options.dir, "..", PAGE_HTML_FILE), JSON.stringify(pageHtml));
@@ -309,9 +316,9 @@ function resolveSiteUrl(raw: string | undefined): string | null {
  * שמות התגיות של twitter:* הם אלה שכבר היו ב-index.html. לא אימתתי אותם מול התיעוד של X:
  * דף התיעוד (developer.x.com/en/docs/x-for-websites/cards/overview/markup) החזיר HTTP 402.
  */
-function renderPageHead(page: PageMeta, siteUrl: string | null): string {
+function renderPageHead(page: PageMeta, siteUrl: string | null, imageSizes: ImageSizes = new Map()): string {
   const pageUrl = siteUrl && siteUrl + page.path;
-  const image = siteUrl ? shareImage(page, siteUrl) : null;
+  const image = siteUrl ? shareImage(page, siteUrl, imageSizes) : null;
   const tags = [
     `<title>${escapeHtml(page.title)}</title>`,
     `<meta name="description" content="${escapeHtml(page.description)}" />`,
@@ -335,21 +342,50 @@ function renderPageHead(page: PageMeta, siteUrl: string | null): string {
   return tags.filter(Boolean).join("\n    ");
 }
 
+/** מידות התמונות של העמודים, לפי הנתיב שב-PageMeta.image. נמדדות פעם אחת ב-writeBundle (measureShareImages) */
+type ImageSizes = Map<string, { width: number; height: number }>;
+
 /**
- * תמונת השיתוף של עמוד, בכתובת מלאה. לתמונת האתר יש מידות ידועות. לתמונה של עמוד אין מידות:
- * הבנייה לא מודדת קבצי תמונה, ומידות שגויות גרועות מחסרות. ווטסאפ וטלגרם לא צריכים אותן,
- * ובפייסבוק בלעדיהן התמונה עלולה לא להופיע בשיתוף הראשון של הקישור (ראו SHARE_IMAGE).
+ * תמונת השיתוף של עמוד, בכתובת מלאה. לתמונת האתר יש מידות ידועות. לתמונה של עמוד המידות נמדדות מהקובץ עצמו
+ * (measureShareImages), כך שהן נשארות נכונות גם כשמחליפים תמונה. כשאין מידות (כתובת חיצונית, או קובץ שלא
+ * נמדד), התמונה יוצאת בלי og:image:width/height: מידות שגויות גרועות מחסרות.
  */
 function shareImage(
   page: PageMeta,
-  siteUrl: string
+  siteUrl: string,
+  imageSizes: ImageSizes
 ): { url: string; width?: number; height?: number; type?: string } {
   if (!page.image) {
     return { url: siteUrl + SHARE_IMAGE.path, width: SHARE_IMAGE.width, height: SHARE_IMAGE.height, type: SHARE_IMAGE.type };
   }
   // נתיב מתוך client/public מקבל את כתובת האתר לפניו, כמו og:url; כתובת מלאה נשארת כמו שהיא
   const url = /^https?:\/\//i.test(page.image) ? page.image : siteUrl + page.image;
-  return { url, type: IMAGE_TYPES[path.posix.extname(new URL(url).pathname).toLowerCase()] };
+  const size = imageSizes.get(page.image);
+  return { url, ...size, type: IMAGE_TYPES[path.posix.extname(new URL(url).pathname).toLowerCase()] };
+}
+
+/**
+ * מודד את תמונות השיתוף של העמודים מתוך client/public, עם image-size (imageSize(Uint8Array) מחזיר
+ * width, height ו-orientation, וזורק על סוג קובץ שהוא לא מכיר. מקור: node_modules/image-size/dist/esm/lookup.js).
+ * כשל במדידה לא עוצר את הבנייה (כמו שאר ה-SEO): אזהרה בלוג, והתמונה יוצאת בלי מידות.
+ * תמונה עם תג סיבוב (EXIF orientation שאינו 1) לא נמדדת: הרוחב והגובה שבקובץ אינם בהכרח מה שמוצג.
+ */
+function measureShareImages(publicDir: string, warn: (message: string) => void): ImageSizes {
+  const sizes: ImageSizes = new Map();
+  for (const image of new Set(pages.map((page) => page.image))) {
+    if (!image || !image.startsWith("/")) continue;
+    try {
+      const size = imageSize(new Uint8Array(fs.readFileSync(path.join(publicDir, image))));
+      if (size.orientation !== undefined && size.orientation !== 1) {
+        warn(`[seo] ${image} has EXIF orientation ${size.orientation}; its og:image is written without width/height`);
+        continue;
+      }
+      sizes.set(image, { width: size.width, height: size.height });
+    } catch (err) {
+      warn(`[seo] could not measure ${image} (${err instanceof Error ? err.message : String(err)}); its og:image is written without width/height`);
+    }
+  }
+  return sizes;
 }
 
 /** בריחה לטקסט של תגית ולערך של מאפיין בגרשיים כפולים: אלה ארבעת התווים שיכולים לשבור אותם */

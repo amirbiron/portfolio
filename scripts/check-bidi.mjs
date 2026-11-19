@@ -24,16 +24,19 @@ const BIDI = {
 // תיקיות הקוד בלבד. מסמכי הידע ב-docs/ הם טקסט עברי שמועבר כמו שהוא לסוכני ה-AI,
 // ושם סימני כיוון הם חלק מהתוכן.
 const ROOTS = ["client/src", "server", "shared", "scripts"];
+// הקבצים שיושבים ישירות בתיקיות האלה, בלי תת-התיקיות שלהן (שם node_modules, dist, docs ו-client/public):
+// vite.config.ts בשורש ו-client/index.html, שיש בהם הערות בעברית, היו מחוץ לבדיקה
+const SHALLOW_ROOTS = [".", "client"];
 const EXTENSIONS = /\.(ts|tsx|js|mjs|css|html)$/;
 
 const root = process.cwd();
 const findings = [];
 
-function walk(dir) {
+function walk(dir, recursive = true) {
   for (const name of readdirSync(dir)) {
     const path = join(dir, name);
     if (statSync(path).isDirectory()) {
-      walk(path);
+      if (recursive) walk(path);
     } else if (EXTENSIONS.test(name)) {
       readFileSync(path, "utf8")
         .split("\n")
@@ -55,11 +58,16 @@ function walk(dir) {
   }
 }
 
-for (const dir of ROOTS) {
-  try {
-    walk(join(root, dir));
-  } catch (err) {
-    if (err.code !== "ENOENT") throw err;
+for (const [dirs, recursive] of [
+  [ROOTS, true],
+  [SHALLOW_ROOTS, false],
+]) {
+  for (const dir of dirs) {
+    try {
+      walk(join(root, dir), recursive);
+    } catch (err) {
+      if (err.code !== "ENOENT") throw err;
+    }
   }
 }
 

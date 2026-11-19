@@ -168,6 +168,16 @@
     }
   }
   
+  /* ה-V שמצויר כששלב בתהליך העבודה מסתיים (WorkflowSteps): הקו נחשף לאורכו, 24 יחידות כמו stroke-dasharray */
+  @keyframes workflow-check-draw {
+    from {
+      stroke-dashoffset: 24;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
   /* Neon glow effect */
   .neon-glow {
     text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;

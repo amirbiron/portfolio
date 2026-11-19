@@ -7,6 +7,7 @@
 // מקור לכלל: amir-bug-patterns, claude-md-snippets/testing.md, כלל 1 (לבדוק דרך הממשק של הצרכן).
 import { spawn } from "node:child_process";
 import { build } from "esbuild";
+import { imageSize } from "image-size";
 
 // אותו נרמול כמו ב-vite.config.ts, כדי שהכתובות הצפויות יהיו זהות לאלה שהבנייה כותבת
 function normalizeSiteUrl(raw) {
@@ -206,20 +207,11 @@ async function checkPageHead(pagePath) {
   const ogImage = property("og:image");
   expectEqual("og:image", ogImage, wantedImage);
   expectEqual("twitter:image", named("twitter:image"), wantedImage);
-  const imageWidths = metas.filter(m => m.property === "og:image:width");
-  const imageHeights = metas.filter(m => m.property === "og:image:height");
-  if (projectImage) {
-    // לתמונות הפרויקטים אין מידות ב-head (ראו renderPageHead ב-vite.config.ts), ולכן גם מידות שגויות לא ייכנסו בטעות
-    if (imageWidths.length + imageHeights.length > 0)
-      failures.push(
-        `${pagePath}: יש og:image:width/height לתמונת הפרויקט, שהבנייה לא מודדת`
-      );
-  } else {
-    expectEqual("og:image:width", property("og:image:width"), "1200");
-    expectEqual("og:image:height", property("og:image:height"), "630");
-  }
-  // og:image:type חייב להתאים למה שהשרת באמת שולח עם התמונה, והתמונה חייבת להיות מוגשת
+  // התמונה חייבת להיות מוגשת, og:image:type חייב להתאים ל-Content-Type שהשרת שולח איתה,
+  // והמידות שב-head חייבות להתאים לקובץ שהשרת באמת מגיש (נמדד כאן מהבייטים שהגיעו ב-HTTP)
   const imageType = property("og:image:type");
+  const imageWidth = property("og:image:width");
+  const imageHeight = property("og:image:height");
   if (ogImage !== MISSING && ogImage !== undefined) {
     const served = await fetchImage(new URL(ogImage).pathname);
     if (served.status !== 200)
@@ -227,6 +219,12 @@ async function checkPageHead(pagePath) {
         `${pagePath}: התמונה ${ogImage} החזירה סטטוס ${served.status}`
       );
     expectEqual("og:image:type", imageType, served.contentType);
+    if (served.size) {
+      expectEqual("og:image:width", imageWidth, String(served.size.width));
+      expectEqual("og:image:height", imageHeight, String(served.size.height));
+    } else {
+      failures.push(`${pagePath}: לא הצלחתי למדוד את ${ogImage}`);
+    }
   }
 
   if (pagePath.startsWith("/blog/") && typeof title === "string") {
@@ -266,8 +264,19 @@ function fetchImage(imagePath) {
     imageResponses.set(
       imagePath,
       fetch(base + imagePath).then(async r => {
-        await r.arrayBuffer();
-        return { status: r.status, contentType: r.headers.get("content-type") };
+        const bytes = new Uint8Array(await r.arrayBuffer());
+        let size = null;
+        try {
+          // imageSize זורק על קובץ שאינו תמונה מוכרת (למשל index.html שהוגש במקום תמונה חסרה)
+          size = imageSize(bytes);
+        } catch {
+          // נשאר null: הקורא רושם כשל עם שם התמונה
+        }
+        return {
+          status: r.status,
+          contentType: r.headers.get("content-type"),
+          size,
+        };
       })
     );
   }

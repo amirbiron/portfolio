@@ -1,9 +1,60 @@
+## [2026-11-19] בלוק "תהליך עבודה" בדף הבית, ממש לפני טופס יצירת הקשר
+
+**קבצים שהשתנו:**
+- `client/src/lib/workflow.ts` — (נוסף) הנוסח של הבלוק: הכותרת ושישה שלבים, עם הערה לשלב הראשון
+- `client/src/components/WorkflowSteps.tsx` — (נוסף) רשימת השלבים כיומן של תהליך שרץ, עם אנימציה של ספינר שהופך ל-V מצויר
+- `client/src/index.css` — (שונה) keyframes `workflow-check-draw` לציור ה-V
+- `client/src/pages/Home.tsx` — (שונה) הסקשן החדש בין הבלוג לטופס יצירת הקשר; לסקשן יצירת הקשר כבר אין רקע
+
+**פירוט:**
+מבקר שראה את הפרויקטים ואת ההמלצות לא ידע מה הצעד הבא חוץ מטופס פנייה ריק. עכשיו, ממש לפני הטופס, יש בלוק שמסביר איך עובדים: מהאפיון, דרך שאלות ותכנון, ועד הצעת מחיר, מסירה וליווי. מתחתיו כפתור שגולל לטופס. הנוסח הוא של בעל הפרויקט, מילה במילה. כל שורה בנוסח המקורי היא שלב, והשורה שהתחילה ב-`>` היא הערה מתחת לשלב הראשון. רק הפסיקים שבסוף השורה הראשונה והשנייה הוסרו, כי כל שורה היא עכשיו שלב נפרד.
+
+1. **`client/src/lib/workflow.ts`:** מייצא את `WorkflowStep { text: string; note?: string }`, את `workflowTitle = "תהליך עבודה"` ואת `workflowSteps`, שישה שלבים, לפי הסדר (להעתיק את הקובץ כמו שהוא, כי הטקסט חייב להיות זהה):
+   1. `יושבים בצ'אט/זום, אתה שולח לי את האפיון של המערכת שאתה צריך שנבנה`, עם `note`: `לא הכוונה לקובץ אפיון מסודר וגדול בהכרח - הכוונה תפרט מה בדיוק אתה צריך, באילו תנאים, תדירות, כל הפרטים שיש לך על מה שאתה מתכנן שנבנה.`
+   2. `אשאל אותך כמה שאלות על האפיון, ובמידת הצורך, אשאל אותך על עוד התאמות לצרכי העסק שלך שלא נכתבו באפיון`
+   3. `אציג לך את התיכנון שלי, עם הסבר איך בדיוק המערכת תעבוד, ומה יידרש ממך > יהיו לך בקשות לשינויים > נשנה, עד שאתה מאה אחוז עם התיכנון.`
+   4. `סיימנו את שלב התיכנון - אציג לך הצעת מחיר, והמחירים אצלי נמוכים ביחס למחירי השוק. אבל - המערכת שתקבל תהיה ברמה גבוהה.`
+   5. `שלב הבא, אמסור לך את המערכת, עם הסבר מפורט על אופן התפעול שלה.`
+   6. `אפשר לבקש שינויים, למשך 2 חודשים לאחר המסירה. ותיקונים גם אחרי זה, אני תמיד זמין.`
+2. **`WorkflowSteps({ steps, className })`:** מבוסס על הרכיב agent-steps מספריית finesse (ציר צעדים: ספינר שהופך ל-V), עם השינויים האלה:
+   - הריצה מתחילה כשהרשימה נכנסת למסך, ולא בכפתור "הרצה": `useInView(listRef, { once: true, margin: "-80px" })` מ-framer-motion.
+   - state `current` (השלב שרץ): -1 לפני שהרשימה נראתה; כשהיא נראית הוא עובר ל-0, ו-`useEffect` עם `setTimeout` של 1100ms מקדם אותו בכל פעם בשלב אחד, עד `steps.length`.
+   - `useReducedMotion()`: מי שביקש פחות תנועה מקבל מיד `current = steps.length`, כלומר כל השלבים גמורים, בלי ספינר ובלי ציור.
+   - **מבנה כל שלב:** `<ol dir="rtl" className="space-y-5">`, וכל `<li className="flex items-start gap-3">` מכיל:
+     - **מחוון** עגול 6x6 (`aria-hidden`) עם `border`. בשלב שממתין: `border-border` וריק. בשלב שרץ: `border-accent text-accent` עם SVG ספינר (`path d="M21 12a9 9 0 1 1-9-9"`, `className="h-3 w-3 animate-spin"`). בשלב שהסתיים: `border-primary bg-primary/15 text-primary` עם SVG של V (`path d="m4 12.5 5 5L20 6.5"`, `strokeDasharray="24"`, `animation: workflow-check-draw 0.35s ease-out both`, בלי האנימציה במצב של פחות תנועה).
+     - **פסקה:** `leading-relaxed`, בצבע `text-muted-foreground` לשלב שממתין ו-`text-foreground/90` אחר כך, כך שהטקסט קריא גם לפני שהשלב הגיע אליו. בתחילתה תגית `<span dir="ltr" className="ml-2 font-mono text-sm">[n/6]</span>`, בצבע של מצב השלב (עמום, accent או primary). ה-`dir="ltr"` שומר על הסוגריים והלוכסן מלהתהפך בשורה עברית. הרווח הוא `ml-2` פיזי, כי `me-2` על תגית LTR יוצא בצד הלא נכון.
+     - **ההערה:** `<blockquote className="mt-3 border-s-4 border-primary ps-4 text-sm italic text-muted-foreground">`, אותו מראה כמו ציטוט בבלוג (`.prose blockquote` ב-`blog-styles.css`).
+3. **`index.css`:** ליד שאר ה-keyframes: `@keyframes workflow-check-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }`.
+4. **`Home.tsx`:**
+   - **מיקום:** סקשן חדש בין הבלוג (`$ git log --blog`) לסקשן יצירת הקשר: `<section className="py-20 bg-card/50">` עם `container max-w-3xl`.
+   - **כותרת:** כמו בשאר הסקשנים, `FadeInSection` עם האייקון `Workflow` מ-lucide-react (`h-8 w-8 text-accent`), `h2` `$ ./workflow.sh` (`text-3xl md:text-4xl font-bold text-accent neon-glow`), ו-`<p dir="rtl" className="text-muted-foreground text-lg">{workflowTitle}</p>`.
+   - **חלון:** `FadeInSection delay={0.15}` עם `terminal-window`, כותרת חלון עם שלוש הנקודות ו-`workflow.log`, ובתוכו `p-8` עם `<WorkflowSteps steps={workflowSteps} />`.
+   - **כפתור:** מתחת לשלבים, `<div dir="rtl" className="mt-8">` עם כפתור זהה ל-Contact Me שב-Hero (`variant="outline"`, `border-accent text-accent hover:bg-accent/10 transition-all hover:scale-105`, אייקון `Mail`, `dir="ltr"` על הכפתור), שגולל ל-`#contact` ב-`scrollIntoView({ behavior: 'smooth' })`.
+   - **רקע:** לסקשן יצירת הקשר הוסר `bg-card/50`, כדי שהרקעים ימשיכו להתחלף: הבלוג בלי רקע, תהליך העבודה עם רקע, יצירת הקשר בלי.
+
+**אימות:** ב-Chromium מול build פרודקשן, בטאבלט (1366x1024) ובנייד (390x844):
+- **סדר הסקשנים:** `$ git log --blog`, `$ ./workflow.sh`, `$ ./contact.sh`.
+- **האנימציה:** לפני הגלילה כל השלבים ממתינים. חצי שנייה אחרי שהבלוק נכנס למסך השלב הראשון רץ, אחרי 2.8 שניות שניים גמורים והשלישי רץ, ואחרי 7.4 שניות כל השישה גמורים. עם `prefers-reduced-motion: reduce` כל השישה גמורים מיד.
+- **הטקסט:** השלבים זהים לנוסח. `[1/6]` מוצג משמאל לימין, צמוד לקצה הימני של השורה, עם רווח של 8 פיקסלים מהטקסט.
+- **ההערה:** הסגנון המחושב שלה (קו של 4px בצד ימין, ריווח 16px, צבע, נטוי) זהה לזה של ציטוט בפוסט בבלוג.
+- **הכפתור:** לחיצה על Contact Me מביאה את הטופס למסך.
+- **נייד:** אין גלילה אופקית. אין שגיאות בדף.
+
+## [2026-11-19] קישור דף נחיתה חדש ל-AI Business Chatbot
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) השדה `repo` של `ai-business-bot`
+
+**פירוט:**
+כפתור "Landing Page" של AI Business Chatbot (השדה `repo`, עם `repoLabel: "Landing Page"`) מצביע עכשיו על `https://amirbiron.github.io/ChatBotLanding/` במקום `https://amirbiron.github.io/Chatbot4U/`. הכתובת החדשה מחזירה 200. **ליישום מחדש:** להחליף את הערך של `repo` ברשומה `ai-business-bot`.
+
 ## [2026-11-19] לכל עמוד כותרת, תיאור, תמונה ו-og:url משלו כשמשתפים קישור, וכותרת לשונית שמתעדכנת בניווט
 
 **קבצים שהשתנו:**
 - `client/src/lib/page-meta.ts` — (נוסף) הכותרת, התיאור, סוג ה-og ותמונת השיתוף של כל עמוד באתר, מתוך נתוני הפרויקטים, ההמלצות והבלוג
 - `client/index.html` — (שונה) התגיות הקבועות (title, description, og:*, twitter:*) הוחלפו בסמן `<!-- page-meta -->`. author ו-keywords נשארו
 - `vite.config.ts` — (שונה) הפלאגין `vitePluginSitemap` הפך ל-`vitePluginSeo`: מייצר גם את תגיות ה-head של כל עמוד, וכותב את `dist/page-html.json`
+- `package.json`, `pnpm-lock.yaml` — (שונה) חבילת הפיתוח `image-size` 2.0.4, למדידת תמונות השיתוף בזמן הבנייה
 - `shared/const.ts` — (שונה) הקבוע `PAGE_HTML_FILE` והטיפוס `PageHtmlFile`, משותפים לבנייה ולשרת
 - `server/index.ts` — (שונה) עמוד שיש לו head משלו מוגש עם ה-head שלו, ואותו עמוד עם לוכסן בסוף מופנה לכתובת בלי הלוכסן
 - `client/src/App.tsx` — (שונה) `usePageTitle`: כותרת הלשונית מתעדכנת בכל מעבר עמוד
@@ -26,7 +77,8 @@
    - `generateBundle`: מפת האתר ו-robots.txt כמו קודם, אבל הנתיבים נלקחים מ-`pages.filter(p => p.inSitemap)`. `sitemap.xml` ו-`robots.txt` יוצאים זהים בבייטים לגרסה הקודמת.
    - `renderPageHead(page, siteUrl)` מחזירה, לפי הסדר, ממוזגות ב-`"\n    "`: `<title>`, `meta name="description"`, `link rel="canonical"`, `og:type`, `og:title`, `og:description`, `og:url`, `og:image` עם `og:image:width`, `og:image:height` ו-`og:image:type` (לפי `shareImage`, ראו בהמשך), `og:locale` he_IL, `og:site_name` Amir Biron Portfolio, `twitter:card` summary_large_image, `twitter:title`, `twitter:description`, `twitter:image`. og:title ו-twitter:title זהים ל-`<title>`. כל ערך עובר `escapeHtml` (בריחה ל-`&`, `<`, `>`, `"`). כשאין `siteUrl`, התגיות שדורשות כתובת מלאה (canonical, og:url, og:image ושלוש תגיות הגודל שלה, twitter:image) מושמטות. עד עכשיו נשאר בהן הטקסט `%VITE_SITE_URL%` כמו שהוא.
    - הקישור הקנוני חדש. הוא ב-head של ה-HTML המקורי, בכתובת מלאה, ומצביע על העמוד עצמו, כמו שגוגל ממליץ (https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls). og:url של דף הבית הוא עכשיו `<siteUrl>/` עם לוכסן בסוף, כמו בקישור הקנוני ובמפת האתר.
-   - **תמונת השיתוף (`shareImage(page, siteUrl)`):** לעמוד בלי `image` (דף הבית, ההמלצות והבלוג) — `<siteUrl>/og-preview.png`, עם `og:image:width` 1200, `og:image:height` 630 ו-`og:image:type` image/png. לעמוד עם `image` (עמודי הפרויקטים ועמודי ה-Ask AI שלהם) — נתיב שמתחיל ב-`/` מקבל את `siteUrl` לפניו, כמו og:url, וכתובת `http(s)://` נשארת כמו שהיא. `og:image:type` נקבע לפי הסיומת מהטבלה `IMAGE_TYPES` (`.png` image/png, `.jpg`/`.jpeg` image/jpeg, `.webp` image/webp), וסיומת אחרת מקבלת תמונה בלי `og:image:type`. לתמונות האלה **אין** `og:image:width`/`og:image:height`: הבנייה לא מודדת קבצי תמונה, ומידות שגויות גרועות מחסרות. ווטסאפ וטלגרם לא צריכים אותן. בפייסבוק בלעדיהן התמונה עלולה לא להופיע בשיתוף הראשון של הקישור. 9 מתוך 10 תמונות הכרטיס הן WebP. בעל הפרויקט בדק שווטסאפ מציג WebP בתצוגה מקדימה.
+   - **תמונת השיתוף (`shareImage(page, siteUrl, imageSizes)`):** לעמוד בלי `image` (דף הבית, ההמלצות והבלוג) — `<siteUrl>/og-preview.png`, עם `og:image:width` 1200, `og:image:height` 630 ו-`og:image:type` image/png. לעמוד עם `image` (עמודי הפרויקטים ועמודי ה-Ask AI שלהם) — נתיב שמתחיל ב-`/` מקבל את `siteUrl` לפניו, כמו og:url, וכתובת `http(s)://` נשארת כמו שהיא. `og:image:type` נקבע לפי הסיומת מהטבלה `IMAGE_TYPES` (`.png` image/png, `.jpg`/`.jpeg` image/jpeg, `.webp` image/webp), וסיומת אחרת מקבלת תמונה בלי `og:image:type`. 9 מתוך 10 תמונות הכרטיס הן WebP. בעל הפרויקט בדק שווטסאפ מציג WebP בתצוגה מקדימה.
+   - **מידות תמונות העמודים נמדדות מהקובץ:** חבילת פיתוח חדשה, `image-size` בגרסה נעוצה `2.0.4` (`pnpm add -D -E image-size@2.0.4`, בלי תלויות משלה). ב-`configResolved` נשמר `config.publicDir` (`client/public`). ב-`writeBundle`, לפני בניית ה-heads, `measureShareImages(publicDir, warn)` עובר על ה-`image` הייחודיים שמתחילים ב-`/`, קורא כל קובץ (`path.join(publicDir, image)`) ומודד אותו ב-`imageSize(new Uint8Array(buffer))` מ-`image-size`. התוצאה היא `Map` מנתיב ל-`{ width, height }` (הטיפוס `ImageSizes`), ו-`renderPageHead(page, siteUrl, imageSizes)` מעביר אותה ל-`shareImage`, שמוסיף `og:image:width`/`og:image:height` כשיש מידות. קובץ שלא נמדד (חסר, סוג לא מוכר, או תג EXIF orientation שאינו 1) כותב אזהרה בלוג הבנייה (`this.warn`), והתמונה יוצאת בלי מידות. הבנייה לא נכשלת בגלל זה. המידות נשארות נכונות גם כשמחליפים תמונה, בלי לעדכן מספרים ביד.
 4. **`shared/const.ts`:** `export const PAGE_HTML_FILE = "page-html.json";` והממשק `PageHtmlFile { before: string; after: string; heads: Record<string, string> }`.
 5. **`server/index.ts`:** פונקציה `loadPageHtml(file)` קוראת את הקובץ פעם אחת בעלייה, בודקת את המבנה (`before` ו-`after` מחרוזות, `heads` אובייקט שכל ערכיו מחרוזות), ומחזירה פונקציה שמקבלת נתיב ומחזירה `before + head + after`, או `undefined` לנתיב בלי head. ה-heads נשמרים ב-`Map`, כדי שנתיב כמו `/constructor` לא ימצא משהו מ-`Object.prototype`. קובץ חסר או פגום כותב אזהרה בלוג ומחזיר תמיד `undefined`: כל עמוד מקבל את `index.html` כמו קודם, והשרת לא נופל. הקובץ נטען מ-`path.resolve(staticPath, "..", PAGE_HTML_FILE)`, לפני ה-`app.get("*")`. ב-`app.get("*")`, קודם: אם `req.path` ארוך מתו אחד, נגמר ב-`/`, ובלי הלוכסן יש לו HTML (עמוד מוכר), `res.redirect(301, <הנתיב בלי הלוכסן> + <מחרוזת השאילתה מ-req.url, אם יש>)`. הסיבה: wouter (דרך regexparam, שהתבנית שלו נגמרת ב-`\/?$`) מציג את `/project/x/` כעמוד הפרויקט, אבל `req.path` שומר את הלוכסן, ולכן הכתובת הזו קיבלה את ה-head של דף הבית. ההפניה נותנת לכל עמוד כתובת אחת. אחר כך: אם יש HTML לנתיב (`req.path`), `res.set("Cache-Control", "public, max-age=0")` (אותה מדיניות ש-`sendFile` נתן לעמודים האלה, לפי מדידה) ו-`res.send(html)`, שקובע `text/html; charset=utf-8`, מוסיף ETag ועונה 304 לבקשה עדכנית. אחרת `sendFile(index.html)` כמו קודם. דף הבית מוגש מ-`express.static` כמו קודם, ו-`index.html` כבר מכיל את ה-head שלו. כתובת לא מוכרת מקבלת את ה-head של דף הבית, כמו קודם.
 6. **`client/src/App.tsx`:** הוק `usePageTitle()`, שנקרא בתחילת `Router()`: `const [location] = useLocation();` ו-`useEffect(() => { document.title = getPageMeta(location).title; }, [location]);`. רק הכותרת מתעדכנת בניווט: שאר התגיות נקראות רק מה-HTML הראשוני, וגוגל מבקש ש-JavaScript לא ישנה את הקישור הקנוני.
@@ -34,7 +86,7 @@
 **אימות:** מול שרת הייצור, ב-HTTP וב-Chromium, עם אותה מדידה על build בלי השינוי (בקרה):
 - **בקרה:** בבנייה הקודמת כל 22 העמודים (20 במפה ועוד שני עמודי Ask AI) מחזירים את הכותרת והתיאור של דף הבית, `og:url` הוא `https://example.com`, ואין קישור קנוני. עם השינוי לכל עמוד הכותרת, התיאור, og:type, og:url והקישור הקנוני שלו, כל תגית בדיוק פעם אחת, וכל 22 הכותרות שונות זו מזו. ה-`&` בשם ההמלצה "WhatsApp & Telegram" מגיע כ-`&amp;`.
 - **מטמון:** בקשה עם `If-None-Match` של ה-ETag מקבלת 304 בלי גוף, ו-HEAD מחזיר 200 עם `Content-Length`.
-- **תמונות:** בעמודי הפרויקטים og:image היא תמונת הכרטיס, וכל תמונה מוגשת מהשרת עם `Content-Type` זהה ל-`og:image:type` שב-head (WebP כ-`image/webp`, CodeKeeper כ-`image/jpeg`).
+- **תמונות:** בעמודי הפרויקטים og:image היא תמונת הכרטיס, וכל תמונה מוגשת מהשרת עם `Content-Type` זהה ל-`og:image:type` שב-head (WebP כ-`image/webp`, CodeKeeper כ-`image/jpeg`). המידות שב-head זהות למידות הקובץ שהשרת מגיש (הבדיקה מודדת את הבייטים שהגיעו ב-HTTP), ולמדידה עצמאית ב-PIL של כל 11 התמונות (למשל CodeKeeper 2752x1536, MentorOS 1536x1024).
 - **לוכסן בסוף:** לכל 21 העמודים חוץ מדף הבית, `<נתיב>/?ref=check` מחזיר 301 עם `Location: <נתיב>?ref=check`. בדפדפן `/project/myagent/` מגיע ל-`/project/myagent` עם הכותרת "myAgent | אמיר בירון".
 - **מוטציות:** קובץ `page-html.json` חסר או פגום (ערך שאינו מחרוזת): השרת עולה, כותב אזהרה, ומגיש את דף הבית לכל עמוד. עמוד אחד שה-head שלו נמחק מהקובץ: רק הוא נכשל בבדיקה. `page-meta.ts` בלי ההמלצות: הבדיקה נכשלת על המפה ועל og:url של שלושתן. תגית description בלי ערך, `og:image:type` שגוי, ושרת בלי ההפניה: כל אחד מהם מכשיל את הבדיקה.
 - **בלי `VITE_SITE_URL`:** הבנייה עוברת עם אזהרה, אין `sitemap.xml`, ואין ב-HTML אף `%VITE_SITE_URL%`.
@@ -43,7 +95,7 @@
 **ליישום מחדש:**
 1. להעתיק כמו שהוא את `client/src/lib/page-meta.ts`.
 2. ב-`client/index.html`, להחליף את `<title>`, את `meta name="description"`, ואת כל תגיות `og:*` ו-`twitter:*` בשורה `<!-- page-meta -->` (בדיוק פעם אחת בקובץ, וגם לא בתוך הערה אחרת).
-3. ב-`vite.config.ts`, להחליף את שלושת ה-imports מ-`./client/src/lib/blog`, `./projects` ו-`./testimonials` ב-`import { getPageMeta, pages, type PageMeta } from "./client/src/lib/page-meta";` ו-`import { PAGE_HTML_FILE, type PageHtmlFile } from "./shared/const";`, ולהחליף את `vitePluginSitemap` ב-`vitePluginSeo`, `PAGE_META_PLACEHOLDER`, `SHARE_IMAGE`, `IMAGE_TYPES`, `renderPageHead`, `shareImage` ו-`escapeHtml` מהריפו הזה (`resolveSiteUrl` ו-`escapeXml` נשארים). במערך `plugins`: `vitePluginSeo()` במקום `vitePluginSitemap()`.
+3. ב-`vite.config.ts`, להחליף את שלושת ה-imports מ-`./client/src/lib/blog`, `./projects` ו-`./testimonials` ב-`import { getPageMeta, pages, type PageMeta } from "./client/src/lib/page-meta";` ו-`import { PAGE_HTML_FILE, type PageHtmlFile } from "./shared/const";`, ולהוסיף `import { imageSize } from "image-size";` (אחרי התקנת החבילה לפי סעיף 3), ולהחליף את `vitePluginSitemap` ב-`vitePluginSeo`, `PAGE_META_PLACEHOLDER`, `SHARE_IMAGE`, `IMAGE_TYPES`, `ImageSizes`, `renderPageHead`, `shareImage`, `measureShareImages` ו-`escapeHtml` מהריפו הזה (`resolveSiteUrl` ו-`escapeXml` נשארים). במערך `plugins`: `vitePluginSeo()` במקום `vitePluginSitemap()`.
 4. ב-`shared/const.ts`, להוסיף את `PAGE_HTML_FILE` ואת `PageHtmlFile` לפי סעיף 4.
 5. ב-`server/index.ts`, להוסיף `import fs from "fs";` ו-`import { PAGE_HTML_FILE, type PageHtmlFile } from "../shared/const";`, את `loadPageHtml` ואת `isPageHtmlFile` מעל `startServer`, ולעדכן את `app.get("*")` לפי סעיף 5: קודם ההפניה של לוכסן בסוף, ואחריה ההגשה עם ה-head.
 6. ב-`client/src/App.tsx`, להוסיף את `useLocation` ל-import מ-wouter, `useEffect` ל-import מ-react, `import { getPageMeta } from "./lib/page-meta";`, ואת `usePageTitle` לפי סעיף 6.

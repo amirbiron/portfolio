@@ -10,12 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Github, Mail, ExternalLink, Code2, GitBranch, User, ArrowLeft, Send, MessageSquareQuote, Bot } from "lucide-react";
+import { Github, Mail, ExternalLink, Code2, GitBranch, User, ArrowLeft, Send, MessageSquareQuote, Bot, Workflow } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ExternalLinkButton } from "@/components/ExternalLinkButton";
+import { WorkflowSteps } from "@/components/WorkflowSteps";
+import { workflowSteps, workflowTitle } from "@/lib/workflow";
 import { projects } from "@/lib/projects";
 import { testimonials } from "@/lib/testimonials";
 import { blogPosts, blogSlugs } from "@/lib/blog";
@@ -453,8 +455,54 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="py-20 bg-card/50">
+      {/* Workflow Section — תהליך העבודה, ממש לפני טופס יצירת הקשר: מי שקרא איך עובדים, מגיע ישר לטופס */}
+      <section className="py-20 bg-card/50">
+        <div className="container max-w-3xl">
+          <FadeInSection>
+            <div className="mb-12">
+              <div className="flex items-center gap-3 mb-4">
+                <Workflow className="h-8 w-8 text-accent" />
+                <h2 className="text-3xl md:text-4xl font-bold text-accent neon-glow">
+                  $ ./workflow.sh
+                </h2>
+              </div>
+              <p dir="rtl" className="text-muted-foreground text-lg">
+                {workflowTitle}
+              </p>
+            </div>
+          </FadeInSection>
+
+          <FadeInSection delay={0.15}>
+            <div className="terminal-window">
+              <div className="terminal-header">
+                <div className="terminal-dot border-primary" />
+                <div className="terminal-dot border-accent" />
+                <div className="terminal-dot border-destructive" />
+                <span className="text-sm text-muted-foreground ml-2">workflow.log</span>
+              </div>
+
+              <div className="p-8">
+                <WorkflowSteps steps={workflowSteps} />
+                {/* אותו כפתור כמו Contact Me ב-Hero: גולל לטופס שמתחת */}
+                <div dir="rtl" className="mt-8">
+                  <Button
+                    dir="ltr"
+                    variant="outline"
+                    className="border-accent text-accent hover:bg-accent/10 transition-all hover:scale-105"
+                    onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    Contact Me
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </FadeInSection>
+        </div>
+      </section>
+
+      {/* Contact Section — בלי רקע, כדי שהרקעים ימשיכו להתחלף אחרי בלוק תהליך העבודה */}
+      <section id="contact" className="py-20">
         <div className="container max-w-3xl">
           <FadeInSection>
           <div className="mb-12">

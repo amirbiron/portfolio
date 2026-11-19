@@ -132,7 +132,7 @@ export const projects: ProjectData[] = [
     AdminPanel --> SQLite
     RAGEngine --> SQLite`,
     demo: "https://t.me/ai_business2U_bot",
-    repo: "https://amirbiron.github.io/Chatbot4U/",
+    repo: "https://amirbiron.github.io/ChatBotLanding/",
     repoLabel: "Landing Page",
     challenges: [
       "מערכת RAG עם 3 שכבות LLM — התנהגות, הקשר, ובקרת איכות",
