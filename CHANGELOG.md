@@ -1,3 +1,72 @@
+## [2026-11-19] לכל עמוד כותרת, תיאור ו-og:url משלו כשמשתפים קישור, וכותרת לשונית שמתעדכנת בניווט
+
+**קבצים שהשתנו:**
+- `client/src/lib/page-meta.ts` — (נוסף) הכותרת, התיאור וסוג ה-og של כל עמוד באתר, מתוך נתוני הפרויקטים, ההמלצות והבלוג
+- `client/index.html` — (שונה) התגיות הקבועות (title, description, og:*, twitter:*) הוחלפו בסמן `<!-- page-meta -->`. author ו-keywords נשארו
+- `vite.config.ts` — (שונה) הפלאגין `vitePluginSitemap` הפך ל-`vitePluginSeo`: מייצר גם את תגיות ה-head של כל עמוד, וכותב את `dist/page-html.json`
+- `shared/const.ts` — (שונה) הקבוע `PAGE_HTML_FILE` והטיפוס `PageHtmlFile`, משותפים לבנייה ולשרת
+- `server/index.ts` — (שונה) עמוד שיש לו head משלו מוגש עם ה-head שלו
+- `client/src/App.tsx` — (שונה) `usePageTitle`: כותרת הלשונית מתעדכנת בכל מעבר עמוד
+
+**פירוט:**
+האתר הוא SPA, והשרת הגיש את אותו `index.html` לכל כתובת. לכן כל קישור לפוסט, לפרויקט או להמלצה ששותף בטלגרם, בווטסאפ או בפייסבוק הציג את הכותרת והתיאור של דף הבית, כי הסורקים שלהם קוראים רק את ה-HTML הראשוני ולא מריצים JavaScript. גם `og:url` הצביע תמיד על דף הבית, ופייסבוק מצרף את הלייקים והשיתופים לכתובת הזו ("Likes and Shares for this URL will aggregate at this URL", https://developers.facebook.com/docs/sharing/webmasters/#basic). גוגל ראה כותרת אחת לכל 22 העמודים. עכשיו כל עמוד מוגש עם head משלו, וגם כותרת הלשונית מתעדכנת כשעוברים בין עמודים בתוך האתר (עד עכשיו היא נשארה "אמיר בירון | Automation Developer" בכל עמוד).
+
+1. **המקור היחיד: `client/src/lib/page-meta.ts`.** מייצא `SITE_NAME = "אמיר בירון"`, את הממשק `PageMeta` (`path`, `title`, `description`, `type: "website" | "article"`, `inSitemap`), את המערך `pages` ואת הפונקציה `getPageMeta(path)`, שמחזירה את המטא של הנתיב, או של דף הבית לנתיב לא מוכר. הקובץ מייבא רק את `./blog`, `./projects` ו-`./testimonials` בנתיב יחסי, כי גם `vite.config.ts` טוען אותו. העמודים, לפי הסדר:
+   - דף הבית `/`: כותרת `אמיר בירון | Automation Developer` (כמו שהייתה), והתיאור שהיה ב-`index.html`.
+   - `/project/<slug>`: כותרת `<project.title> | אמיר בירון`, תיאור `project.description`.
+   - `/project/<slug>/ask-ai`, רק לפרויקט עם `askAi`: כותרת `AI Agent — <project.title> | אמיר בירון` (כמו הכותרת בעמוד הצ'אט), תיאור `${intro.before} ${intro.highlight} ${intro.after}` (משפט הפתיחה של הסוכן). `inSitemap: false`.
+   - `/testimonial/<slug>`: כותרת `המלצה: <clientName> | אמיר בירון`, תיאור `shortQuote`.
+   - `/blog/<slug>`: כותרת `<post.title> | אמיר בירון`, תיאור `excerpt`, `type: "article"`.
+   - כל השאר `type: "website"`. ה-slug עובר `encodeURIComponent`, כמו במפת האתר.
+2. **`client/index.html`:** במקום `<title>`, `meta description`, תגיות `og:*` ותגיות `twitter:*` יש עכשיו שורה אחת, `<!-- page-meta -->`, עם הערה מעליה שמסבירה אותה. `author` ו-`keywords` נשארו כמו שהם.
+3. **`vitePluginSeo` ב-`vite.config.ts`** (בלי `apply`, כדי שירוץ גם בשרת הפיתוח):
+   - `configResolved`: קורא את `config.env.VITE_SITE_URL` דרך `resolveSiteUrl` (קיימת). כשהכתובת חסרה, האזהרה בלוג מופיעה רק בבנייה (`config.command === "build"`).
+   - `transformIndexHtml(html)` (פונקציה רגילה, בלי `order`): מפצל את ה-HTML לפי הסמן, זורק שגיאה אם הוא לא מופיע בדיוק פעם אחת, ומכניס במקומו את `renderPageHead(getPageMeta("/"), siteUrl)`.
+   - `writeBundle(options)`: קורא את `index.html` הבנוי מ-`options.dir`, מפצל אותו לפי ה-head של דף הבית (שגיאת בנייה אם הוא לא מופיע בדיוק פעם אחת, או אם לשני עמודים יש אותו נתיב), וכותב ל-`path.join(options.dir, "..", "page-html.json")` את `{ before, after, heads }`: שני החלקים של `index.html`, ומפה מנתיב (כל עמוד חוץ מ-`/`) ל-head שלו. ה-HTML נשמר פעם אחת ולא עותק לכל עמוד, כי `vite-plugin-manus-runtime` מטמיע ב-`index.html` סקריפט של כ-360KB. הקובץ יוצא כ-410KB, ולא כ-6MB.
+   - `generateBundle`: מפת האתר ו-robots.txt כמו קודם, אבל הנתיבים נלקחים מ-`pages.filter(p => p.inSitemap)`. `sitemap.xml` ו-`robots.txt` יוצאים זהים בבייטים לגרסה הקודמת.
+   - `renderPageHead(page, siteUrl)` מחזירה, לפי הסדר, ממוזגות ב-`"\n    "`: `<title>`, `meta name="description"`, `link rel="canonical"`, `og:type`, `og:title`, `og:description`, `og:url`, `og:image` (`<siteUrl>/og-preview.png`) עם `og:image:width` 1200, `og:image:height` 630, `og:image:type` image/png, `og:locale` he_IL, `og:site_name` Amir Biron Portfolio, `twitter:card` summary_large_image, `twitter:title`, `twitter:description`, `twitter:image`. og:title ו-twitter:title זהים ל-`<title>`. כל ערך עובר `escapeHtml` (בריחה ל-`&`, `<`, `>`, `"`). כשאין `siteUrl`, התגיות שדורשות כתובת מלאה (canonical, og:url, og:image ושלוש תגיות הגודל שלה, twitter:image) מושמטות. עד עכשיו נשאר בהן הטקסט `%VITE_SITE_URL%` כמו שהוא.
+   - הקישור הקנוני חדש. הוא ב-head של ה-HTML המקורי, בכתובת מלאה, ומצביע על העמוד עצמו, כמו שגוגל ממליץ (https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls). og:url של דף הבית הוא עכשיו `<siteUrl>/` עם לוכסן בסוף, כמו בקישור הקנוני ובמפת האתר.
+   - התמונה אותה תמונה לכל העמודים, `og-preview.png`: 9 מתוך 10 תמונות הכרטיס של הפרויקטים הן WebP, והתמונה של CodeKeeper שוקלת 3MB.
+4. **`shared/const.ts`:** `export const PAGE_HTML_FILE = "page-html.json";` והממשק `PageHtmlFile { before: string; after: string; heads: Record<string, string> }`.
+5. **`server/index.ts`:** פונקציה `loadPageHtml(file)` קוראת את הקובץ פעם אחת בעלייה, בודקת את המבנה (`before` ו-`after` מחרוזות, `heads` אובייקט שכל ערכיו מחרוזות), ומחזירה פונקציה שמקבלת נתיב ומחזירה `before + head + after`, או `undefined` לנתיב בלי head. ה-heads נשמרים ב-`Map`, כדי שנתיב כמו `/constructor` לא ימצא משהו מ-`Object.prototype`. קובץ חסר או פגום כותב אזהרה בלוג ומחזיר תמיד `undefined`: כל עמוד מקבל את `index.html` כמו קודם, והשרת לא נופל. הקובץ נטען מ-`path.resolve(staticPath, "..", PAGE_HTML_FILE)`, לפני ה-`app.get("*")`. ב-`app.get("*")`: אם יש HTML לנתיב (`req.path`), `res.set("Cache-Control", "public, max-age=0")` (אותה מדיניות ש-`sendFile` נתן לעמודים האלה, לפי מדידה) ו-`res.send(html)`, שקובע `text/html; charset=utf-8`, מוסיף ETag ועונה 304 לבקשה עדכנית. אחרת `sendFile(index.html)` כמו קודם. דף הבית מוגש מ-`express.static` כמו קודם, ו-`index.html` כבר מכיל את ה-head שלו. כתובת לא מוכרת מקבלת את ה-head של דף הבית, כמו קודם.
+6. **`client/src/App.tsx`:** הוק `usePageTitle()`, שנקרא בתחילת `Router()`: `const [location] = useLocation();` ו-`useEffect(() => { document.title = getPageMeta(location).title; }, [location]);`. רק הכותרת מתעדכנת בניווט: שאר התגיות נקראות רק מה-HTML הראשוני, וגוגל מבקש ש-JavaScript לא ישנה את הקישור הקנוני.
+
+**אימות:** מול שרת הייצור, ב-HTTP וב-Chromium, עם אותה מדידה על build בלי השינוי (בקרה):
+- **בקרה:** בבנייה הקודמת כל 22 העמודים (20 במפה ועוד שני עמודי Ask AI) מחזירים את הכותרת והתיאור של דף הבית, `og:url` הוא `https://example.com`, ואין קישור קנוני. עם השינוי לכל עמוד הכותרת, התיאור, og:type, og:url והקישור הקנוני שלו, כל תגית בדיוק פעם אחת, וכל 22 הכותרות שונות זו מזו. ה-`&` בשם ההמלצה "WhatsApp & Telegram" מגיע כ-`&amp;`.
+- **מטמון:** בקשה עם `If-None-Match` של ה-ETag מקבלת 304 בלי גוף, ו-HEAD מחזיר 200 עם `Content-Length`.
+- **מוטציות:** קובץ `page-html.json` חסר או פגום (ערך שאינו מחרוזת): השרת עולה, כותב אזהרה, ומגיש את דף הבית לכל עמוד. עמוד אחד שה-head שלו נמחק מהקובץ: רק הוא נכשל בבדיקה. `page-meta.ts` בלי ההמלצות: הבדיקה נכשלת על המפה ועל og:url של שלושתן.
+- **בלי `VITE_SITE_URL`:** הבנייה עוברת עם אזהרה, אין `sitemap.xml`, ואין ב-HTML אף `%VITE_SITE_URL%`.
+- **בדפדפן:** קליק מדף הבית לפוסט, חזרה אחורה, קליק לפרויקט ואז ל-Ask AI, בלי טעינה מחדש: הכותרות "12 מלכודות בבניית צ'אטבוט AI לפרודקשן | אמיר בירון", "אמיר בירון | Automation Developer", "CodeKeeper | אמיר בירון", "AI Agent — CodeKeeper | אמיר בירון". בבקרה הכותרת לא משתנה.
+
+**ליישום מחדש:**
+1. להעתיק כמו שהוא את `client/src/lib/page-meta.ts`.
+2. ב-`client/index.html`, להחליף את `<title>`, את `meta name="description"`, ואת כל תגיות `og:*` ו-`twitter:*` בשורה `<!-- page-meta -->` (בדיוק פעם אחת בקובץ, וגם לא בתוך הערה אחרת).
+3. ב-`vite.config.ts`, להחליף את שלושת ה-imports מ-`./client/src/lib/blog`, `./projects` ו-`./testimonials` ב-`import { getPageMeta, pages, type PageMeta } from "./client/src/lib/page-meta";` ו-`import { PAGE_HTML_FILE, type PageHtmlFile } from "./shared/const";`, ולהחליף את `vitePluginSitemap` ב-`vitePluginSeo`, `PAGE_META_PLACEHOLDER`, `SHARE_IMAGE`, `renderPageHead` ו-`escapeHtml` מהריפו הזה (`resolveSiteUrl` ו-`escapeXml` נשארים). במערך `plugins`: `vitePluginSeo()` במקום `vitePluginSitemap()`.
+4. ב-`shared/const.ts`, להוסיף את `PAGE_HTML_FILE` ואת `PageHtmlFile` לפי סעיף 4.
+5. ב-`server/index.ts`, להוסיף `import fs from "fs";` ו-`import { PAGE_HTML_FILE, type PageHtmlFile } from "../shared/const";`, את `loadPageHtml` ואת `isPageHtmlFile` מעל `startServer`, ולעדכן את `app.get("*")` לפי סעיף 5.
+6. ב-`client/src/App.tsx`, להוסיף את `useLocation` ל-import מ-wouter, `useEffect` ל-import מ-react, `import { getPageMeta } from "./lib/page-meta";`, ואת `usePageTitle` לפי סעיף 6.
+7. לוודא שהבנייה רצה עם `VITE_SITE_URL` המלא של אותה סביבה. אחרי `pnpm build`, ב-`dist` צריך להיות `page-html.json` ליד `public`, ו-`curl <אתר>/blog/<slug>` צריך להחזיר את כותרת הפוסט ב-`<title>`.
+
+## [2026-11-19] כפתורי Demo ו-Code מוצגים רק כשיש להם קישור
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) `demo` ו-`repo` אופציונליים, והערכים `"#"` נמחקו
+- `client/src/components/ExternalLinkButton.tsx` — (שונה) בלי המצב של קישור לא זמין (`"#"` ו-`unavailableMessage`)
+- `client/src/pages/Home.tsx` — (שונה) כפתור ה-Demo בכרטיס הפרויקט מוצג רק כשיש `demo`
+- `client/src/pages/ProjectPage.tsx` — (שונה) כפתורי Demo ו-Code, למעלה ולמטה, מוצגים רק כשיש להם קישור, ומיכל הכפתורים מוצג רק כשיש בו משהו
+
+**פירוט:**
+ב-4 פרויקטים (myAgent, LeadsFlow, ContentFlow, OfferFlow) כפתור ה-Demo הוביל ל-`"#"`, ובשישה כפתור ה-Code (גם FB Leads Scanner ו-MentorOS). לחיצה עליהם הקפיצה רק הודעה "Demo link - Feature coming soon" או "הקוד עדיין לא זמין", ולמבקר זה נראה כמו אתר שלא נגמר. עכשיו כפתור בלי יעד לא מוצג בכלל. בכרטיס בדף הבית כפתור Details תופס את כל השורה כשאין דמו. בעמוד פרויקט בלי דמו, קוד ו-Ask AI, גם המיכל של הכפתורים לא מרונדר, כדי שלא יישאר רווח ריק: בנייד התחתית של העמוד ירדה מ-88 ל-36 פיקסלים.
+
+1. **`projects.ts`:** בממשק `ProjectData`, `demo?: string` ו-`repo?: string` (היו חובה), עם הערה שהיעדר השדה פירושו שאין כפתור. עשר השורות `demo: "#",` ו-`repo: "#",` נמחקו. השדות `demoLabel` ו-`repoLabel` לא השתנו.
+2. **`ExternalLinkButton.tsx`:** נמחקו ה-prop `unavailableMessage`, הבדיקה `href === "#"` וה-import של `toast`. הרכיב תמיד מחזיר `<Button {...buttonProps} asChild><a href={href} target="_blank" rel="noopener">`.
+3. **`Home.tsx`:** כפתור ה-Demo בכרטיס עטוף ב-`{project.demo && (...)}`, בלי `unavailableMessage`.
+4. **`ProjectPage.tsx`:** אחרי הבדיקה שהפרויקט קיים, `const hasActions = Boolean(project.demo || project.repo || project.askAi);`. בכותרת ובתחתית העמוד, ה-`div` עם `flex gap-3` עטוף ב-`{hasActions && (...)}`, וכל אחד מכפתורי Demo ו-Code בתוכו עטוף ב-`{project.demo && (...)}` / `{project.repo && (...)}`, בלי `unavailableMessage`.
+
+**אימות:** ב-Chromium מול build פרודקשן, עם אותה מדידה על build בלי השינוי: בכרטיסים של ארבעת הפרויקטים בלי דמו אין כפתור (בבקרה: כפתור "Demo" שלא מוביל לשום מקום), ו-Details ברוחב 100% מהשורה במקום 48%. בעמוד myAgent הכותרת והתחתית מכילות רק את "Back to Portfolio". בעמוד FB Leads Scanner מוצג רק "Landing Page", בלי Code. ב-CodeKeeper מוצגים Demo, Code ו-Ask AI עם הקישורים הנכונים. השגיאות ב-console זהות לבקרה, ואין שגיאות חדשות. כולן מסקריפט האנליטיקס ב-`index.html`, שהכתובת שלו נשארת `%VITE_ANALYTICS_ENDPOINT%/umami` כשהמשתנה לא מוגדר. זו בעיה קיימת, שלא קשורה לשינוי הזה.
+
+**ליישום מחדש:** לפי סעיפים 1–4. אחרי השינוי לא נשאר `"#"` ב-`projects.ts`, ולא נשאר `unavailableMessage` בשום קובץ.
+
 ## [2026-11-08] הערות ומחרוזות בעברית בתוך קוד נקראות נכון, בבלוג ובצ'אט ה-AI
 
 **קבצים שהשתנו:**

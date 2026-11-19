@@ -1,6 +1,6 @@
-# בדיקות על כל PR ועל כל push ל-main: בדיקת טיפוסים וסימני כיוון, בנייה, ובדיקה שמפת האתר
-# ו-robots.txt נוצרו ומוגשים מהשרת. הבנייה עצמה לא נכשלת כשמפת האתר לא נוצרה (ראה vite.config.ts),
-# ולכן scripts/check-sitemap.mjs הוא מה שמכשיל כאן.
+# בדיקות על כל PR ועל כל push ל-main: בדיקת טיפוסים וסימני כיוון, בנייה, ובדיקת SEO: שמפת האתר
+# ו-robots.txt נוצרו ומוגשים מהשרת, ושכל עמוד מוגש עם ה-head שלו. הבנייה עצמה לא נכשלת כשחסרה כתובת
+# האתר (ראה vitePluginSeo ב-vite.config.ts), ולכן scripts/check-seo.mjs הוא מה שמכשיל כאן.
 name: CI
 
 on:
@@ -38,5 +38,5 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Check sitemap.xml and robots.txt
-        run: node scripts/check-sitemap.mjs
+      - name: Check sitemap.xml, robots.txt and each page's head tags
+        run: node scripts/check-seo.mjs

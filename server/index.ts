@@ -1,7 +1,9 @@
 import express from "express";
+import fs from "fs";
 import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { PAGE_HTML_FILE, type PageHtmlFile } from "../shared/const";
 import { createAiProvider, type ChatTurn } from "./ai";
 import { isKnownAgent, loadAgents } from "./agents";
 
@@ -33,6 +35,48 @@ function createRateLimiter(maxRequests: number, windowMs: number) {
       return false;
     },
   };
+}
+
+/**
+ * טוען את הקובץ שהבנייה כתבה ב-vite.config.ts (ראו vitePluginSeo) ומחזיר פונקציה שמרכיבה לעמוד את ה-HTML שלו,
+ * עם head משלו (כותרת, תיאור, og:url, canonical), או undefined לנתיב שאין לו head משלו.
+ * כשהקובץ חסר או פגום, האתר ממשיך לעבוד כמו לפני שהקובץ הזה נוסף: כל עמוד מקבל את index.html,
+ * עם ה-head של דף הבית. לכן זו אזהרה בלוג ולא נפילה של השרת.
+ */
+function loadPageHtml(file: string): (pagePath: string) => string | undefined {
+  const fallback = "Every page will be served with the home page's title and og tags.";
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(fs.readFileSync(file, "utf-8"));
+  } catch (err) {
+    console.warn(`Warning: could not load ${file} (${err instanceof Error ? err.message : String(err)}). ${fallback}`);
+    return () => undefined;
+  }
+  // בדיקת המבנה המלא: ערך שאינו מחרוזת היה מגיע ל-res.send, שעל אובייקט שולח JSON במקום עמוד
+  if (!isPageHtmlFile(parsed)) {
+    console.warn(`Warning: ${file} does not have the expected { before, after, heads } shape. ${fallback}`);
+    return () => undefined;
+  }
+  const { before, after } = parsed;
+  // Map ולא חיפוש באובייקט: נתיב כמו "/constructor" לא ימצא בטעות משהו מ-Object.prototype
+  const heads = new Map(Object.entries(parsed.heads));
+  return (pagePath) => {
+    const head = heads.get(pagePath);
+    return head === undefined ? undefined : before + head + after;
+  };
+}
+
+function isPageHtmlFile(value: unknown): value is PageHtmlFile {
+  if (typeof value !== "object" || value === null) return false;
+  const { before, after, heads } = value as Record<string, unknown>;
+  return (
+    typeof before === "string" &&
+    typeof after === "string" &&
+    typeof heads === "object" &&
+    heads !== null &&
+    !Array.isArray(heads) &&
+    Object.values(heads).every((head) => typeof head === "string")
+  );
 }
 
 async function startServer() {
@@ -206,8 +250,24 @@ async function startServer() {
     }
   });
 
+  // עמוד שיש לו HTML משלו (פרויקט, המלצה, פוסט, Ask AI) מוגש עם ה-head שלו, כדי שקישור ששותף
+  // יציג את הכותרת והתיאור של העמוד ולא של דף הבית. דף הבית עצמו מוגש מ-express.static למעלה.
+  // התיקייה שלידה, ולא בתוכה: ראו PAGE_HTML_FILE ב-shared/const.ts
+  const renderPage = loadPageHtml(path.resolve(staticPath, "..", PAGE_HTML_FILE));
+
   // Handle client-side routing - serve index.html for all routes
-  app.get("*", (_req, res) => {
+  app.get("*", (req, res) => {
+    // חיפוש מדויק במפה שנבנתה מהנתונים: הנתיב מהבקשה רק משמש מפתח, ולא נכנס ל-HTML ולא לנתיב קובץ
+    const html = renderPage(req.path);
+    if (html !== undefined) {
+      // אותה מדיניות מטמון ש-sendFile נתן לעמודים האלה עד עכשיו (נמדד על השרת לפני השינוי):
+      // הדפדפן בודק מול השרת בכל טעינה, ומקבל 304 כשהעמוד לא השתנה
+      res.set("Cache-Control", "public, max-age=0");
+      // res.send על מחרוזת קובע Content-Type: text/html; charset=utf-8, מוסיף ETag ועונה 304 כשהבקשה עדכנית.
+      // מקור: res.send ב-node_modules/express/lib/response.js (express 4.21.2)
+      res.send(html);
+      return;
+    }
     res.sendFile(path.join(staticPath, "index.html"));
   });
 

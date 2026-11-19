@@ -18,9 +18,14 @@ export interface ProjectData {
   imagePosition?: string;
   screenshots: string[];
   mermaidDiagram: string;
-  demo: string;
+  /**
+   * קישור הדמו (או דף הנחיתה), שנפתח בלשונית חדשה. פרויקט בלי דמו פשוט בלי השדה,
+   * ואז הכפתור לא מוצג בכלל: כפתור שלא מוביל לשום מקום נראה כמו אתר שלא נגמר.
+   */
+  demo?: string;
   demoLabel?: string;
-  repo: string;
+  /** קישור לקוד, או לדף אחר לפי repoLabel. בלי השדה אין כפתור, כמו ב-demo */
+  repo?: string;
   repoLabel?: string;
   challenges: string[];
   features: string[];
@@ -205,8 +210,6 @@ export const projects: ProjectData[] = [
     Dashboard --> Backend
     WAListener --> Disks
     TGListener --> Disks`,
-    demo: "#",
-    repo: "#",
     challenges: [
       "האזנה במקביל לשני ערוצים (WhatsApp + Telegram) עם הפרדת context לכל שיחה",
       "החלפת מודלים (Gemini / Claude) דרך משתנה סביבה ללא שינוי קוד",
@@ -297,7 +300,6 @@ export const projects: ProjectData[] = [
     Classifier --> SQLite`,
     demo: "https://amirbiron.github.io/Landing_FB_Lids/",
     demoLabel: "Landing Page",
-    repo: "#",
     challenges: [
       "Scraping של פייסבוק עם Playwright וחסימת משאבים לחיסכון בזיכרון",
       "מערכת Deduplication חוצת-קבוצות (post_id hash + content_hash)",
@@ -386,8 +388,6 @@ export const projects: ProjectData[] = [
     Scheduler --> Postgres
     Scheduler --> TGBot
     Frontend --> Backend`,
-    demo: "#",
-    repo: "#",
     challenges: [
       "Multi-tenant ברמת ה-DB עם הצפנת credentials של ספקים חיצוניים (Fernet)",
       "שכבת Adapter אחידה ל-WhatsApp שמאפשרת מעבר Green API ↔ Meta Cloud API בלי לגעת בקוד העסקי",
@@ -469,8 +469,6 @@ export const projects: ProjectData[] = [
     Cache --> Claude
     Generator --> Posts
     Auth --> Users`,
-    demo: "#",
-    repo: "#",
     challenges: [
       "ניתוח דוגמאות תוכן של הלקוח כדי לזקק את סגנון הכתיבה — לא רק טון, גם מבנה משפט ואורך",
       "Prompt Caching של פרופיל העסק והתבניות עם Claude Sonnet 4.6 — חיסכון דרמטי בעלות וזמן",
@@ -564,8 +562,6 @@ export const projects: ProjectData[] = [
     PublicPage --> Tracker
     Tracker --> Events
     Tracker --> Notifier`,
-    demo: "#",
-    repo: "#",
     challenges: [
       "Quick AI — המרת תיאור חופשי בעברית ל-JSON מובנה עם פרטי לקוח, פריטים, פתיח, סיום ותנאי תשלום",
       "הפקת PDF בעברית עם WeasyPrint — RTL מלא, ערבוב עברית-אנגלית-מספרים נכון (unicode-bidi), web fonts (Heebo / Assistant)",
@@ -652,7 +648,6 @@ export const projects: ProjectData[] = [
     FastAPI --> PromptLab[Prompt Lab<br/>A/B Testing]`,
     demo: "https://mentorai-k5y0.onrender.com/?home=1",
     demoLabel: "Landing Page",
-    repo: "#",
     challenges: [
       "חיפוש סמנטי בזיכרון עם pgvector — embeddings ב-1536 ממדים, cosine distance, fallback לדירוג לפי עדכניות",
       "ניהול מודלים מרובים — ניתוב 3 רמות (strong/fast/summary) עם מעקב עלויות per-call ותקרת הוצאות",

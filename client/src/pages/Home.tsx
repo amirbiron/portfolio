@@ -293,16 +293,18 @@ export default function Home() {
                           Details
                         </Link>
                       </Button>
-                      <ExternalLinkButton
-                        href={project.demo}
-                        unavailableMessage="Demo link - Feature coming soon"
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 border-accent text-accent hover:bg-accent/10"
-                      >
-                        <ExternalLink className="mr-2 h-3 w-3" />
-                        {project.demoLabel || "Demo"}
-                      </ExternalLinkButton>
+                      {/* בלי קישור דמו אין כפתור, ו-Details תופס את כל השורה */}
+                      {project.demo && (
+                        <ExternalLinkButton
+                          href={project.demo}
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 border-accent text-accent hover:bg-accent/10"
+                        >
+                          <ExternalLink className="mr-2 h-3 w-3" />
+                          {project.demoLabel || "Demo"}
+                        </ExternalLinkButton>
+                      )}
                     </div>
                     {project.askAi && (
                       <Button
