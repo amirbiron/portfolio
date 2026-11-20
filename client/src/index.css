@@ -178,6 +178,24 @@
     }
   }
 
+  /* הברק שרץ על פס "החלק לפירוט" (SlideToExpand) ומראה את כיוון הגרירה, מימין לשמאל.
+     ב-slide-confirm המקורי ה-keyframes היו מ-200% ל--200%, וזה הזיז את הברק משמאל לימין, הפוך לכיוון הגרירה
+     (נמדד בדפדפן: מרכז הברק זז 174 פיקסלים ימינה ב-300ms). כאן הם הפוכים, מ--200% ל-200% */
+  .slide-to-expand-shine {
+    background: linear-gradient(90deg, transparent 30%, color-mix(in oklch, var(--primary) 18%, transparent) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: slide-to-expand-shine 2.2s linear infinite;
+  }
+
+  @keyframes slide-to-expand-shine {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
   /* Neon glow effect */
   .neon-glow {
     text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;

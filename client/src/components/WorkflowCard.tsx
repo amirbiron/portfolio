@@ -1,12 +1,13 @@
 /**
- * חלון "תהליך העבודה" בדף הבית. לחיצה בכל מקום בכרטיס מכווצת אותו לרשת של שש הכותרות עם צ'קבוקסים,
- * ולחיצה נוספת מרחיבה אותו בחזרה, והשלבים רצים שוב מההתחלה (WorkflowSteps נטען מחדש).
- * מבוסס על שני רכיבים מ-finesse:
- * - expand-card: הגובה משתנה עם עקומת הקפיצה שלו, cubic-bezier(.2, 1.3, .3, 1) בחצי שנייה,
- *   והפריטים נכנסים בזה אחר זה (תזוזה של 8px ושקיפות, 60ms בין פריט לפריט).
- * - checkbox-list: צ'קבוקס מלא שה-V שלו מצטייר. בלי הקו שחוצה את התווית: שלב מחוק נקרא כמו "בוטל".
+ * חלון "תהליך העבודה" בדף הבית. לחיצה בכל מקום בכרטיס מכווצת אותו לרשימה ממוספרת של שש הכותרות בשני טורים,
+ * ולחיצה נוספת, או גרירה של הפס "החלק לפירוט" שבתחתית הכרטיס המכווץ, מרחיבה אותו בחזרה, והשלבים רצים שוב
+ * מההתחלה (WorkflowSteps נטען מחדש).
+ * מבוסס על רכיבים מ-finesse:
+ * - expand-card: הגובה משתנה עם עקומת הקפיצה שלו, cubic-bezier(.2, 1.3, .3, 1) בחצי שנייה.
+ * - spring-dropdown: הכותרות נכנסות אחת אחרי השנייה מלמעלה, עם קפיצה (ראו CollapsedSteps).
+ * - slide-confirm: הפס "החלק לפירוט" (SlideToExpand), שמראה שאפשר להרחיב את הכרטיס בחזרה.
  * מה שמתחת לכרטיס (טופס יצירת הקשר) עולה ויורד יחד עם הגובה, כי הכרטיס הוא חלק מזרימת העמוד.
- * אין כפתור כיווץ נפרד, בהחלטת בעל הפרויקט: הלחיצה על הכרטיס עצמו היא הדרך היחידה.
+ * אין כפתור כיווץ נפרד, בהחלטת בעל הפרויקט: הלחיצה על הכרטיס עצמו מכווצת אותו.
  */
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import {
@@ -18,12 +19,16 @@ import {
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CopyTextButton } from "@/components/CopyTextButton";
+import { SlideToExpand } from "@/components/SlideToExpand";
 import { WorkflowSteps } from "@/components/WorkflowSteps";
 import { workflowAsText, workflowSteps } from "@/lib/workflow";
 
 /** עקומת הקפיצה של expand-card. framer-motion לא חותך ערכים מעל 1, ולכן יש קפיצה קטנה מעבר ליעד.
  *  מקור: cubicBezier ב-node_modules/motion-utils/dist/es/easing/cubic-bezier.mjs */
 const SPRING_EASE = [0.2, 1.3, 0.3, 1] as const;
+
+/** עקומת הקפיצה של spring-dropdown, לכניסת הכותרות בכרטיס המכווץ */
+const DROPDOWN_EASE = [0.2, 1.5, 0.3, 1] as const;
 
 export function WorkflowCard() {
   const [collapsed, setCollapsed] = useState(false);
@@ -63,8 +68,12 @@ export function WorkflowCard() {
   }, [height, reduceMotion]);
 
   const toggle = (event: MouseEvent<HTMLDivElement>) => {
-    // כפתורים וקישורים בתוך הכרטיס (Contact Me, העתק) עושים את שלהם, ולא מכווצים אותו
-    if (event.target instanceof Element && event.target.closest("button, a"))
+    // כפתורים וקישורים בתוך הכרטיס (Contact Me, העתק) והפס "החלק לפירוט" עושים את שלהם, ולא מכווצים
+    // או מרחיבים את הכרטיס: גרירה של הפס מסתיימת בלחיצה, שאחרת הייתה מגיעה גם לכרטיס
+    if (
+      event.target instanceof Element &&
+      event.target.closest("button, a, [data-no-card-toggle]")
+    )
       return;
     // לחיצה שמסיימת סימון טקסט (כדי להעתיק) היא לא בקשה לכווץ
     if (window.getSelection()?.toString()) return;
@@ -91,14 +100,17 @@ export function WorkflowCard() {
         <div className="terminal-dot border-accent" />
         <div className="terminal-dot border-destructive" />
         <span className="text-sm text-muted-foreground ml-2">workflow.log</span>
-        <div className="ml-auto">
-          <CopyTextButton
-            text={workflowAsText()}
-            label="העתק"
-            title="העתק את תהליך העבודה ללוח"
-            compact
-          />
-        </div>
+        {/* בכרטיס המכווץ אין מה להעתיק, ולכן גם אין כפתור */}
+        {!collapsed && (
+          <div className="ml-auto">
+            <CopyTextButton
+              text={workflowAsText()}
+              label="העתק"
+              title="העתק את תהליך העבודה ללוח"
+              compact
+            />
+          </div>
+        )}
       </div>
 
       <motion.div
@@ -107,7 +119,15 @@ export function WorkflowCard() {
       >
         <div ref={contentRef} className="p-8">
           {collapsed ? (
-            <CollapsedSteps reduceMotion={reduceMotion} />
+            <>
+              <CollapsedSteps />
+              <div className="mt-8 flex justify-center">
+                <SlideToExpand
+                  label="החלק לפירוט"
+                  onConfirm={() => setCollapsed(false)}
+                />
+              </div>
+            </>
           ) : (
             <>
               <WorkflowSteps steps={workflowSteps} />
@@ -135,47 +155,34 @@ export function WorkflowCard() {
   );
 }
 
-/** המצב המכווץ: שש הכותרות ברשת, שלוש בשורה (שתיים בנייד), כל אחת עם צ'קבוקס מסומן */
-function CollapsedSteps({ reduceMotion }: { reduceMotion: boolean | null }) {
+/**
+ * המצב המכווץ: רשימה ממוספרת של הכותרות בשני טורים, 1–3 בטור הימני ו-4–6 בטור השמאלי
+ * (grid-flow-col עם שלוש שורות ממלא טור אחרי טור, וב-dir="rtl" הטור הראשון הוא הימני).
+ * הכניסה לפי spring-dropdown: כל כותרת יורדת 14px וגדלה מ-0.92, בחצי שנייה עם קפיצה, והשקיפות ב-0.25 שנייה.
+ * ההשהיה, 55ms בין כותרת לכותרת, לפי סדר המספרים: הטור הימני יורד מלמעלה למטה, ואחריו השמאלי.
+ * המספר והכותרת באותה שורת טקסט (ולא כפריטי flex נפרדים), כדי שהנקודה תופיע בין המספר לכותרת כמו ברשימה עברית.
+ * פרמטר transition עם default וערך נפרד ל-opacity: TransitionWithValueOverrides ב-motion-dom (framer-motion 12.23.22).
+ */
+function CollapsedSteps() {
   return (
-    <ul dir="rtl" className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+    <ol
+      dir="rtl"
+      className="grid grid-flow-col grid-cols-2 grid-rows-3 gap-x-8 gap-y-3"
+    >
       {workflowSteps.map((step, i) => (
         <motion.li
           key={step.title}
-          className="flex items-center gap-3"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: i * 0.06, ease: SPRING_EASE }}
+          initial={{ opacity: 0, y: -14, scale: 0.92 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{
+            default: { duration: 0.5, ease: DROPDOWN_EASE, delay: i * 0.055 },
+            opacity: { duration: 0.25, delay: i * 0.055 },
+          }}
         >
-          <span
-            aria-hidden="true"
-            className="grid h-5 w-5 shrink-0 place-items-center rounded-md border border-primary bg-primary text-primary-foreground"
-          >
-            <svg
-              className="h-[11px] w-[11px]"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path
-                d="m4 12.5 5 5L20 6.5"
-                strokeDasharray="24"
-                style={
-                  reduceMotion
-                    ? undefined
-                    : {
-                        animation: `workflow-check-draw 0.3s ease-out ${0.15 + i * 0.06}s both`,
-                      }
-                }
-              />
-            </svg>
-          </span>
+          <span className="font-mono text-primary">{i + 1}.</span>{" "}
           <span className="font-bold text-foreground/90">{step.title}</span>
         </motion.li>
       ))}
-    </ul>
+    </ol>
   );
 }
