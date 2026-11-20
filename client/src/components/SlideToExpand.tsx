@@ -8,6 +8,10 @@
  * - אורך הדרך נמדד ברגע תחילת הגרירה, ולא בזמן הרינדור (ברכיב המקורי הוא נמדד מ-ref לפני שה-ref קיים).
  * - בהפחתת תנועה אין ברק, והידית חוזרת ומגיעה לסוף בלי אנימציה.
  * - data-no-card-toggle: גרירה או לחיצה על הפס לא מגיעות ללחיצה של הכרטיס עצמו (ראו WorkflowCard).
+ * - הידית היא כפתור ולא role="slider": היא מבצעת פעולה אחת (הרחבה), ואין לה ערך שמשנים. slider מבטיח לקורא
+ *   המסך ערך (aria-valuenow, aria-valuemin, aria-valuemax) וחצים שמזיזים אותו צעד אחרי צעד, ואין כאן אף אחד מהם.
+ *   מקור: תבנית Slider ב-APG, https://www.w3.org/WAI/ARIA/apg/patterns/slider/
+ *   אין לה onClick: הקשה בלי גרירה לא מרחיבה, כמו ברכיב המקורי. Enter ורווח מטופלים ב-onKeyDown.
  */
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { useReducedMotion } from "framer-motion";
@@ -91,7 +95,9 @@ export function SlideToExpand({
         className
       )}
     >
+      {/* הכיתוב הגלוי. מוסתר מקורא המסך, כי אותו שם כבר נמצא על הידית, ואחרת הוא היה מוקרא פעמיים */}
       <span
+        aria-hidden="true"
         className={cn(
           "pointer-events-none absolute inset-0 grid place-items-center text-xs font-semibold transition-opacity",
           done ? "text-primary" : "text-muted-foreground"
@@ -106,15 +112,9 @@ export function SlideToExpand({
           className="slide-to-expand-shine pointer-events-none absolute inset-0"
         />
       )}
-      <span
-        role="slider"
+      <button
+        type="button"
         aria-label={label}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={
-          maxRef.current ? Math.round((x / maxRef.current) * 100) : 0
-        }
-        tabIndex={0}
         onPointerDown={e => {
           if (done) return;
           e.currentTarget.setPointerCapture(e.pointerId);
@@ -160,7 +160,7 @@ export function SlideToExpand({
             <path d="m14 6-6 6 6 6" />
           </svg>
         )}
-      </span>
+      </button>
     </div>
   );
 }

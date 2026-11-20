@@ -7,21 +7,30 @@
  * - spring-dropdown: הכותרות נכנסות אחת אחרי השנייה מלמעלה, עם קפיצה (ראו CollapsedSteps).
  * - slide-confirm: הפס "החלק לפירוט" (SlideToExpand), שמראה שאפשר להרחיב את הכרטיס בחזרה.
  * מה שמתחת לכרטיס (טופס יצירת הקשר) עולה ויורד יחד עם הגובה, כי הכרטיס הוא חלק מזרימת העמוד.
- * אין כפתור כיווץ נפרד, בהחלטת בעל הפרויקט: הלחיצה על הכרטיס עצמו מכווצת אותו.
+ * אין כפתור כיווץ גלוי, בהחלטת בעל הפרויקט: הלחיצה על הכרטיס עצמו מכווצת אותו. למקלדת ולקוראי מסך יש כפתור
+ * "פירוט" בשורת הכותרת, שמוסתר מהעין ומופיע רק כשמגיעים אליו ב-Tab (ראו DetailsToggle).
  */
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type MouseEvent,
+  type Ref,
+} from "react";
 import {
   animate,
   motion,
   useMotionValue,
   useReducedMotion,
 } from "framer-motion";
-import { Mail } from "lucide-react";
+import { ChevronDown, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CopyTextButton } from "@/components/CopyTextButton";
 import { SlideToExpand } from "@/components/SlideToExpand";
 import { WorkflowSteps } from "@/components/WorkflowSteps";
 import { workflowAsText, workflowSteps } from "@/lib/workflow";
+import { cn } from "@/lib/utils";
 
 /** עקומת הקפיצה של expand-card. framer-motion לא חותך ערכים מעל 1, ולכן יש קפיצה קטנה מעבר ליעד.
  *  מקור: cubicBezier ב-node_modules/motion-utils/dist/es/easing/cubic-bezier.mjs */
@@ -43,6 +52,9 @@ export function WorkflowCard() {
   const reduceMotion = useReducedMotion();
   const cardRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  // המזהה של מיכל התוכן, בשביל aria-controls של כפתור "פירוט"
+  const contentId = useId();
   // גובה המיכל של התוכן. מהמדידה הראשונה הוא מספר מפורש, ולא auto: כשהתוכן מתחלף (מלא ↔ מכווץ), המיכל
   // נשאר בגובה הקודם ומונפש ממנו לגובה החדש. עם auto המיכל היה מתכווץ לבד, מיד, עוד לפני שהאנימציה מתחילה
   // (נמדד: בלי הנעילה הכיווץ קפץ מ-760 ל-176 פיקסלים בפריים אחד, וההרחבה כן הונפשה).
@@ -81,10 +93,22 @@ export function WorkflowCard() {
     };
   }, [height, reduceMotion]);
 
+  // כשהתוכן מתחלף (מלא ↔ מכווץ), מה שהיה בתוכו נמחק מהעמוד. אם הפוקוס היה שם, למשל על הידית של "החלק לפירוט"
+  // אחרי Enter, הדפדפן מוריד אותו ל-body, ומשתמש המקלדת צריך להתחיל מתחילת העמוד (נמדד לפני התיקון).
+  // לכן מעבירים אותו לכפתור "פירוט" שבכותרת, שלא מתחלף. focus() מסקריפט מציג את הפוקוס רק אם הפוקוס הקודם
+  // הוצג, ולכן אחרי גרירה בעכבר הכפתור מקבל את הפוקוס בלי להופיע. מקור: ההיוריסטיקות של :focus-visible
+  // ב-Selectors Level 4, https://www.w3.org/TR/selectors-4/#the-focus-visible-pseudo
+  const keepFocus = () => {
+    if (contentRef.current?.contains(document.activeElement)) {
+      toggleRef.current?.focus();
+    }
+  };
+
   // כיווץ: התוכן מתחלף לרשימה הקצרה, והגובה והרוחב קטנים יחד. הרשימה לא תלויה ברוחב, ולכן הגובה שלה לא זז בדרך.
   // כיווץ אחרי גלילה לתחתית הכרטיס היה משאיר את הכרטיס הקטן מעל המסך: מחזירים את ראש הכרטיס למסך.
   // ראש הכרטיס לא זז כשהגובה משתנה (רק התחתית זזה), ולכן הגלילה מדויקת גם בזמן האנימציה
   const collapse = () => {
+    keepFocus();
     const card = cardRef.current;
     if (card && card.getBoundingClientRect().top < 0) {
       card.scrollIntoView({
@@ -100,6 +124,7 @@ export function WorkflowCard() {
   // הטקסט של השלבים היה נשבר מחדש לאורך כל שינוי הרוחב, והגובה היה רודף אחרי יעד שזז.
   // כשהרוחב ממילא לא משתנה (נייד, שבו הכרטיס צר מ-COLLAPSED_MAX_WIDTH) או בהפחתת תנועה, אין למה לחכות
   const expand = () => {
+    keepFocus();
     setNarrow(false);
     const card = cardRef.current;
     const widthWillChange =
@@ -145,20 +170,27 @@ export function WorkflowCard() {
         <div className="terminal-dot border-accent" />
         <div className="terminal-dot border-destructive" />
         <span className="text-sm text-muted-foreground ml-2">workflow.log</span>
-        {/* בכרטיס המכווץ אין מה להעתיק, ולכן גם אין כפתור */}
-        {!collapsed && (
-          <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <DetailsToggle
+            ref={toggleRef}
+            expanded={!collapsed}
+            controls={contentId}
+            onToggle={() => (collapsed ? expand() : collapse())}
+          />
+          {/* בכרטיס המכווץ אין מה להעתיק, ולכן גם אין כפתור */}
+          {!collapsed && (
             <CopyTextButton
               text={workflowAsText()}
               label="העתק"
               title="העתק את תהליך העבודה ללוח"
               compact
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <motion.div
+        id={contentId}
         className="overflow-hidden"
         style={heightLocked ? { height } : undefined}
       >
@@ -194,6 +226,57 @@ export function WorkflowCard() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+/**
+ * כפתור "פירוט" בשורת הכותרת: הדרך לכווץ ולהרחיב את הכרטיס מהמקלדת ומקורא מסך.
+ * הכרטיס עצמו לא הופך לכפתור (role="button"), כי לכפתור יש Children Presentational: True, והדפדפן לא אמור
+ * לחשוף לטכנולוגיה מסייעת את מה שבתוכו. כך "העתק", Contact Me והידית היו נעלמים לקורא המסך.
+ * מקור: WAI-ARIA 1.2, טבלת התכונות של button וסעיף 5.2.9, https://www.w3.org/TR/wai-aria-1.2/#button
+ * הכפתור מוסתר מהעין (sr-only) ומופיע רק בפוקוס מקלדת (focus-visible), כדי שמשתמשי עכבר ומגע לא יראו
+ * כפתור נוסף. not-sr-only מאפס גם את הריפוד, ולכן הריפוד על ה-span הפנימי (sr-only ו-not-sr-only:
+ * node_modules/tailwindcss/dist/lib.js, גרסה 4.1.14).
+ * השם קבוע, "פירוט תהליך העבודה", והמצב עובר ב-aria-expanded (true כשהפירוט המלא מוצג), ו-aria-controls
+ * מצביע על מיכל התוכן. Enter ורווח מפעילים כפתור מעצמם, ואין צורך בטיפול נפרד במקלדת.
+ * מקור: תבנית Disclosure ב-APG, https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/
+ * המילה הגלויה "פירוט" היא תחילת השם, כדי שמי שמפעיל בקול יוכל לומר את מה שהוא רואה.
+ * מקור: WCAG 2.5.3 Label in Name, https://www.w3.org/WAI/WCAG22/Understanding/label-in-name.html
+ */
+function DetailsToggle({
+  ref,
+  expanded,
+  controls,
+  onToggle,
+}: {
+  ref?: Ref<HTMLButtonElement>;
+  expanded: boolean;
+  controls: string;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      ref={ref}
+      type="button"
+      dir="rtl"
+      aria-label="פירוט תהליך העבודה"
+      aria-expanded={expanded}
+      aria-controls={controls}
+      onClick={onToggle}
+      className="sr-only rounded-md font-mono text-xs text-muted-foreground outline-none hover:text-primary focus-visible:not-sr-only focus-visible:ring-[3px] focus-visible:ring-ring/50"
+    >
+      <span className="inline-flex h-6 items-center gap-1 px-2">
+        פירוט
+        {/* חץ למטה כשהכרטיס מכווץ (יש עוד מה לפתוח), ולמעלה כשהוא פתוח */}
+        <ChevronDown
+          aria-hidden="true"
+          className={cn(
+            "h-3.5 w-3.5 transition-transform motion-reduce:transition-none",
+            expanded && "rotate-180"
+          )}
+        />
+      </span>
+    </button>
   );
 }
 

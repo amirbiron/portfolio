@@ -1,7 +1,7 @@
-## [2026-11-20] כרטיס "תהליך עבודה" שמתכווץ ומתרחב, כותרות לשלבים, כפתור "העתק", וחצים במקום ">"
+## [2026-11-20] כרטיס "תהליך עבודה" שמתכווץ ומתרחב (גם מהמקלדת), כותרות לשלבים, כפתור "העתק", וחצים במקום ">"
 
 **קבצים שהשתנו:**
-- `client/src/components/WorkflowCard.tsx` — (נוסף) חלון תהליך העבודה: כפתור העתקה בכותרת החלון, כיווץ בלחיצה על הכרטיס, ומצב מכווץ עם רשימה ממוספרת ופס "החלק לפירוט"
+- `client/src/components/WorkflowCard.tsx` — (נוסף) חלון תהליך העבודה: כפתור העתקה בכותרת החלון, כיווץ בלחיצה על הכרטיס, כפתור "פירוט" שמופיע רק בפוקוס מקלדת, ומצב מכווץ עם רשימה ממוספרת ופס "החלק לפירוט"
 - `client/src/components/SlideToExpand.tsx` — (נוסף) הפס "החלק לפירוט", שמרחיב את הכרטיס המכווץ
 - `client/src/components/CopyTextButton.tsx` — (נוסף) כפתור ההעתקה ללוח, שהוצא מעמוד הבלוג כדי לשמש גם כאן
 - `client/src/lib/workflow.ts` — (שונה) שדה `title` לכל שלב, הפונקציה `workflowAsText()`, וחצים `←` במקום `>` בשלב 3
@@ -18,9 +18,9 @@
 3. **כפתור "העתק"** בכותרת החלון, ליד `workflow.log`, כמו בבלוג. בכרטיס המכווץ הכפתור לא מוצג.
    - **רכיב משותף:** הכפתור של הבלוג (`CopyArticleButton`, שהיה מוגדר בתוך `BlogPost.tsx`) הוצא כמו שהוא לרכיב `CopyTextButton({ text, label, title, compact })`. `label` הוא מה שכתוב על הכפתור במצב הרגיל, ו-`title` הוא הטקסט במעבר עכבר. שאר הקוד זהה: `navigator.clipboard.writeText` מתוך ה-onClick, החיוויים "הועתק" ו"ההעתקה נכשלה" לשתי שניות, ושתי הגרסאות בגודל.
    - **בבלוג:** `<CopyTextButton text={articleMarkdown} label="העתק" title="העתק את כל המאמר ללוח" compact />` בראש המאמר, ו-`<CopyTextButton text={articleMarkdown} label="העתק את כל המאמר" title="העתק את כל המאמר ללוח" />` בסופו. ה-imports של `useState`, `Check` ו-`Copy` הוסרו מ-`BlogPost.tsx`.
-   - **בבלוק:** `{!collapsed && <div className="ml-auto"><CopyTextButton text={workflowAsText()} label="העתק" title="העתק את תהליך העבודה ללוח" compact /></div>}`. `workflowAsText()` מ-`workflow.ts` בונה את הטקסט מאותם נתונים שהבלוק מציג: שורה ראשונה "תהליך עבודה", ואחריה כל שלב בפסקה: `n. כותרת`, שורת הטקסט, וההערה בשורה שמתחילה ב-`> `.
+   - **בבלוק:** בכותרת החלון, אחרי `workflow.log`, יש `<div className="ml-auto flex items-center gap-2">`, ובתוכו קודם כפתור "פירוט" (סעיף 6), ואחריו `{!collapsed && <CopyTextButton text={workflowAsText()} label="העתק" title="העתק את תהליך העבודה ללוח" compact />}`. `workflowAsText()` מ-`workflow.ts` בונה את הטקסט מאותם נתונים שהבלוק מציג: שורה ראשונה "תהליך עבודה", ואחריה כל שלב בפסקה: `n. כותרת`, שורת הטקסט, וההערה בשורה שמתחילה ב-`> `.
 4. **כיווץ והרחבה (`WorkflowCard`).** מבוסס על expand-card, spring-dropdown ו-slide-confirm מ-finesse.
-   - **כיווץ:** לחיצה בכל מקום בכרטיס (`onClick` על ה-`terminal-window`, עם `cursor-pointer`). אין כפתור כיווץ נפרד, בהחלטת בעל הפרויקט. המצב ההתחלתי מורחב.
+   - **כיווץ:** לחיצה בכל מקום בכרטיס (`onClick` על ה-`terminal-window`, עם `cursor-pointer`). אין כפתור כיווץ גלוי, בהחלטת בעל הפרויקט. למקלדת ולקוראי מסך יש כפתור "פירוט" שמופיע רק בפוקוס מקלדת (סעיף 6). המצב ההתחלתי מורחב.
    - **מכווץ, רשימה:** רשימה ממוספרת בשני טורים, 1–3 בטור הימני ו-4–6 בטור השמאלי: `<ol dir="rtl" className="grid grid-flow-col grid-cols-2 grid-rows-3 gap-x-8 gap-y-3">`. `grid-flow-col` עם שלוש שורות ממלא טור אחרי טור, וב-RTL הטור הראשון הוא הימני. כל פריט: `<span className="font-mono text-primary">{i + 1}.</span>{" "}<span className="font-bold text-foreground/90">{title}</span>`, באותה שורת טקסט (לא כפריטי flex נפרדים), כדי שהנקודה תופיע בין המספר לכותרת כמו ברשימה עברית.
    - **מכווץ, כניסה (spring-dropdown):** כל פריט הוא `motion.li` עם `initial={{ opacity: 0, y: -14, scale: 0.92 }}` ו-`animate={{ opacity: 1, y: 0, scale: 1 }}`, ו-`transition={{ default: { duration: 0.5, ease: [0.2, 1.5, 0.3, 1], delay: i * 0.055 }, opacity: { duration: 0.25, delay: i * 0.055 } }}`. ההשהיה לפי סדר המספרים, כך שהטור הימני יורד מלמעלה למטה ואחריו השמאלי.
    - **מכווץ, הרחבה:** מתחת לרשימה, `<div className="mt-8 flex justify-center"><SlideToExpand label="החלק לפירוט" onConfirm={expand} /></div>`. גם לחיצה בכל מקום אחר בכרטיס המכווץ מרחיבה אותו.
@@ -31,8 +31,8 @@
      - כשהרוחב ממילא לא משתנה (`card.parentElement.clientWidth` לא גדול מ-`card.offsetWidth`, כמו בנייד), ובהפחתת תנועה, `setCollapsed(false)` קורה מיד. הטיימר נשמר ב-ref ומתנקה ב-unmount.
    - **`SlideToExpand` (מבוסס על slide-confirm):**
      - **הפס:** `relative h-14 w-full max-w-xs touch-none select-none overflow-hidden rounded-full border` (`border-border bg-muted/40`, ואחרי ההצלחה `border-primary bg-primary/15`), עם `data-no-card-toggle`.
-     - **הטקסט:** במרכז, `text-xs font-semibold text-muted-foreground`, ובזמן הגרירה בשקיפות 0.3.
-     - **הידית:** `role="slider"`, `tabIndex={0}`, `absolute right-1 top-1 h-12 w-12 rounded-full bg-primary text-primary-foreground`, עם חץ שמאלה (`path d="m14 6-6 6 6 6"`), ואחרי ההצלחה V. גוררים אותה מימין לשמאל. המיקום: `translateX(-x)`, כאשר x = ימין הפס פחות `clientX` פחות 28, מוגבל בין 0 לרוחב הפס פחות 56. אורך הדרך נמדד ב-`pointerdown`.
+     - **הטקסט:** במרכז, `text-xs font-semibold text-muted-foreground`, ובזמן הגרירה בשקיפות 0.3. עם `aria-hidden="true"`, כי אותו שם כבר נמצא על הידית, ואחרת קורא מסך היה מקריא אותו פעמיים.
+     - **הידית:** `<button type="button" aria-label={label}>`, ולא `role="slider"`: היא מבצעת פעולה אחת (הרחבה) ואין לה ערך שמשנים, ו-slider מבטיח לקורא המסך ערך (`aria-valuenow`, `aria-valuemin`, `aria-valuemax`) וחצים שמזיזים אותו (תבנית Slider ב-APG). אין לה `onClick`, כך שהקשה בלי גרירה לא מרחיבה. המחלקות: `absolute right-1 top-1 h-12 w-12 rounded-full bg-primary text-primary-foreground`, עם חץ שמאלה (`path d="m14 6-6 6 6 6"`), ואחרי ההצלחה V. גוררים אותה מימין לשמאל. המיקום: `translateX(-x)`, כאשר x = ימין הפס פחות `clientX` פחות 28, מוגבל בין 0 לרוחב הפס פחות 56. אורך הדרך נמדד ב-`pointerdown`.
      - **שחרור:** אחרי יותר מ-85% מהדרך הידית קופצת לסוף, ו-`onConfirm` נקרא אחרי 280ms. פחות מזה, היא חוזרת בקפיצה (`transform .5s cubic-bezier(.2,1.5,.3,1)`).
      - **מקלדת:** Enter או רווח על הידית עושים אותו דבר כמו גרירה מלאה.
      - **הברק:** שכבת `.slide-to-expand-shine` מ-`index.css`: `linear-gradient(90deg, transparent 30%, color-mix(in oklch, var(--primary) 18%, transparent) 50%, transparent 70%)`, `background-size: 200% 100%`, `animation: slide-to-expand-shine 2.2s linear infinite`, עם keyframes **מ-`-200%` ל-`200%`**. ב-slide-confirm המקורי הם הפוכים, ואז הברק זז משמאל לימין, הפוך לכיוון הגרירה (נמדד: מרכז הברק זז 174 פיקסלים ימינה ב-300ms). כאן הוא זז מימין לשמאל.
@@ -48,6 +48,12 @@
    - **הכרטיס נשאר במסך:** כשמכווצים אחרי שראש הכרטיס גלל מעל המסך (`getBoundingClientRect().top < 0`), `scrollIntoView({ block: "start" })` מחזיר אותו (`behavior: "smooth"`, או `"auto"` בהפחתת תנועה).
    - **הפחתת תנועה:** הגובה משתנה מיד. אין ברק, והידית בלי אנימציה. תזוזת הכותרות מבוטלת על ידי `MotionConfig reducedMotion="user"` שכבר עוטף את האפליקציה.
 5. **`Home.tsx`:** בתוך `FadeInSection delay={0.15}` של הסקשן, החלון כולו (כותרת החלון, `WorkflowSteps`, Contact Me) הוחלף ב-`<WorkflowCard />`. ה-imports עודכנו: `WorkflowCard` במקום `WorkflowSteps`, ומ-`workflow.ts` נשאר רק `workflowTitle`.
+6. **כיווץ והרחבה מהמקלדת (רכיב `DetailsToggle` בתוך `WorkflowCard.tsx`).** בלי זה, מי שגולש עם מקלדת או עם קורא מסך לא יכול לכווץ את הכרטיס. הכרטיס עצמו לא הופך לכפתור (`role="button"`), כי לכפתור יש Children Presentational: True (WAI-ARIA 1.2, סעיף 5.2.9): הדפדפן לא אמור לחשוף לקורא המסך את מה שבתוכו, ואז "העתק", Contact Me והידית היו נעלמים לו.
+   - **הכפתור:** `<button type="button" dir="rtl" aria-label="פירוט תהליך העבודה" aria-expanded={!collapsed} aria-controls={contentId} onClick={() => (collapsed ? expand() : collapse())}>`. `contentId` מגיע מ-`useId()` של React, והוא ה-`id` של ה-`motion.div` שמחזיק את התוכן. השם קבוע, והמצב עובר ב-`aria-expanded` (תבנית Disclosure ב-APG). Enter ורווח מפעילים כפתור מעצמם.
+   - **מוסתר מהעין, מופיע רק בפוקוס מקלדת:** `className="sr-only rounded-md font-mono text-xs text-muted-foreground outline-none hover:text-primary focus-visible:not-sr-only focus-visible:ring-[3px] focus-visible:ring-ring/50"`. משתמשי עכבר ומגע לא רואים כפתור נוסף. טבעת הפוקוס כמו בשאר הכפתורים באתר.
+   - **התוכן:** `<span className="inline-flex h-6 items-center gap-1 px-2">פירוט<ChevronDown aria-hidden="true" className={cn("h-3.5 w-3.5 transition-transform motion-reduce:transition-none", expanded && "rotate-180")} /></span>`. הריפוד על ה-span ולא על הכפתור, כי `not-sr-only` מאפס `padding` לאפס. החץ מצביע למטה כשהכרטיס מכווץ, ולמעלה כשהוא פתוח. המילה הגלויה "פירוט" היא תחילת השם, לפי WCAG 2.5.3 Label in Name.
+   - **הפוקוס לא הולך לאיבוד:** כשהתוכן מתחלף, מה שהיה בתוכו נמחק מהעמוד. לפני התיקון, Enter או רווח על הידית הרחיבו את הכרטיס, והפוקוס נפל ל-`body`, כך שמשתמש המקלדת היה צריך להתחיל מתחילת העמוד. עכשיו בתחילת `collapse()` ו-`expand()` יש `keepFocus()`: אם `contentRef.current.contains(document.activeElement)`, הפוקוס עובר לכפתור "פירוט" (`toggleRef.current.focus()`). לפי ההיוריסטיקות של `:focus-visible` ב-Selectors Level 4, פוקוס שסקריפט מעביר מוצג רק אם הפוקוס הקודם הוצג. לכן אחרי Enter על הידית הכפתור מופיע, ואחרי גרירה בעכבר הוא מקבל את הפוקוס בלי להופיע.
+   - **"העתק" ו-Contact Me** הם כפתורים נפרדים, ואין לכרטיס טיפול במקלדת, כך ש-Enter ורווח עליהם לא מכווצים אותו. הלחיצה בעכבר עליהם כבר מסוננת ב-`closest("button, a, [data-no-card-toggle]")`.
 
 **אימות:** ב-Chromium מול build פרודקשן:
 - **כיווץ:** החלון מתכווץ מ-760 ל-292 פיקסלים בטאבלט (ברוחב 1366), והטופס שמתחת עולה ב-468. בנייד (390) מ-1132 ל-292, והטופס עולה ב-840.
@@ -71,6 +77,16 @@
   - בבלוג, שני כפתורי ההעתקה עובדים כמו קודם.
 - **נייד:** שני טורים, בלי גלילה אופקית.
 - **הפחתת תנועה:** אין ברק, והכותרות מופיעות בלי תזוזה.
+- **מקלדת:**
+  - משתמש עכבר: כפתור "פירוט" בגודל 1x1 פיקסלים (מוסתר), גם אחרי גרירה מלאה של הידית, כשהפוקוס עליו.
+  - Tab אחד מכותרת הסקשן מגיע לכפתור, והוא מופיע (70x24).
+  - Enter מכווץ, ו-`aria-expanded` עובר ל-`false`. רווח מרחיב, וחוזר ל-`true`. הפוקוס נשאר על הכפתור.
+  - `aria-controls` מצביע על מיכל התוכן.
+  - Enter ורווח על "העתק" ועל Contact Me לא מכווצים (הטקסט הועתק, והעמוד גלל לטופס).
+  - רווח על הידית מרחיב, והפוקוס עובר לכפתור "פירוט" (לפני התיקון נפל ל-`body`).
+  - הקשה על הידית בלי גרירה לא מרחיבה.
+  - עץ הנגישות של הכרטיס המכווץ: `button "פירוט תהליך העבודה"`, רשימה של 6 פריטים, ו-`button "החלק לפירוט"`, בלי slider.
+  - מוטציה: עם `focus:not-sr-only` במקום `focus-visible:not-sr-only`, הכפתור הופיע למשתמש העכבר אחרי הגרירה (70x24), והבדיקה תפסה את זה.
 - אין שגיאות בדף.
 
 ## [2026-11-20] בבלוק "תהליך עבודה": כפתור Contact Me בצד שמאל, ו"תכנון" בכתיב הנכון
