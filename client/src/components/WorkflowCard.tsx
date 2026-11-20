@@ -30,6 +30,14 @@ const SPRING_EASE = [0.2, 1.3, 0.3, 1] as const;
 /** עקומת הקפיצה של spring-dropdown, לכניסת הכותרות בכרטיס המכווץ */
 const DROPDOWN_EASE = [0.2, 1.5, 0.3, 1] as const;
 
+/**
+ * הרוחב המקסימלי של הכרטיס המכווץ: בערך הרוחב של הכרטיס בנייד (358px ברוחב 390), שבעל הפרויקט אישר.
+ * במסך רחב הכרטיס המכווץ מצטמצם לרוחב הזה ועומד במרכז, ובנייד הוא ממילא צר יותר, ולכן לא משתנה.
+ */
+const COLLAPSED_MAX_WIDTH = "22.5rem";
+/** משך השינוי ברוחב, באותה עקומה כמו הגובה */
+const WIDTH_MS = 500;
+
 export function WorkflowCard() {
   const [collapsed, setCollapsed] = useState(false);
   const reduceMotion = useReducedMotion();
@@ -41,6 +49,12 @@ export function WorkflowCard() {
   const height = useMotionValue(0);
   const [heightLocked, setHeightLocked] = useState(false);
   const lockedRef = useRef(false);
+  // רוחב הכרטיס: צר כשהוא מכווץ. נפרד מ-collapsed, כי בהרחבה הרוחב משתנה קודם, ורק אחריו התוכן (ראו expand)
+  const [narrow, setNarrow] = useState(false);
+  const expandTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
+  useEffect(() => () => clearTimeout(expandTimer.current), []);
 
   // מודד את התוכן בכל שינוי גודל: מעבר בין מלא למכווץ, וגם סיבוב מסך או שינוי רוחב חלון.
   // המדידה הראשונה (ומצב של פחות תנועה) קובעת את הגובה מיד; השאר מונפשות בעקומה של expand-card.
@@ -67,6 +81,38 @@ export function WorkflowCard() {
     };
   }, [height, reduceMotion]);
 
+  // כיווץ: התוכן מתחלף לרשימה הקצרה, והגובה והרוחב קטנים יחד. הרשימה לא תלויה ברוחב, ולכן הגובה שלה לא זז בדרך.
+  // כיווץ אחרי גלילה לתחתית הכרטיס היה משאיר את הכרטיס הקטן מעל המסך: מחזירים את ראש הכרטיס למסך.
+  // ראש הכרטיס לא זז כשהגובה משתנה (רק התחתית זזה), ולכן הגלילה מדויקת גם בזמן האנימציה
+  const collapse = () => {
+    const card = cardRef.current;
+    if (card && card.getBoundingClientRect().top < 0) {
+      card.scrollIntoView({
+        block: "start",
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+    }
+    setCollapsed(true);
+    setNarrow(true);
+  };
+
+  // הרחבה בשני שלבים: קודם הכרטיס חוזר לרוחב המלא, ורק אחר כך השלבים נכנסים והגובה גדל. אם שניהם היו קורים יחד,
+  // הטקסט של השלבים היה נשבר מחדש לאורך כל שינוי הרוחב, והגובה היה רודף אחרי יעד שזז.
+  // כשהרוחב ממילא לא משתנה (נייד, שבו הכרטיס צר מ-COLLAPSED_MAX_WIDTH) או בהפחתת תנועה, אין למה לחכות
+  const expand = () => {
+    setNarrow(false);
+    const card = cardRef.current;
+    const widthWillChange =
+      !!card?.parentElement &&
+      card.parentElement.clientWidth > card.offsetWidth + 1;
+    clearTimeout(expandTimer.current);
+    if (reduceMotion || !widthWillChange) {
+      setCollapsed(false);
+      return;
+    }
+    expandTimer.current = setTimeout(() => setCollapsed(false), WIDTH_MS);
+  };
+
   const toggle = (event: MouseEvent<HTMLDivElement>) => {
     // כפתורים וקישורים בתוך הכרטיס (Contact Me, העתק) והפס "החלק לפירוט" עושים את שלהם, ולא מכווצים
     // או מרחיבים את הכרטיס: גרירה של הפס מסתיימת בלחיצה, שאחרת הייתה מגיעה גם לכרטיס
@@ -77,23 +123,22 @@ export function WorkflowCard() {
       return;
     // לחיצה שמסיימת סימון טקסט (כדי להעתיק) היא לא בקשה לכווץ
     if (window.getSelection()?.toString()) return;
-    // כיווץ אחרי גלילה לתחתית הכרטיס היה משאיר את הכרטיס הקטן מעל המסך: מחזירים את ראש הכרטיס למסך.
-    // ראש הכרטיס לא זז כשהגובה משתנה (רק התחתית זזה), ולכן הגלילה מדויקת גם בזמן האנימציה
-    const card = cardRef.current;
-    if (!collapsed && card && card.getBoundingClientRect().top < 0) {
-      card.scrollIntoView({
-        block: "start",
-        behavior: reduceMotion ? "auto" : "smooth",
-      });
-    }
-    setCollapsed(c => !c);
+    if (collapsed) expand();
+    else collapse();
   };
 
   return (
     <div
       ref={cardRef}
-      className="terminal-window cursor-pointer"
+      className="terminal-window mx-auto cursor-pointer"
       onClick={toggle}
+      style={{
+        // מעבר בין 100% לרוחב קבוע: הדפדפן מנפיש בין אחוזים ל-rem (שניהם אורך)
+        maxWidth: narrow ? COLLAPSED_MAX_WIDTH : "100%",
+        transition: reduceMotion
+          ? "none"
+          : `max-width ${WIDTH_MS}ms cubic-bezier(.2, 1.3, .3, 1)`,
+      }}
     >
       <div className="terminal-header">
         <div className="terminal-dot border-primary" />
@@ -122,10 +167,7 @@ export function WorkflowCard() {
             <>
               <CollapsedSteps />
               <div className="mt-8 flex justify-center">
-                <SlideToExpand
-                  label="החלק לפירוט"
-                  onConfirm={() => setCollapsed(false)}
-                />
+                <SlideToExpand label="החלק לפירוט" onConfirm={expand} />
               </div>
             </>
           ) : (
