@@ -703,7 +703,7 @@ export const projects: ProjectData[] = [
       "Prometheus",
       "Grafana",
     ],
-    image: "/projects/codekeeper-card.jpg",
+    image: "/projects/codekeeper-card.webp",
     screenshots: [
       "/projects/Screenshot_20260313_202612_Telegram.jpg",
       "/projects/Screenshot_20260313_202856_Telegram.jpg",

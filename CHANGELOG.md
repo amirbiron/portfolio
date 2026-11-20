@@ -1,3 +1,33 @@
+## [2026-11-20] תמונת הכרטיס של CodeKeeper עברה ל-WebP: 779KB במקום 2.9MB, באותה רזולוציה
+
+**קבצים שהשתנו:**
+- `client/public/projects/codekeeper-card.webp` — (נוסף) תמונת הכרטיס של CodeKeeper ב-WebP
+- `client/public/projects/codekeeper-card.jpg` — (נמחק) ה-JPEG המקורי
+- `client/src/lib/projects.ts` — (שונה) ברשומה `codekeeper`: `image: "/projects/codekeeper-card.webp"`
+
+**פירוט:**
+התמונה של CodeKeeper הייתה JPEG של 2.9MB, כשכל שאר תמונות הכרטיס הן WebP של 170–265KB. היא הכבידה על טעינת דף הבית, ושימשה גם כתמונת השיתוף של עמוד הפרויקט. עכשיו היא WebP של 779KB, באותה רזולוציה בדיוק (2752x1536), כך שאין אובדן פרטים מהקטנה.
+
+- **ההמרה:** ב-Pillow, מהקובץ המקורי: `Image.open("codekeeper-card.jpg").convert("RGB").save("codekeeper-card.webp", "WEBP", quality=95, method=6)`.
+- **למה איכות 95:** בעל הפרויקט ביקש איכות גבוהה ככל האפשר עד 1MB. מדדתי PSNR מול המקור ברזולוציה המלאה, ככל שהמספר גבוה יותר התמונה קרובה יותר למקור:
+  - איכות 90: 499KB, 41.2dB
+  - איכות 95: 779KB, 43.1dB
+  - איכות 98: 1040KB, 43.9dB (כבר מעל 1MB)
+  - ללא איבוד: 4029KB
+  - לשם השוואה, ניסיון ראשון שהוקטן ל-1920 פיקסלים באיכות 85 יצא 236KB, אבל רק 30.5dB.
+
+  מעל 95 הקובץ גדל מהר כמעט בלי שיפור.
+- **שיתוף:** בעמוד הפרויקט ובעמוד ה-Ask AI שלו, og:image היא עכשיו `codekeeper-card.webp`, עם `og:image:type` image/webp ומידות 2752x1536, שנמדדות מהקובץ בבנייה.
+
+**אימות:**
+- `image-size` מודד את הקובץ החדש כ-2752x1536 webp.
+- בדפדפן הכרטיס בדף הבית טוען אותו (`naturalWidth` 2752, אין בקשות שנכשלו).
+- `scripts/check-seo.mjs` עובר, כולל סוג ומידות התמונה שהשרת מגיש.
+
+**ליישום מחדש:**
+1. להעתיק כמו שהוא את `client/public/projects/codekeeper-card.webp` מהריפו הזה (או להמיר לפי הפקודה למעלה), ולמחוק את `codekeeper-card.jpg`.
+2. ב-`projects.ts`, להציב `image: "/projects/codekeeper-card.webp"` ברשומה `codekeeper`.
+
 ## [2026-11-19] בלוק "תהליך עבודה" בדף הבית, ממש לפני טופס יצירת הקשר
 
 **קבצים שהשתנו:**
@@ -77,7 +107,7 @@
    - `generateBundle`: מפת האתר ו-robots.txt כמו קודם, אבל הנתיבים נלקחים מ-`pages.filter(p => p.inSitemap)`. `sitemap.xml` ו-`robots.txt` יוצאים זהים בבייטים לגרסה הקודמת.
    - `renderPageHead(page, siteUrl)` מחזירה, לפי הסדר, ממוזגות ב-`"\n    "`: `<title>`, `meta name="description"`, `link rel="canonical"`, `og:type`, `og:title`, `og:description`, `og:url`, `og:image` עם `og:image:width`, `og:image:height` ו-`og:image:type` (לפי `shareImage`, ראו בהמשך), `og:locale` he_IL, `og:site_name` Amir Biron Portfolio, `twitter:card` summary_large_image, `twitter:title`, `twitter:description`, `twitter:image`. og:title ו-twitter:title זהים ל-`<title>`. כל ערך עובר `escapeHtml` (בריחה ל-`&`, `<`, `>`, `"`). כשאין `siteUrl`, התגיות שדורשות כתובת מלאה (canonical, og:url, og:image ושלוש תגיות הגודל שלה, twitter:image) מושמטות. עד עכשיו נשאר בהן הטקסט `%VITE_SITE_URL%` כמו שהוא.
    - הקישור הקנוני חדש. הוא ב-head של ה-HTML המקורי, בכתובת מלאה, ומצביע על העמוד עצמו, כמו שגוגל ממליץ (https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls). og:url של דף הבית הוא עכשיו `<siteUrl>/` עם לוכסן בסוף, כמו בקישור הקנוני ובמפת האתר.
-   - **תמונת השיתוף (`shareImage(page, siteUrl, imageSizes)`):** לעמוד בלי `image` (דף הבית, ההמלצות והבלוג) — `<siteUrl>/og-preview.png`, עם `og:image:width` 1200, `og:image:height` 630 ו-`og:image:type` image/png. לעמוד עם `image` (עמודי הפרויקטים ועמודי ה-Ask AI שלהם) — נתיב שמתחיל ב-`/` מקבל את `siteUrl` לפניו, כמו og:url, וכתובת `http(s)://` נשארת כמו שהיא. `og:image:type` נקבע לפי הסיומת מהטבלה `IMAGE_TYPES` (`.png` image/png, `.jpg`/`.jpeg` image/jpeg, `.webp` image/webp), וסיומת אחרת מקבלת תמונה בלי `og:image:type`. 9 מתוך 10 תמונות הכרטיס הן WebP. בעל הפרויקט בדק שווטסאפ מציג WebP בתצוגה מקדימה.
+   - **תמונת השיתוף (`shareImage(page, siteUrl, imageSizes)`):** לעמוד בלי `image` (דף הבית, ההמלצות והבלוג) — `<siteUrl>/og-preview.png`, עם `og:image:width` 1200, `og:image:height` 630 ו-`og:image:type` image/png. לעמוד עם `image` (עמודי הפרויקטים ועמודי ה-Ask AI שלהם) — נתיב שמתחיל ב-`/` מקבל את `siteUrl` לפניו, כמו og:url, וכתובת `http(s)://` נשארת כמו שהיא. `og:image:type` נקבע לפי הסיומת מהטבלה `IMAGE_TYPES` (`.png` image/png, `.jpg`/`.jpeg` image/jpeg, `.webp` image/webp), וסיומת אחרת מקבלת תמונה בלי `og:image:type`. כל 10 תמונות הכרטיס הן WebP (CodeKeeper הומרה ל-WebP ברשומה נפרדת, 2026-11-20). בעל הפרויקט בדק שווטסאפ מציג WebP בתצוגה מקדימה.
    - **מידות תמונות העמודים נמדדות מהקובץ:** חבילת פיתוח חדשה, `image-size` בגרסה נעוצה `2.0.4` (`pnpm add -D -E image-size@2.0.4`, בלי תלויות משלה). ב-`configResolved` נשמר `config.publicDir` (`client/public`). ב-`writeBundle`, לפני בניית ה-heads, `measureShareImages(publicDir, warn)` עובר על ה-`image` הייחודיים שמתחילים ב-`/`, קורא כל קובץ (`path.join(publicDir, image)`) ומודד אותו ב-`imageSize(new Uint8Array(buffer))` מ-`image-size`. התוצאה היא `Map` מנתיב ל-`{ width, height }` (הטיפוס `ImageSizes`), ו-`renderPageHead(page, siteUrl, imageSizes)` מעביר אותה ל-`shareImage`, שמוסיף `og:image:width`/`og:image:height` כשיש מידות. קובץ שלא נמדד (חסר, סוג לא מוכר, או תג EXIF orientation שאינו 1) כותב אזהרה בלוג הבנייה (`this.warn`), והתמונה יוצאת בלי מידות. הבנייה לא נכשלת בגלל זה. המידות נשארות נכונות גם כשמחליפים תמונה, בלי לעדכן מספרים ביד.
 4. **`shared/const.ts`:** `export const PAGE_HTML_FILE = "page-html.json";` והממשק `PageHtmlFile { before: string; after: string; heads: Record<string, string> }`.
 5. **`server/index.ts`:** פונקציה `loadPageHtml(file)` קוראת את הקובץ פעם אחת בעלייה, בודקת את המבנה (`before` ו-`after` מחרוזות, `heads` אובייקט שכל ערכיו מחרוזות), ומחזירה פונקציה שמקבלת נתיב ומחזירה `before + head + after`, או `undefined` לנתיב בלי head. ה-heads נשמרים ב-`Map`, כדי שנתיב כמו `/constructor` לא ימצא משהו מ-`Object.prototype`. קובץ חסר או פגום כותב אזהרה בלוג ומחזיר תמיד `undefined`: כל עמוד מקבל את `index.html` כמו קודם, והשרת לא נופל. הקובץ נטען מ-`path.resolve(staticPath, "..", PAGE_HTML_FILE)`, לפני ה-`app.get("*")`. ב-`app.get("*")`, קודם: אם `req.path` ארוך מתו אחד, נגמר ב-`/`, ובלי הלוכסן יש לו HTML (עמוד מוכר), `res.redirect(301, <הנתיב בלי הלוכסן> + <מחרוזת השאילתה מ-req.url, אם יש>)`. הסיבה: wouter (דרך regexparam, שהתבנית שלו נגמרת ב-`\/?$`) מציג את `/project/x/` כעמוד הפרויקט, אבל `req.path` שומר את הלוכסן, ולכן הכתובת הזו קיבלה את ה-head של דף הבית. ההפניה נותנת לכל עמוד כתובת אחת. אחר כך: אם יש HTML לנתיב (`req.path`), `res.set("Cache-Control", "public, max-age=0")` (אותה מדיניות ש-`sendFile` נתן לעמודים האלה, לפי מדידה) ו-`res.send(html)`, שקובע `text/html; charset=utf-8`, מוסיף ETag ועונה 304 לבקשה עדכנית. אחרת `sendFile(index.html)` כמו קודם. דף הבית מוגש מ-`express.static` כמו קודם, ו-`index.html` כבר מכיל את ה-head שלו. כתובת לא מוכרת מקבלת את ה-head של דף הבית, כמו קודם.
@@ -86,7 +116,7 @@
 **אימות:** מול שרת הייצור, ב-HTTP וב-Chromium, עם אותה מדידה על build בלי השינוי (בקרה):
 - **בקרה:** בבנייה הקודמת כל 22 העמודים (20 במפה ועוד שני עמודי Ask AI) מחזירים את הכותרת והתיאור של דף הבית, `og:url` הוא `https://example.com`, ואין קישור קנוני. עם השינוי לכל עמוד הכותרת, התיאור, og:type, og:url והקישור הקנוני שלו, כל תגית בדיוק פעם אחת, וכל 22 הכותרות שונות זו מזו. ה-`&` בשם ההמלצה "WhatsApp & Telegram" מגיע כ-`&amp;`.
 - **מטמון:** בקשה עם `If-None-Match` של ה-ETag מקבלת 304 בלי גוף, ו-HEAD מחזיר 200 עם `Content-Length`.
-- **תמונות:** בעמודי הפרויקטים og:image היא תמונת הכרטיס, וכל תמונה מוגשת מהשרת עם `Content-Type` זהה ל-`og:image:type` שב-head (WebP כ-`image/webp`, CodeKeeper כ-`image/jpeg`). המידות שב-head זהות למידות הקובץ שהשרת מגיש (הבדיקה מודדת את הבייטים שהגיעו ב-HTTP), ולמדידה עצמאית ב-PIL של כל 11 התמונות (למשל CodeKeeper 2752x1536, MentorOS 1536x1024).
+- **תמונות:** בעמודי הפרויקטים og:image היא תמונת הכרטיס, וכל תמונה מוגשת מהשרת עם `Content-Type` זהה ל-`og:image:type` שב-head (כולן WebP, ומוגשות כ-`image/webp`). המידות שב-head זהות למידות הקובץ שהשרת מגיש (הבדיקה מודדת את הבייטים שהגיעו ב-HTTP), ולמדידה עצמאית ב-PIL של כל 11 התמונות (למשל CodeKeeper 2752x1536, MentorOS 1536x1024).
 - **לוכסן בסוף:** לכל 21 העמודים חוץ מדף הבית, `<נתיב>/?ref=check` מחזיר 301 עם `Location: <נתיב>?ref=check`. בדפדפן `/project/myagent/` מגיע ל-`/project/myagent` עם הכותרת "myAgent | אמיר בירון".
 - **מוטציות:** קובץ `page-html.json` חסר או פגום (ערך שאינו מחרוזת): השרת עולה, כותב אזהרה, ומגיש את דף הבית לכל עמוד. עמוד אחד שה-head שלו נמחק מהקובץ: רק הוא נכשל בבדיקה. `page-meta.ts` בלי ההמלצות: הבדיקה נכשלת על המפה ועל og:url של שלושתן. תגית description בלי ערך, `og:image:type` שגוי, ושרת בלי ההפניה: כל אחד מהם מכשיל את הבדיקה.
 - **בלי `VITE_SITE_URL`:** הבנייה עוברת עם אזהרה, אין `sitemap.xml`, ואין ב-HTML אף `%VITE_SITE_URL%`.
