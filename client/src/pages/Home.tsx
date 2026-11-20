@@ -483,10 +483,10 @@ export default function Home() {
 
               <div className="p-8">
                 <WorkflowSteps steps={workflowSteps} />
-                {/* אותו כפתור כמו Contact Me ב-Hero: גולל לטופס שמתחת */}
-                <div dir="rtl" className="mt-8">
+                {/* אותו כפתור כמו Contact Me ב-Hero: גולל לטופס שמתחת. המיכל משמאל לימין, ולכן הכפתור
+                    בצד שמאל של החלון, כמו כפתורי ה-Hero */}
+                <div dir="ltr" className="mt-8">
                   <Button
-                    dir="ltr"
                     variant="outline"
                     className="border-accent text-accent hover:bg-accent/10 transition-all hover:scale-105"
                     onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
