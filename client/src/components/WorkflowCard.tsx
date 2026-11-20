@@ -1,7 +1,8 @@
 /**
  * חלון "תהליך העבודה" בדף הבית. לחיצה בכל מקום בכרטיס מכווצת אותו לרשימה ממוספרת של שש הכותרות בשני טורים,
- * ולחיצה נוספת, או גרירה של הפס "החלק לפירוט" שבתחתית הכרטיס המכווץ, מרחיבה אותו בחזרה, והשלבים רצים שוב
- * מההתחלה (WorkflowSteps נטען מחדש).
+ * וגרירה של הפס "החלק לפירוט" שבתחתית הכרטיס המכווץ מרחיבה אותו בחזרה, והשלבים רצים שוב מההתחלה
+ * (WorkflowSteps נטען מחדש). בכרטיס המכווץ לחיצה לא מרחיבה, בהחלטת בעל הפרויקט: אילו כל נגיעה הייתה מרחיבה,
+ * לא הייתה סיבה להחליק, והפס היה מיותר.
  * מבוסס על רכיבים מ-finesse:
  * - expand-card: הגובה משתנה עם עקומת הקפיצה שלו, cubic-bezier(.2, 1.3, .3, 1) בחצי שנייה.
  * - spring-dropdown: הכותרות נכנסות אחת אחרי השנייה מלמעלה, עם קפיצה (ראו CollapsedSteps).
@@ -27,6 +28,7 @@ import { CopyTextButton } from "@/components/CopyTextButton";
 import { SlideToExpand } from "@/components/SlideToExpand";
 import { WorkflowSteps } from "@/components/WorkflowSteps";
 import { workflowAsText, workflowSteps } from "@/lib/workflow";
+import { cn } from "@/lib/utils";
 
 /** עקומת הקפיצה של expand-card. framer-motion לא חותך ערכים מעל 1, ולכן יש קפיצה קטנה מעבר ליעד.
  *  מקור: cubicBezier ב-node_modules/motion-utils/dist/es/easing/cubic-bezier.mjs */
@@ -118,25 +120,25 @@ export function WorkflowCard() {
     expandTimer.current = setTimeout(() => setCollapsed(false), WIDTH_MS);
   };
 
-  const toggle = (event: MouseEvent<HTMLDivElement>) => {
-    // כפתורים וקישורים בתוך הכרטיס (Contact Me, העתק) והפס "החלק לפירוט" עושים את שלהם, ולא מכווצים
-    // או מרחיבים את הכרטיס: גרירה של הפס מסתיימת בלחיצה, שאחרת הייתה מגיעה גם לכרטיס
-    if (
-      event.target instanceof Element &&
-      event.target.closest("button, a, [data-no-card-toggle]")
-    )
+  const collapseOnClick = (event: MouseEvent<HTMLDivElement>) => {
+    // בכרטיס המכווץ הלחיצה לא עושה כלום: מרחיבים רק בפס "החלק לפירוט" (ראו בראש הקובץ). זה גם מה שמונע
+    // מהלחיצה שבסוף גרירה של הפס להגיע לכרטיס: הפס קיים רק כשהכרטיס מכווץ, וההרחבה עצמה קורית אחרי הלחיצה
+    // (onConfirm נקרא מטיימר ב-SlideToExpand)
+    if (collapsed) return;
+    // כפתורים וקישורים בתוך הכרטיס (Contact Me, העתק) עושים את שלהם, ולא מכווצים את הכרטיס
+    if (event.target instanceof Element && event.target.closest("button, a"))
       return;
     // לחיצה שמסיימת סימון טקסט (כדי להעתיק) היא לא בקשה לכווץ
     if (window.getSelection()?.toString()) return;
-    if (collapsed) expand();
-    else collapse();
+    collapse();
   };
 
   return (
     <div
       ref={cardRef}
-      className="terminal-window mx-auto cursor-pointer"
-      onClick={toggle}
+      // סמן היד רק כשלחיצה באמת מכווצת, כלומר בכרטיס המורחב
+      className={cn("terminal-window mx-auto", !collapsed && "cursor-pointer")}
+      onClick={collapseOnClick}
       style={{
         // מעבר בין 100% לרוחב קבוע: הדפדפן מנפיש בין אחוזים ל-rem (שניהם אורך)
         maxWidth: narrow ? COLLAPSED_MAX_WIDTH : "100%",
