@@ -16,8 +16,8 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { ExternalLinkButton } from "@/components/ExternalLinkButton";
-import { WorkflowSteps } from "@/components/WorkflowSteps";
-import { workflowSteps, workflowTitle } from "@/lib/workflow";
+import { WorkflowCard } from "@/components/WorkflowCard";
+import { workflowTitle } from "@/lib/workflow";
 import { projects } from "@/lib/projects";
 import { testimonials } from "@/lib/testimonials";
 import { blogPosts, blogSlugs } from "@/lib/blog";
@@ -473,30 +473,8 @@ export default function Home() {
           </FadeInSection>
 
           <FadeInSection delay={0.15}>
-            <div className="terminal-window">
-              <div className="terminal-header">
-                <div className="terminal-dot border-primary" />
-                <div className="terminal-dot border-accent" />
-                <div className="terminal-dot border-destructive" />
-                <span className="text-sm text-muted-foreground ml-2">workflow.log</span>
-              </div>
-
-              <div className="p-8">
-                <WorkflowSteps steps={workflowSteps} />
-                {/* אותו כפתור כמו Contact Me ב-Hero: גולל לטופס שמתחת. המיכל משמאל לימין, ולכן הכפתור
-                    בצד שמאל של החלון, כמו כפתורי ה-Hero */}
-                <div dir="ltr" className="mt-8">
-                  <Button
-                    variant="outline"
-                    className="border-accent text-accent hover:bg-accent/10 transition-all hover:scale-105"
-                    onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-                  >
-                    <Mail className="mr-2 h-4 w-4" />
-                    Contact Me
-                  </Button>
-                </div>
-              </div>
-            </div>
+            {/* החלון עם השלבים, כפתור ההעתקה וכפתור Contact Me. לחיצה בכרטיס מכווצת ומרחיבה אותו (ראו WorkflowCard) */}
+            <WorkflowCard />
           </FadeInSection>
         </div>
       </section>

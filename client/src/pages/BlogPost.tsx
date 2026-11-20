@@ -4,9 +4,10 @@
  */
 
 import "../blog-styles.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, Copy } from "lucide-react";
+import { CopyTextButton } from "@/components/CopyTextButton";
+import { ArrowLeft } from "lucide-react";
 import { Link, useRoute } from "wouter";
 import { Streamdown, defaultRehypePlugins, type StreamdownProps } from 'streamdown';
 import { harden } from "rehype-harden";
@@ -40,56 +41,6 @@ const rehypePlugins: StreamdownProps["rehypePlugins"] = [
   rehypeDirAuto,
   rehypeRtlCodeBlocks,
 ];
-
-/**
- * כפתור שמעתיק את המאמר כולו (Markdown גולמי) ללוח.
- * writeText נקרא ישירות מתוך ה-onClick כדי לשמור על transient user activation,
- * שנדרשת בכל דפדפן (ב-Firefox ו-Safari בכל העתקה מחדש).
- * מקור: https://developer.mozilla.org/en-US/docs/Web/API/Clipboard_API#security_considerations
- */
-function CopyArticleButton({ markdown, compact = false }: { markdown: string; compact?: boolean }) {
-  const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
-
-  // החיווי חוזר למצב הרגיל אחרי 2 שניות; ניקוי הטיימר מונע עדכון state אחרי unmount
-  useEffect(() => {
-    if (status === "idle") return;
-    const timer = setTimeout(() => setStatus("idle"), 2000);
-    return () => clearTimeout(timer);
-  }, [status]);
-
-  const handleCopy = async () => {
-    try {
-      // navigator.clipboard קיים רק ב-secure context (HTTPS או localhost);
-      // מחוץ לזה הגישה עצמה זורקת, ולכן היא בתוך ה-try
-      await navigator.clipboard.writeText(markdown);
-      setStatus("copied");
-    } catch {
-      setStatus("error");
-    }
-  };
-
-  const Icon = status === "copied" ? Check : Copy;
-  const label =
-    status === "copied" ? "הועתק" : status === "error" ? "ההעתקה נכשלה" : compact ? "העתק" : "העתק את כל המאמר";
-
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      onClick={handleCopy}
-      title="העתק את כל המאמר ללוח"
-      className={
-        compact
-          ? "h-6 gap-1.5 px-2 font-mono text-xs text-muted-foreground hover:text-primary"
-          : "gap-2 font-mono text-xs text-muted-foreground hover:text-primary"
-      }
-    >
-      <Icon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
-      <span aria-live="polite">{label}</span>
-    </Button>
-  );
-}
 
 export default function BlogPost() {
   const [, params] = useRoute("/blog/:slug");
@@ -157,7 +108,7 @@ export default function BlogPost() {
                 {slug}.md
               </span>
               <div className="ml-auto">
-                <CopyArticleButton markdown={articleMarkdown} compact />
+                <CopyTextButton text={articleMarkdown} label="העתק" title="העתק את כל המאמר ללוח" compact />
               </div>
             </div>
             
@@ -182,7 +133,7 @@ export default function BlogPost() {
 
               {/* העתקת המאמר גם בסוף, בלי לגלול חזרה למעלה */}
               <div className="mt-10 pt-6 border-t border-border/40 flex justify-end">
-                <CopyArticleButton markdown={articleMarkdown} />
+                <CopyTextButton text={articleMarkdown} label="העתק את כל המאמר" title="העתק את כל המאמר ללוח" />
               </div>
             </div>
           </div>

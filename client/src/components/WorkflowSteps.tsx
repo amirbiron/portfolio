@@ -97,27 +97,30 @@ export function WorkflowSteps({
               )}
             </span>
             <div className="min-w-0 flex-1">
+              {/* שורת הכותרת: המספר והכותרת, בצבע של מצב השלב */}
               <p
                 className={cn(
-                  "leading-relaxed transition-colors duration-300",
+                  "font-bold transition-colors duration-300",
+                  state === "wait" && "text-muted-foreground",
+                  state === "run" && "text-accent",
+                  state === "done" && "text-primary"
+                )}
+              >
+                {/* הרווח בצד שמאל במפורש (ml-2): התגית היא dir="ltr", ולכן me-2 היה יוצא בצד ימין שלה,
+                    לכיוון שולי השורה, ולא לכיוון הטקסט העברי שממשיך משמאל לה */}
+                <span dir="ltr" className="ml-2 font-mono text-sm font-normal">
+                  [{i + 1}/{steps.length}]
+                </span>
+                {step.title}
+              </p>
+              <p
+                className={cn(
+                  "mt-1 leading-relaxed transition-colors duration-300",
                   state === "wait"
                     ? "text-muted-foreground"
                     : "text-foreground/90"
                 )}
               >
-                {/* הרווח בצד שמאל במפורש (ml-2): התגית היא dir="ltr", ולכן me-2 היה יוצא בצד ימין שלה,
-                    לכיוון שולי השורה, ולא לכיוון הטקסט העברי שממשיך משמאל לה */}
-                <span
-                  dir="ltr"
-                  className={cn(
-                    "ml-2 font-mono text-sm transition-colors duration-300",
-                    state === "wait" && "text-muted-foreground",
-                    state === "run" && "text-accent",
-                    state === "done" && "text-primary"
-                  )}
-                >
-                  [{i + 1}/{steps.length}]
-                </span>
                 {step.text}
               </p>
               {step.note && (
