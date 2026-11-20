@@ -207,21 +207,43 @@ async function checkPageHead(pagePath) {
   const ogImage = property("og:image");
   expectEqual("og:image", ogImage, wantedImage);
   expectEqual("twitter:image", named("twitter:image"), wantedImage);
-  // התמונה חייבת להיות מוגשת, og:image:type חייב להתאים ל-Content-Type שהשרת שולח איתה,
-  // והמידות שב-head חייבות להתאים לקובץ שהשרת באמת מגיש (נמדד כאן מהבייטים שהגיעו ב-HTTP)
+  // התמונה חייבת להיות מוגשת, ו-og:image:type חייב להתאים ל-Content-Type שהיא מוגשת איתו.
+  // המידות: אותו כלל כמו בבנייה (measureShareImages ו-shareImage ב-vite.config.ts). תמונה מקומית נמדדת,
+  // והמידות שב-head חייבות להתאים לבייטים שהגיעו ב-HTTP. תמונה עם תג סיבוב (EXIF orientation שאינו 1)
+  // ותמונה בכתובת חיצונית לא נמדדות בבנייה, ולכן אצלן אסור שיהיו og:image:width/height.
   const imageType = property("og:image:type");
-  const imageWidth = property("og:image:width");
-  const imageHeight = property("og:image:height");
   if (ogImage !== MISSING && ogImage !== undefined) {
-    const served = await fetchImage(new URL(ogImage).pathname);
+    // תמונה מקומית נשלפת משרת הבדיקה, עם הנתיב והשאילתה שלה; תמונה חיצונית נשלפת מהכתובת המלאה שלה
+    const isLocal = ogImage.startsWith(`${siteUrl}/`);
+    const served = await fetchImage(
+      isLocal ? base + ogImage.slice(siteUrl.length) : ogImage
+    );
     if (served.status !== 200)
       failures.push(
         `${pagePath}: התמונה ${ogImage} החזירה סטטוס ${served.status}`
       );
     expectEqual("og:image:type", imageType, served.contentType);
-    if (served.size) {
-      expectEqual("og:image:width", imageWidth, String(served.size.width));
-      expectEqual("og:image:height", imageHeight, String(served.size.height));
+    const rotated =
+      served.size?.orientation !== undefined && served.size.orientation !== 1;
+    if (!isLocal || rotated) {
+      const sizeTags = metas.filter(
+        m => m.property === "og:image:width" || m.property === "og:image:height"
+      );
+      if (sizeTags.length > 0)
+        failures.push(
+          `${pagePath}: יש og:image:width/height ל-${ogImage}, שהבנייה לא מודדת (${isLocal ? "תג סיבוב" : "כתובת חיצונית"})`
+        );
+    } else if (served.size) {
+      expectEqual(
+        "og:image:width",
+        property("og:image:width"),
+        String(served.size.width)
+      );
+      expectEqual(
+        "og:image:height",
+        property("og:image:height"),
+        String(served.size.height)
+      );
     } else {
       failures.push(`${pagePath}: לא הצלחתי למדוד את ${ogImage}`);
     }
@@ -259,11 +281,12 @@ function projectOfPath(pagePath) {
 
 // כל תמונה נשלפת פעם אחת: כמה עמודים חולקים אותה תמונה
 const imageResponses = new Map();
-function fetchImage(imagePath) {
-  if (!imageResponses.has(imagePath)) {
+// המפתח הוא הכתובת המלאה שנשלפת בפועל, כך ששאילתה או מארח שונים הם תמונות שונות
+function fetchImage(imageUrl) {
+  if (!imageResponses.has(imageUrl)) {
     imageResponses.set(
-      imagePath,
-      fetch(base + imagePath).then(async r => {
+      imageUrl,
+      fetch(imageUrl).then(async r => {
         const bytes = new Uint8Array(await r.arrayBuffer());
         let size = null;
         try {
@@ -280,7 +303,7 @@ function fetchImage(imagePath) {
       })
     );
   }
-  return imageResponses.get(imagePath);
+  return imageResponses.get(imageUrl);
 }
 
 const MISSING = Symbol("missing");

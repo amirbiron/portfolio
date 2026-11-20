@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation } from "wouter";
 import { lazy, Suspense, useEffect } from "react";
+import { MotionConfig } from "framer-motion";
 import { getPageMeta } from "./lib/page-meta";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -72,14 +73,20 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="dark"
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
+      {/* כל אנימציות framer-motion באתר מכבדות את הגדרת "הפחתת תנועה" של המכשיר: תזוזה והגדלה
+          (y, x, scale) קורות מיד, ודהייה (opacity) נשארת. בלי זה ברירת המחדל היא "never", והתזוזות רצות תמיד.
+          מקור: MotionConfigContext.mjs, VisualElement.mjs ו-visual-element-target.mjs ב-node_modules/framer-motion,
+          ו-keys-position.mjs ב-motion-dom (framer-motion 12.23.22) */}
+      <MotionConfig reducedMotion="user">
+        <ThemeProvider
+          defaultTheme="dark"
+        >
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </ThemeProvider>
+      </MotionConfig>
     </ErrorBoundary>
   );
 }

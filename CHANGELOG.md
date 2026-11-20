@@ -1,3 +1,19 @@
+## [2026-11-20] אנימציות התזוזה באתר מכבדות את הגדרת "הפחתת תנועה" של המכשיר
+
+**קבצים שהשתנו:**
+- `client/src/App.tsx` — (שונה) `MotionConfig` עם `reducedMotion="user"` סביב כל האפליקציה
+
+**פירוט:**
+מי שהגדיר במכשיר "הפחתת תנועה" (`prefers-reduced-motion: reduce`) עדיין ראה בכל האתר סקשנים וכרטיסים שגולשים פנימה ומתרוממים (`FadeInSection` מ-`y: 40`, ה-Hero מ-`scale: 0.95` ועוד), כי ברירת המחדל של framer-motion היא `reducedMotion: "never"`. עכשיו כל רכיבי `motion` באתר מכבדים את ההגדרה: תזוזה, הגדלה וסיבוב (`x`, `y`, `scale` וכו') קורים מיד, והדהייה (`opacity`) נשארת. מי שלא הגדיר הפחתת תנועה לא רואה שום שינוי.
+
+- **מקור (framer-motion 12.23.22):** `MotionConfigContext.mjs` (ברירת המחדל `"never"`), `VisualElement.mjs` (עם `"user"` הערך נלקח מהעדפת המכשיר), `visual-element-target.mjs` (מאפיין "מיקומי" מקבל `type: false`, כלומר בלי אנימציה), ו-`keys-position.mjs` ב-motion-dom (רשימת המאפיינים המיקומיים: `width`, `height`, `top`, `left`, `right`, `bottom`, ו-`x`, `y`, `z`, `scale`, `rotate`, `skew` וכו').
+- **ליישום מחדש:** ב-`client/src/App.tsx`, `import { MotionConfig } from "framer-motion";`, ולעטוף את מה שבתוך `ErrorBoundary` ב-`<MotionConfig reducedMotion="user">...</MotionConfig>`.
+
+**אימות:** ב-Chromium מול build פרודקשן, 150ms אחרי שכותרת בלוק תהליך העבודה נכנסת למסך:
+- **בלי הפחתת תנועה:** `transform: translateY(26.6px)` באמצע האנימציה, ו-`opacity` כ-0.33.
+- **עם `reducedMotion: "reduce"`:** `transform: none`, ו-`opacity` כ-0.33 (הדהייה נשארת).
+- **בקרה:** על הקוד בלי השינוי, גם עם הפחתת תנועה הבלוק זז (`translateY(26.6px)`).
+
 ## [2026-11-20] תמונת הכרטיס של CodeKeeper עברה ל-WebP: 779KB במקום 2.9MB, באותה רזולוציה
 
 **קבצים שהשתנו:**
