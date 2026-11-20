@@ -13,11 +13,12 @@ import {
   X,
   Bot,
 } from "lucide-react";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, type ComponentProps } from "react";
 import { Link, useParams } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import mermaid from "mermaid";
 import { ExternalLinkButton } from "@/components/ExternalLinkButton";
+import { toast } from "sonner";
 import { projects } from "@/lib/projects";
 
 // הגדרות Mermaid לערכת נושא כהה
@@ -198,6 +199,14 @@ function ScreenshotGallery({ images }: { images: string[] }) {
   );
 }
 
+/**
+ * כפתור Code בפרויקט שנבנה ללקוח (clientProject ב-projects.ts): אין קישור לקוד, ולחיצה מציגה הודעה
+ * שמסבירה למה. משמש בכותרת ובתחתית העמוד, ולכן מקבל את הגודל והעיצוב מבחוץ.
+ */
+function ClosedCodeButton(props: Omit<ComponentProps<typeof Button>, "onClick">) {
+  return <Button {...props} onClick={() => toast.info("קוד סגור - פרויקט ללקוח")} />;
+}
+
 export default function ProjectPage() {
   const params = useParams<{ slug: string }>();
 
@@ -226,6 +235,10 @@ export default function ProjectPage() {
     );
   }
 
+  // כפתורי הפעולה (דמו, קוד, Ask AI) מוצגים רק כשיש להם יעד. כפתור Code מוצג גם בפרויקט ללקוח,
+  // ושם הוא מסביר שהקוד סגור. בפרויקט שאין לו אף אחד מהם גם המיכל לא מרונדר, כדי שלא יישאר רווח ריק
+  const hasActions = Boolean(project.demo || project.repo || project.clientProject || project.askAi);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -241,30 +254,44 @@ export default function ProjectPage() {
               Back to Portfolio
             </Link>
           </Button>
+          {hasActions && (
           <div className="flex gap-3">
-            <ExternalLinkButton
-              href={project.demo}
-              unavailableMessage="Demo link - Feature coming soon"
-              size="sm"
-              className="bg-primary/20 text-primary border border-primary hover:bg-primary hover:text-primary-foreground"
-            >
-              <ExternalLink className="mr-2 h-3 w-3" />
-              {project.demoLabel || "Demo"}
-            </ExternalLinkButton>
-            <ExternalLinkButton
-              href={project.repo}
-              unavailableMessage="הקוד עדיין לא זמין"
-              size="sm"
-              variant="outline"
-              className="border-accent text-accent hover:bg-accent/10"
-            >
-              {project.repoLabel ? (
+            {project.demo && (
+              <ExternalLinkButton
+                href={project.demo}
+                size="sm"
+                className="bg-primary/20 text-primary border border-primary hover:bg-primary hover:text-primary-foreground"
+              >
                 <ExternalLink className="mr-2 h-3 w-3" />
-              ) : (
-                <Github className="mr-2 h-3 w-3" />
-              )}
-              {project.repoLabel || "Code"}
-            </ExternalLinkButton>
+                {project.demoLabel || "Demo"}
+              </ExternalLinkButton>
+            )}
+            {project.repo ? (
+              <ExternalLinkButton
+                href={project.repo}
+                size="sm"
+                variant="outline"
+                className="border-accent text-accent hover:bg-accent/10"
+              >
+                {project.repoLabel ? (
+                  <ExternalLink className="mr-2 h-3 w-3" />
+                ) : (
+                  <Github className="mr-2 h-3 w-3" />
+                )}
+                {project.repoLabel || "Code"}
+              </ExternalLinkButton>
+            ) : (
+              project.clientProject && (
+                <ClosedCodeButton
+                  size="sm"
+                  variant="outline"
+                  className="border-accent text-accent hover:bg-accent/10"
+                >
+                  <Github className="mr-2 h-3 w-3" />
+                  Code
+                </ClosedCodeButton>
+              )
+            )}
             {project.askAi && (
               <Button
                 asChild
@@ -278,6 +305,7 @@ export default function ProjectPage() {
               </Button>
             )}
           </div>
+          )}
         </div>
       </header>
 
@@ -454,28 +482,41 @@ export default function ProjectPage() {
                 Back to Portfolio
               </Link>
             </Button>
+            {hasActions && (
             <div className="flex gap-3">
-              <ExternalLinkButton
-                href={project.demo}
-                unavailableMessage="Demo link - Feature coming soon"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
-              >
-                <ExternalLink className="mr-2 h-4 w-4" />
-                {project.demoLabel || "Demo"}
-              </ExternalLinkButton>
-              <ExternalLinkButton
-                href={project.repo}
-                unavailableMessage="הקוד עדיין לא זמין"
-                variant="outline"
-                className="border-accent text-accent hover:bg-accent/10"
-              >
-                {project.repoLabel ? (
+              {project.demo && (
+                <ExternalLinkButton
+                  href={project.demo}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
+                >
                   <ExternalLink className="mr-2 h-4 w-4" />
-                ) : (
-                  <Github className="mr-2 h-4 w-4" />
-                )}
-                {project.repoLabel || "Code"}
-              </ExternalLinkButton>
+                  {project.demoLabel || "Demo"}
+                </ExternalLinkButton>
+              )}
+              {project.repo ? (
+                <ExternalLinkButton
+                  href={project.repo}
+                  variant="outline"
+                  className="border-accent text-accent hover:bg-accent/10"
+                >
+                  {project.repoLabel ? (
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Github className="mr-2 h-4 w-4" />
+                  )}
+                  {project.repoLabel || "Code"}
+                </ExternalLinkButton>
+              ) : (
+                project.clientProject && (
+                  <ClosedCodeButton
+                    variant="outline"
+                    className="border-accent text-accent hover:bg-accent/10"
+                  >
+                    <Github className="mr-2 h-4 w-4" />
+                    Code
+                  </ClosedCodeButton>
+                )
+              )}
               {project.askAi && (
                 <Button
                   asChild
@@ -488,6 +529,7 @@ export default function ProjectPage() {
                 </Button>
               )}
             </div>
+            )}
           </div>
 
           {/* הצעה לפרויקט הבא */}

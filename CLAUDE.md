@@ -13,10 +13,13 @@ Static portfolio site built with React + TypeScript + Vite, served by Express in
 - `pnpm start` — Run production server
 - `pnpm check` — TypeScript type check, plus `scripts/check-bidi.mjs` (fails on invisible BiDi marks such as U+200F in code; write them as visible escapes like `"\u200E"` instead)
 - `pnpm format` — Prettier formatting
-- `node scripts/check-sitemap.mjs` — run after `pnpm build`, with the same `VITE_SITE_URL`: starts the production server and checks that `/sitemap.xml` and `/robots.txt` are served and list every project, testimonial and blog post. The build itself only warns when `VITE_SITE_URL` is missing, so this script is what fails.
+- `node scripts/check-seo.mjs` — run after `pnpm build`, with the same `VITE_SITE_URL`: starts the production server and checks that `/sitemap.xml` and `/robots.txt` are served and list every project, testimonial and blog post, and that every page (including the Ask AI pages) is served with its own `<title>`, description, `og:url` and canonical link. The build itself only warns when `VITE_SITE_URL` is missing, so this script is what fails.
+
+## Per-page head tags
+Each page's title and description live in `client/src/lib/page-meta.ts` (built from the project, testimonial and blog data). `vitePluginSeo` in `vite.config.ts` puts the home page's tags into `client/index.html` at the `<!-- page-meta -->` marker, and after the build writes `dist/page-html.json` (the built `index.html` split around the head, plus each page's head). `server/index.ts` assembles each page's HTML from that file. `scripts/check-seo.mjs` builds its own list of paths from the project, testimonial and blog data, so it fails if `page-meta.ts` misses one of those pages. That list does not read `App.tsx`: a new page type or a new static page (say `/about`) needs a route in `App.tsx`, an entry in `page-meta.ts`, **and** its paths added to the list in `scripts/check-seo.mjs` — otherwise the check never requests it. Known pages requested with a trailing slash (`/project/x/`) get a 301 to the canonical path, because wouter renders them as the same page.
 
 ## CI
-`.github/workflows/ci.yml` runs on every PR and every push to `main`: `pnpm check`, `pnpm build`, then `scripts/check-sitemap.mjs`.
+`.github/workflows/ci.yml` runs on every PR and every push to `main`: `pnpm check`, `pnpm build`, then `scripts/check-seo.mjs`.
 
 ## Language
 

@@ -1,8 +1,10 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
-import { lazy, Suspense } from "react";
+import { Route, Switch, useLocation } from "wouter";
+import { lazy, Suspense, useEffect } from "react";
+import { MotionConfig } from "framer-motion";
+import { getPageMeta } from "./lib/page-meta";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -22,7 +24,21 @@ function LazyFallback() {
   );
 }
 
+/**
+ * כותרת הלשונית לפי העמוד. ב-HTML הראשוני השרת כבר שם לכל עמוד את הכותרת שלו, אבל ניווט בתוך האתר
+ * לא טוען את העמוד מחדש, ובלי זה הלשונית וההיסטוריה היו נשארות עם הכותרת של העמוד הראשון שנפתח.
+ * רק הכותרת מתעדכנת כאן: שאר התגיות (תיאור, og, canonical) נקראות רק מה-HTML הראשוני, וגוגל מבקש
+ * ש-JavaScript לא ישנה את הקישור הקנוני. מקור: https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls
+ */
+function usePageTitle() {
+  const [location] = useLocation();
+  useEffect(() => {
+    document.title = getPageMeta(location).title;
+  }, [location]);
+}
+
 function Router() {
+  usePageTitle();
   return (
     <Switch>
       <Route path={"/"} component={Home} />
@@ -57,14 +73,20 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="dark"
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
+      {/* כל אנימציות framer-motion באתר מכבדות את הגדרת "הפחתת תנועה" של המכשיר: תזוזה והגדלה
+          (y, x, scale) קורות מיד, ודהייה (opacity) נשארת. בלי זה ברירת המחדל היא "never", והתזוזות רצות תמיד.
+          מקור: MotionConfigContext.mjs, VisualElement.mjs ו-visual-element-target.mjs ב-node_modules/framer-motion,
+          ו-keys-position.mjs ב-motion-dom (framer-motion 12.23.22) */}
+      <MotionConfig reducedMotion="user">
+        <ThemeProvider
+          defaultTheme="dark"
+        >
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </ThemeProvider>
+      </MotionConfig>
     </ErrorBoundary>
   );
 }

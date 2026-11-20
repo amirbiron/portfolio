@@ -1,3 +1,179 @@
+## [2026-11-20] אנימציות התזוזה באתר מכבדות את הגדרת "הפחתת תנועה" של המכשיר
+
+**קבצים שהשתנו:**
+- `client/src/App.tsx` — (שונה) `MotionConfig` עם `reducedMotion="user"` סביב כל האפליקציה
+
+**פירוט:**
+מי שהגדיר במכשיר "הפחתת תנועה" (`prefers-reduced-motion: reduce`) עדיין ראה בכל האתר סקשנים וכרטיסים שגולשים פנימה ומתרוממים (`FadeInSection` מ-`y: 40`, ה-Hero מ-`scale: 0.95` ועוד), כי ברירת המחדל של framer-motion היא `reducedMotion: "never"`. עכשיו כל רכיבי `motion` באתר מכבדים את ההגדרה: תזוזה, הגדלה וסיבוב (`x`, `y`, `scale` וכו') קורים מיד, והדהייה (`opacity`) נשארת. מי שלא הגדיר הפחתת תנועה לא רואה שום שינוי.
+
+- **מקור (framer-motion 12.23.22):** `MotionConfigContext.mjs` (ברירת המחדל `"never"`), `VisualElement.mjs` (עם `"user"` הערך נלקח מהעדפת המכשיר), `visual-element-target.mjs` (מאפיין "מיקומי" מקבל `type: false`, כלומר בלי אנימציה), ו-`keys-position.mjs` ב-motion-dom (רשימת המאפיינים המיקומיים: `width`, `height`, `top`, `left`, `right`, `bottom`, ו-`x`, `y`, `z`, `scale`, `rotate`, `skew` וכו').
+- **ליישום מחדש:** ב-`client/src/App.tsx`, `import { MotionConfig } from "framer-motion";`, ולעטוף את מה שבתוך `ErrorBoundary` ב-`<MotionConfig reducedMotion="user">...</MotionConfig>`.
+
+**אימות:** ב-Chromium מול build פרודקשן, 150ms אחרי שכותרת בלוק תהליך העבודה נכנסת למסך:
+- **בלי הפחתת תנועה:** `transform: translateY(26.6px)` באמצע האנימציה, ו-`opacity` כ-0.33.
+- **עם `reducedMotion: "reduce"`:** `transform: none`, ו-`opacity` כ-0.33 (הדהייה נשארת).
+- **בקרה:** על הקוד בלי השינוי, גם עם הפחתת תנועה הבלוק זז (`translateY(26.6px)`).
+
+## [2026-11-20] תמונת הכרטיס של CodeKeeper עברה ל-WebP: 779KB במקום 2.9MB, באותה רזולוציה
+
+**קבצים שהשתנו:**
+- `client/public/projects/codekeeper-card.webp` — (נוסף) תמונת הכרטיס של CodeKeeper ב-WebP
+- `client/public/projects/codekeeper-card.jpg` — (נמחק) ה-JPEG המקורי
+- `client/src/lib/projects.ts` — (שונה) ברשומה `codekeeper`: `image: "/projects/codekeeper-card.webp"`
+
+**פירוט:**
+התמונה של CodeKeeper הייתה JPEG של 2.9MB, כשכל שאר תמונות הכרטיס הן WebP של 170–265KB. היא הכבידה על טעינת דף הבית, ושימשה גם כתמונת השיתוף של עמוד הפרויקט. עכשיו היא WebP של 779KB, באותה רזולוציה בדיוק (2752x1536), כך שאין אובדן פרטים מהקטנה.
+
+- **ההמרה:** ב-Pillow, מהקובץ המקורי: `Image.open("codekeeper-card.jpg").convert("RGB").save("codekeeper-card.webp", "WEBP", quality=95, method=6)`.
+- **למה איכות 95:** בעל הפרויקט ביקש איכות גבוהה ככל האפשר עד 1MB. מדדתי PSNR מול המקור ברזולוציה המלאה, ככל שהמספר גבוה יותר התמונה קרובה יותר למקור:
+  - איכות 90: 499KB, 41.2dB
+  - איכות 95: 779KB, 43.1dB
+  - איכות 98: 1040KB, 43.9dB (כבר מעל 1MB)
+  - ללא איבוד: 4029KB
+  - לשם השוואה, ניסיון ראשון שהוקטן ל-1920 פיקסלים באיכות 85 יצא 236KB, אבל רק 30.5dB.
+
+  מעל 95 הקובץ גדל מהר כמעט בלי שיפור.
+- **שיתוף:** בעמוד הפרויקט ובעמוד ה-Ask AI שלו, og:image היא עכשיו `codekeeper-card.webp`, עם `og:image:type` image/webp ומידות 2752x1536, שנמדדות מהקובץ בבנייה.
+
+**אימות:**
+- `image-size` מודד את הקובץ החדש כ-2752x1536 webp.
+- בדפדפן הכרטיס בדף הבית טוען אותו (`naturalWidth` 2752, אין בקשות שנכשלו).
+- `scripts/check-seo.mjs` עובר, כולל סוג ומידות התמונה שהשרת מגיש.
+
+**ליישום מחדש:**
+1. להעתיק כמו שהוא את `client/public/projects/codekeeper-card.webp` מהריפו הזה (או להמיר לפי הפקודה למעלה), ולמחוק את `codekeeper-card.jpg`.
+2. ב-`projects.ts`, להציב `image: "/projects/codekeeper-card.webp"` ברשומה `codekeeper`.
+
+## [2026-11-19] בלוק "תהליך עבודה" בדף הבית, ממש לפני טופס יצירת הקשר
+
+**קבצים שהשתנו:**
+- `client/src/lib/workflow.ts` — (נוסף) הנוסח של הבלוק: הכותרת ושישה שלבים, עם הערה לשלב הראשון
+- `client/src/components/WorkflowSteps.tsx` — (נוסף) רשימת השלבים כיומן של תהליך שרץ, עם אנימציה של ספינר שהופך ל-V מצויר
+- `client/src/index.css` — (שונה) keyframes `workflow-check-draw` לציור ה-V
+- `client/src/pages/Home.tsx` — (שונה) הסקשן החדש בין הבלוג לטופס יצירת הקשר; לסקשן יצירת הקשר כבר אין רקע
+
+**פירוט:**
+מבקר שראה את הפרויקטים ואת ההמלצות לא ידע מה הצעד הבא חוץ מטופס פנייה ריק. עכשיו, ממש לפני הטופס, יש בלוק שמסביר איך עובדים: מהאפיון, דרך שאלות ותכנון, ועד הצעת מחיר, מסירה וליווי. מתחתיו כפתור שגולל לטופס. הנוסח הוא של בעל הפרויקט, מילה במילה. כל שורה בנוסח המקורי היא שלב, והשורה שהתחילה ב-`>` היא הערה מתחת לשלב הראשון. רק הפסיקים שבסוף השורה הראשונה והשנייה הוסרו, כי כל שורה היא עכשיו שלב נפרד.
+
+1. **`client/src/lib/workflow.ts`:** מייצא את `WorkflowStep { text: string; note?: string }`, את `workflowTitle = "תהליך עבודה"` ואת `workflowSteps`, שישה שלבים, לפי הסדר (להעתיק את הקובץ כמו שהוא, כי הטקסט חייב להיות זהה):
+   1. `יושבים בצ'אט/זום, אתה שולח לי את האפיון של המערכת שאתה צריך שנבנה`, עם `note`: `לא הכוונה לקובץ אפיון מסודר וגדול בהכרח - הכוונה תפרט מה בדיוק אתה צריך, באילו תנאים, תדירות, כל הפרטים שיש לך על מה שאתה מתכנן שנבנה.`
+   2. `אשאל אותך כמה שאלות על האפיון, ובמידת הצורך, אשאל אותך על עוד התאמות לצרכי העסק שלך שלא נכתבו באפיון`
+   3. `אציג לך את התיכנון שלי, עם הסבר איך בדיוק המערכת תעבוד, ומה יידרש ממך > יהיו לך בקשות לשינויים > נשנה, עד שאתה מאה אחוז עם התיכנון.`
+   4. `סיימנו את שלב התיכנון - אציג לך הצעת מחיר, והמחירים אצלי נמוכים ביחס למחירי השוק. אבל - המערכת שתקבל תהיה ברמה גבוהה.`
+   5. `שלב הבא, אמסור לך את המערכת, עם הסבר מפורט על אופן התפעול שלה.`
+   6. `אפשר לבקש שינויים, למשך 2 חודשים לאחר המסירה. ותיקונים גם אחרי זה, אני תמיד זמין.`
+2. **`WorkflowSteps({ steps, className })`:** מבוסס על הרכיב agent-steps מספריית finesse (ציר צעדים: ספינר שהופך ל-V), עם השינויים האלה:
+   - הריצה מתחילה כשהרשימה נכנסת למסך, ולא בכפתור "הרצה": `useInView(listRef, { once: true, margin: "-80px" })` מ-framer-motion.
+   - state `current` (השלב שרץ): -1 לפני שהרשימה נראתה; כשהיא נראית הוא עובר ל-0, ו-`useEffect` עם `setTimeout` של 1100ms מקדם אותו בכל פעם בשלב אחד, עד `steps.length`.
+   - `useReducedMotion()`: מי שביקש פחות תנועה מקבל מיד `current = steps.length`, כלומר כל השלבים גמורים, בלי ספינר ובלי ציור.
+   - **מבנה כל שלב:** `<ol dir="rtl" className="space-y-5">`, וכל `<li className="flex items-start gap-3">` מכיל:
+     - **מחוון** עגול 6x6 (`aria-hidden`) עם `border`. בשלב שממתין: `border-border` וריק. בשלב שרץ: `border-accent text-accent` עם SVG ספינר (`path d="M21 12a9 9 0 1 1-9-9"`, `className="h-3 w-3 animate-spin"`). בשלב שהסתיים: `border-primary bg-primary/15 text-primary` עם SVG של V (`path d="m4 12.5 5 5L20 6.5"`, `strokeDasharray="24"`, `animation: workflow-check-draw 0.35s ease-out both`, בלי האנימציה במצב של פחות תנועה).
+     - **פסקה:** `leading-relaxed`, בצבע `text-muted-foreground` לשלב שממתין ו-`text-foreground/90` אחר כך, כך שהטקסט קריא גם לפני שהשלב הגיע אליו. בתחילתה תגית `<span dir="ltr" className="ml-2 font-mono text-sm">[n/6]</span>`, בצבע של מצב השלב (עמום, accent או primary). ה-`dir="ltr"` שומר על הסוגריים והלוכסן מלהתהפך בשורה עברית. הרווח הוא `ml-2` פיזי, כי `me-2` על תגית LTR יוצא בצד הלא נכון.
+     - **ההערה:** `<blockquote className="mt-3 border-s-4 border-primary ps-4 text-sm italic text-muted-foreground">`, אותו מראה כמו ציטוט בבלוג (`.prose blockquote` ב-`blog-styles.css`).
+3. **`index.css`:** ליד שאר ה-keyframes: `@keyframes workflow-check-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }`.
+4. **`Home.tsx`:**
+   - **מיקום:** סקשן חדש בין הבלוג (`$ git log --blog`) לסקשן יצירת הקשר: `<section className="py-20 bg-card/50">` עם `container max-w-3xl`.
+   - **כותרת:** כמו בשאר הסקשנים, `FadeInSection` עם האייקון `Workflow` מ-lucide-react (`h-8 w-8 text-accent`), `h2` `$ ./workflow.sh` (`text-3xl md:text-4xl font-bold text-accent neon-glow`), ו-`<p dir="rtl" className="text-muted-foreground text-lg">{workflowTitle}</p>`.
+   - **חלון:** `FadeInSection delay={0.15}` עם `terminal-window`, כותרת חלון עם שלוש הנקודות ו-`workflow.log`, ובתוכו `p-8` עם `<WorkflowSteps steps={workflowSteps} />`.
+   - **כפתור:** מתחת לשלבים, `<div dir="rtl" className="mt-8">` עם כפתור זהה ל-Contact Me שב-Hero (`variant="outline"`, `border-accent text-accent hover:bg-accent/10 transition-all hover:scale-105`, אייקון `Mail`, `dir="ltr"` על הכפתור), שגולל ל-`#contact` ב-`scrollIntoView({ behavior: 'smooth' })`.
+   - **רקע:** לסקשן יצירת הקשר הוסר `bg-card/50`, כדי שהרקעים ימשיכו להתחלף: הבלוג בלי רקע, תהליך העבודה עם רקע, יצירת הקשר בלי.
+
+**אימות:** ב-Chromium מול build פרודקשן, בטאבלט (1366x1024) ובנייד (390x844):
+- **סדר הסקשנים:** `$ git log --blog`, `$ ./workflow.sh`, `$ ./contact.sh`.
+- **האנימציה:** לפני הגלילה כל השלבים ממתינים. חצי שנייה אחרי שהבלוק נכנס למסך השלב הראשון רץ, אחרי 2.8 שניות שניים גמורים והשלישי רץ, ואחרי 7.4 שניות כל השישה גמורים. עם `prefers-reduced-motion: reduce` כל השישה גמורים מיד.
+- **הטקסט:** השלבים זהים לנוסח. `[1/6]` מוצג משמאל לימין, צמוד לקצה הימני של השורה, עם רווח של 8 פיקסלים מהטקסט.
+- **ההערה:** הסגנון המחושב שלה (קו של 4px בצד ימין, ריווח 16px, צבע, נטוי) זהה לזה של ציטוט בפוסט בבלוג.
+- **הכפתור:** לחיצה על Contact Me מביאה את הטופס למסך.
+- **נייד:** אין גלילה אופקית. אין שגיאות בדף.
+
+## [2026-11-19] קישור דף נחיתה חדש ל-AI Business Chatbot
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) השדה `repo` של `ai-business-bot`
+
+**פירוט:**
+כפתור "Landing Page" של AI Business Chatbot (השדה `repo`, עם `repoLabel: "Landing Page"`) מצביע עכשיו על `https://amirbiron.github.io/ChatBotLanding/` במקום `https://amirbiron.github.io/Chatbot4U/`. הכתובת החדשה מחזירה 200. **ליישום מחדש:** להחליף את הערך של `repo` ברשומה `ai-business-bot`.
+
+## [2026-11-19] לכל עמוד כותרת, תיאור, תמונה ו-og:url משלו כשמשתפים קישור, וכותרת לשונית שמתעדכנת בניווט
+
+**קבצים שהשתנו:**
+- `client/src/lib/page-meta.ts` — (נוסף) הכותרת, התיאור, סוג ה-og ותמונת השיתוף של כל עמוד באתר, מתוך נתוני הפרויקטים, ההמלצות והבלוג
+- `client/index.html` — (שונה) התגיות הקבועות (title, description, og:*, twitter:*) הוחלפו בסמן `<!-- page-meta -->`. author ו-keywords נשארו
+- `vite.config.ts` — (שונה) הפלאגין `vitePluginSitemap` הפך ל-`vitePluginSeo`: מייצר גם את תגיות ה-head של כל עמוד, וכותב את `dist/page-html.json`
+- `package.json`, `pnpm-lock.yaml` — (שונה) חבילת הפיתוח `image-size` 2.0.4, למדידת תמונות השיתוף בזמן הבנייה
+- `shared/const.ts` — (שונה) הקבוע `PAGE_HTML_FILE` והטיפוס `PageHtmlFile`, משותפים לבנייה ולשרת
+- `server/index.ts` — (שונה) עמוד שיש לו head משלו מוגש עם ה-head שלו, ואותו עמוד עם לוכסן בסוף מופנה לכתובת בלי הלוכסן
+- `client/src/App.tsx` — (שונה) `usePageTitle`: כותרת הלשונית מתעדכנת בכל מעבר עמוד
+
+**פירוט:**
+האתר הוא SPA, והשרת הגיש את אותו `index.html` לכל כתובת. לכן כל קישור לפוסט, לפרויקט או להמלצה ששותף בטלגרם, בווטסאפ או בפייסבוק הציג את הכותרת והתיאור של דף הבית, כי הסורקים שלהם קוראים רק את ה-HTML הראשוני ולא מריצים JavaScript. גם `og:url` הצביע תמיד על דף הבית, ופייסבוק מצרף את הלייקים והשיתופים לכתובת הזו ("Likes and Shares for this URL will aggregate at this URL", https://developers.facebook.com/docs/sharing/webmasters/#basic). גוגל ראה כותרת אחת לכל 22 העמודים. עכשיו כל עמוד מוגש עם head משלו, וגם כותרת הלשונית מתעדכנת כשעוברים בין עמודים בתוך האתר (עד עכשיו היא נשארה "אמיר בירון | Automation Developer" בכל עמוד).
+
+1. **המקור היחיד: `client/src/lib/page-meta.ts`.** מייצא `SITE_NAME = "אמיר בירון"`, את הממשק `PageMeta` (`path`, `title`, `description`, `type: "website" | "article"`, `inSitemap`, ו-`image?` אופציונלי: תמונת השיתוף של העמוד, כנתיב מתוך `client/public` או ככתובת מלאה), את המערך `pages` ואת הפונקציה `getPageMeta(path)`, שמחזירה את המטא של הנתיב, או של דף הבית לנתיב לא מוכר. הקובץ מייבא רק את `./blog`, `./projects` ו-`./testimonials` בנתיב יחסי, כי גם `vite.config.ts` טוען אותו. העמודים, לפי הסדר:
+   - דף הבית `/`: כותרת `אמיר בירון | Automation Developer` (כמו שהייתה), והתיאור שהיה ב-`index.html`.
+   - `/project/<slug>`: כותרת `<project.title> | אמיר בירון`, תיאור `project.description`, `image: project.image || undefined` (תמונת הכרטיס של הפרויקט).
+   - `/project/<slug>/ask-ai`, רק לפרויקט עם `askAi`: כותרת `AI Agent — <project.title> | אמיר בירון` (כמו הכותרת בעמוד הצ'אט), תיאור `${intro.before} ${intro.highlight} ${intro.after}` (משפט הפתיחה של הסוכן), אותה `image` כמו של הפרויקט. `inSitemap: false`.
+   - `/testimonial/<slug>`: כותרת `המלצה: <clientName> | אמיר בירון`, תיאור `shortQuote`.
+   - `/blog/<slug>`: כותרת `<post.title> | אמיר בירון`, תיאור `excerpt`, `type: "article"`.
+   - כל השאר `type: "website"`. ה-slug עובר `encodeURIComponent`, כמו במפת האתר.
+2. **`client/index.html`:** במקום `<title>`, `meta description`, תגיות `og:*` ותגיות `twitter:*` יש עכשיו שורה אחת, `<!-- page-meta -->`, עם הערה מעליה שמסבירה אותה. `author` ו-`keywords` נשארו כמו שהם.
+3. **`vitePluginSeo` ב-`vite.config.ts`** (בלי `apply`, כדי שירוץ גם בשרת הפיתוח):
+   - `configResolved`: קורא את `config.env.VITE_SITE_URL` דרך `resolveSiteUrl` (קיימת). כשהכתובת חסרה, האזהרה בלוג מופיעה רק בבנייה (`config.command === "build"`).
+   - `transformIndexHtml(html)` (פונקציה רגילה, בלי `order`): מפצל את ה-HTML לפי הסמן, זורק שגיאה אם הוא לא מופיע בדיוק פעם אחת, ומכניס במקומו את `renderPageHead(getPageMeta("/"), siteUrl)`.
+   - `writeBundle(options)`: קורא את `index.html` הבנוי מ-`options.dir`, מפצל אותו לפי ה-head של דף הבית (שגיאת בנייה אם הוא לא מופיע בדיוק פעם אחת, או אם לשני עמודים יש אותו נתיב), וכותב ל-`path.join(options.dir, "..", "page-html.json")` את `{ before, after, heads }`: שני החלקים של `index.html`, ומפה מנתיב (כל עמוד חוץ מ-`/`) ל-head שלו. ה-HTML נשמר פעם אחת ולא עותק לכל עמוד, כי `vite-plugin-manus-runtime` מטמיע ב-`index.html` סקריפט של כ-360KB. הקובץ יוצא כ-410KB, ולא כ-6MB.
+   - `generateBundle`: מפת האתר ו-robots.txt כמו קודם, אבל הנתיבים נלקחים מ-`pages.filter(p => p.inSitemap)`. `sitemap.xml` ו-`robots.txt` יוצאים זהים בבייטים לגרסה הקודמת.
+   - `renderPageHead(page, siteUrl)` מחזירה, לפי הסדר, ממוזגות ב-`"\n    "`: `<title>`, `meta name="description"`, `link rel="canonical"`, `og:type`, `og:title`, `og:description`, `og:url`, `og:image` עם `og:image:width`, `og:image:height` ו-`og:image:type` (לפי `shareImage`, ראו בהמשך), `og:locale` he_IL, `og:site_name` Amir Biron Portfolio, `twitter:card` summary_large_image, `twitter:title`, `twitter:description`, `twitter:image`. og:title ו-twitter:title זהים ל-`<title>`. כל ערך עובר `escapeHtml` (בריחה ל-`&`, `<`, `>`, `"`). כשאין `siteUrl`, התגיות שדורשות כתובת מלאה (canonical, og:url, og:image ושלוש תגיות הגודל שלה, twitter:image) מושמטות. עד עכשיו נשאר בהן הטקסט `%VITE_SITE_URL%` כמו שהוא.
+   - הקישור הקנוני חדש. הוא ב-head של ה-HTML המקורי, בכתובת מלאה, ומצביע על העמוד עצמו, כמו שגוגל ממליץ (https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls). og:url של דף הבית הוא עכשיו `<siteUrl>/` עם לוכסן בסוף, כמו בקישור הקנוני ובמפת האתר.
+   - **תמונת השיתוף (`shareImage(page, siteUrl, imageSizes)`):** לעמוד בלי `image` (דף הבית, ההמלצות והבלוג) — `<siteUrl>/og-preview.png`, עם `og:image:width` 1200, `og:image:height` 630 ו-`og:image:type` image/png. לעמוד עם `image` (עמודי הפרויקטים ועמודי ה-Ask AI שלהם) — נתיב שמתחיל ב-`/` מקבל את `siteUrl` לפניו, כמו og:url, וכתובת `http(s)://` נשארת כמו שהיא. `og:image:type` נקבע לפי הסיומת מהטבלה `IMAGE_TYPES` (`.png` image/png, `.jpg`/`.jpeg` image/jpeg, `.webp` image/webp), וסיומת אחרת מקבלת תמונה בלי `og:image:type`. כל 10 תמונות הכרטיס הן WebP (CodeKeeper הומרה ל-WebP ברשומה נפרדת, 2026-11-20). בעל הפרויקט בדק שווטסאפ מציג WebP בתצוגה מקדימה.
+   - **מידות תמונות העמודים נמדדות מהקובץ:** חבילת פיתוח חדשה, `image-size` בגרסה נעוצה `2.0.4` (`pnpm add -D -E image-size@2.0.4`, בלי תלויות משלה). ב-`configResolved` נשמר `config.publicDir` (`client/public`). ב-`writeBundle`, לפני בניית ה-heads, `measureShareImages(publicDir, warn)` עובר על ה-`image` הייחודיים שמתחילים ב-`/`, קורא כל קובץ (`path.join(publicDir, image)`) ומודד אותו ב-`imageSize(new Uint8Array(buffer))` מ-`image-size`. התוצאה היא `Map` מנתיב ל-`{ width, height }` (הטיפוס `ImageSizes`), ו-`renderPageHead(page, siteUrl, imageSizes)` מעביר אותה ל-`shareImage`, שמוסיף `og:image:width`/`og:image:height` כשיש מידות. קובץ שלא נמדד (חסר, סוג לא מוכר, או תג EXIF orientation שאינו 1) כותב אזהרה בלוג הבנייה (`this.warn`), והתמונה יוצאת בלי מידות. הבנייה לא נכשלת בגלל זה. המידות נשארות נכונות גם כשמחליפים תמונה, בלי לעדכן מספרים ביד.
+4. **`shared/const.ts`:** `export const PAGE_HTML_FILE = "page-html.json";` והממשק `PageHtmlFile { before: string; after: string; heads: Record<string, string> }`.
+5. **`server/index.ts`:** פונקציה `loadPageHtml(file)` קוראת את הקובץ פעם אחת בעלייה, בודקת את המבנה (`before` ו-`after` מחרוזות, `heads` אובייקט שכל ערכיו מחרוזות), ומחזירה פונקציה שמקבלת נתיב ומחזירה `before + head + after`, או `undefined` לנתיב בלי head. ה-heads נשמרים ב-`Map`, כדי שנתיב כמו `/constructor` לא ימצא משהו מ-`Object.prototype`. קובץ חסר או פגום כותב אזהרה בלוג ומחזיר תמיד `undefined`: כל עמוד מקבל את `index.html` כמו קודם, והשרת לא נופל. הקובץ נטען מ-`path.resolve(staticPath, "..", PAGE_HTML_FILE)`, לפני ה-`app.get("*")`. ב-`app.get("*")`, קודם: אם `req.path` ארוך מתו אחד, נגמר ב-`/`, ובלי הלוכסן יש לו HTML (עמוד מוכר), `res.redirect(301, <הנתיב בלי הלוכסן> + <מחרוזת השאילתה מ-req.url, אם יש>)`. הסיבה: wouter (דרך regexparam, שהתבנית שלו נגמרת ב-`\/?$`) מציג את `/project/x/` כעמוד הפרויקט, אבל `req.path` שומר את הלוכסן, ולכן הכתובת הזו קיבלה את ה-head של דף הבית. ההפניה נותנת לכל עמוד כתובת אחת. אחר כך: אם יש HTML לנתיב (`req.path`), `res.set("Cache-Control", "public, max-age=0")` (אותה מדיניות ש-`sendFile` נתן לעמודים האלה, לפי מדידה) ו-`res.send(html)`, שקובע `text/html; charset=utf-8`, מוסיף ETag ועונה 304 לבקשה עדכנית. אחרת `sendFile(index.html)` כמו קודם. דף הבית מוגש מ-`express.static` כמו קודם, ו-`index.html` כבר מכיל את ה-head שלו. כתובת לא מוכרת מקבלת את ה-head של דף הבית, כמו קודם.
+6. **`client/src/App.tsx`:** הוק `usePageTitle()`, שנקרא בתחילת `Router()`: `const [location] = useLocation();` ו-`useEffect(() => { document.title = getPageMeta(location).title; }, [location]);`. רק הכותרת מתעדכנת בניווט: שאר התגיות נקראות רק מה-HTML הראשוני, וגוגל מבקש ש-JavaScript לא ישנה את הקישור הקנוני.
+
+**אימות:** מול שרת הייצור, ב-HTTP וב-Chromium, עם אותה מדידה על build בלי השינוי (בקרה):
+- **בקרה:** בבנייה הקודמת כל 22 העמודים (20 במפה ועוד שני עמודי Ask AI) מחזירים את הכותרת והתיאור של דף הבית, `og:url` הוא `https://example.com`, ואין קישור קנוני. עם השינוי לכל עמוד הכותרת, התיאור, og:type, og:url והקישור הקנוני שלו, כל תגית בדיוק פעם אחת, וכל 22 הכותרות שונות זו מזו. ה-`&` בשם ההמלצה "WhatsApp & Telegram" מגיע כ-`&amp;`.
+- **מטמון:** בקשה עם `If-None-Match` של ה-ETag מקבלת 304 בלי גוף, ו-HEAD מחזיר 200 עם `Content-Length`.
+- **תמונות:** בעמודי הפרויקטים og:image היא תמונת הכרטיס, וכל תמונה מוגשת מהשרת עם `Content-Type` זהה ל-`og:image:type` שב-head (כולן WebP, ומוגשות כ-`image/webp`). המידות שב-head זהות למידות הקובץ שהשרת מגיש (הבדיקה מודדת את הבייטים שהגיעו ב-HTTP), ולמדידה עצמאית ב-PIL של כל 11 התמונות (למשל CodeKeeper 2752x1536, MentorOS 1536x1024).
+- **לוכסן בסוף:** לכל 21 העמודים חוץ מדף הבית, `<נתיב>/?ref=check` מחזיר 301 עם `Location: <נתיב>?ref=check`. בדפדפן `/project/myagent/` מגיע ל-`/project/myagent` עם הכותרת "myAgent | אמיר בירון".
+- **מוטציות:** קובץ `page-html.json` חסר או פגום (ערך שאינו מחרוזת): השרת עולה, כותב אזהרה, ומגיש את דף הבית לכל עמוד. עמוד אחד שה-head שלו נמחק מהקובץ: רק הוא נכשל בבדיקה. `page-meta.ts` בלי ההמלצות: הבדיקה נכשלת על המפה ועל og:url של שלושתן. תגית description בלי ערך, `og:image:type` שגוי, ושרת בלי ההפניה: כל אחד מהם מכשיל את הבדיקה.
+- **בלי `VITE_SITE_URL`:** הבנייה עוברת עם אזהרה, אין `sitemap.xml`, ואין ב-HTML אף `%VITE_SITE_URL%`.
+- **בדפדפן:** קליק מדף הבית לפוסט, חזרה אחורה, קליק לפרויקט ואז ל-Ask AI, בלי טעינה מחדש: הכותרות "12 מלכודות בבניית צ'אטבוט AI לפרודקשן | אמיר בירון", "אמיר בירון | Automation Developer", "CodeKeeper | אמיר בירון", "AI Agent — CodeKeeper | אמיר בירון". בבקרה הכותרת לא משתנה.
+
+**ליישום מחדש:**
+1. להעתיק כמו שהוא את `client/src/lib/page-meta.ts`.
+2. ב-`client/index.html`, להחליף את `<title>`, את `meta name="description"`, ואת כל תגיות `og:*` ו-`twitter:*` בשורה `<!-- page-meta -->` (בדיוק פעם אחת בקובץ, וגם לא בתוך הערה אחרת).
+3. ב-`vite.config.ts`, להחליף את שלושת ה-imports מ-`./client/src/lib/blog`, `./projects` ו-`./testimonials` ב-`import { getPageMeta, pages, type PageMeta } from "./client/src/lib/page-meta";` ו-`import { PAGE_HTML_FILE, type PageHtmlFile } from "./shared/const";`, ולהוסיף `import { imageSize } from "image-size";` (אחרי התקנת החבילה לפי סעיף 3), ולהחליף את `vitePluginSitemap` ב-`vitePluginSeo`, `PAGE_META_PLACEHOLDER`, `SHARE_IMAGE`, `IMAGE_TYPES`, `ImageSizes`, `renderPageHead`, `shareImage`, `measureShareImages` ו-`escapeHtml` מהריפו הזה (`resolveSiteUrl` ו-`escapeXml` נשארים). במערך `plugins`: `vitePluginSeo()` במקום `vitePluginSitemap()`.
+4. ב-`shared/const.ts`, להוסיף את `PAGE_HTML_FILE` ואת `PageHtmlFile` לפי סעיף 4.
+5. ב-`server/index.ts`, להוסיף `import fs from "fs";` ו-`import { PAGE_HTML_FILE, type PageHtmlFile } from "../shared/const";`, את `loadPageHtml` ואת `isPageHtmlFile` מעל `startServer`, ולעדכן את `app.get("*")` לפי סעיף 5: קודם ההפניה של לוכסן בסוף, ואחריה ההגשה עם ה-head.
+6. ב-`client/src/App.tsx`, להוסיף את `useLocation` ל-import מ-wouter, `useEffect` ל-import מ-react, `import { getPageMeta } from "./lib/page-meta";`, ואת `usePageTitle` לפי סעיף 6.
+7. לוודא שהבנייה רצה עם `VITE_SITE_URL` המלא של אותה סביבה. אחרי `pnpm build`, ב-`dist` צריך להיות `page-html.json` ליד `public`, ו-`curl <אתר>/blog/<slug>` צריך להחזיר את כותרת הפוסט ב-`<title>`.
+
+## [2026-11-19] כפתור Demo מוצג רק כשיש לו קישור, וכפתור Code בפרויקט ללקוח מסביר שהקוד סגור
+
+**קבצים שהשתנו:**
+- `client/src/lib/projects.ts` — (שונה) `demo` ו-`repo` אופציונליים, והערכים `"#"` נמחקו; שדה חדש `clientProject` לשישה פרויקטים
+- `client/src/components/ExternalLinkButton.tsx` — (שונה) בלי המצב של קישור לא זמין (`"#"` ו-`unavailableMessage`)
+- `client/src/pages/Home.tsx` — (שונה) כפתור ה-Demo בכרטיס הפרויקט מוצג רק כשיש `demo`
+- `client/src/pages/ProjectPage.tsx` — (שונה) כפתור Demo מוצג רק כשיש `demo`; כפתור Code הוא קישור כשיש `repo`, ובפרויקט ללקוח בלי `repo` הוא מציג "קוד סגור - פרויקט ללקוח"; מיכל הכפתורים מוצג רק כשיש בו משהו
+
+**פירוט:**
+ב-4 פרויקטים (myAgent, LeadsFlow, ContentFlow, OfferFlow) כפתור ה-Demo הוביל ל-`"#"`, ובשישה כפתור ה-Code (גם FB Leads Scanner ו-MentorOS). לחיצה עליהם הקפיצה רק הודעה "Demo link - Feature coming soon" או "הקוד עדיין לא זמין", ולמבקר זה נראה כמו אתר שלא נגמר. כל ששת הפרויקטים האלה נבנו ללקוחות. עכשיו:
+- **כפתור Demo** (בכרטיס בדף הבית ובעמוד הפרויקט) מוצג רק כשיש קישור. בכרטיס בדף הבית כפתור Details תופס את כל השורה כשאין דמו.
+- **כפתור Code** בעמוד הפרויקט: כשיש `repo` הוא קישור, כמו קודם. בפרויקט ללקוח בלי `repo` הוא נשאר באותו מראה (אייקון GitHub והטקסט Code), ולחיצה עליו מציגה את ההודעה "קוד סגור - פרויקט ללקוח", באותו עיצוב של ההודעה הקודמת (`toast.info` של sonner). כך מי שמחפש את הקוד מקבל תשובה כנה, במקום "עדיין לא זמין". בפרויקט שאינו ללקוח ואין לו `repo`, אין כפתור Code.
+- בעמוד פרויקט שאין לו אף כפתור (בלי דמו, בלי קוד, לא ללקוח ובלי Ask AI), גם המיכל של הכפתורים לא מרונדר, כדי שלא יישאר רווח ריק.
+
+1. **`projects.ts`:** בממשק `ProjectData`, `demo?: string` ו-`repo?: string` (היו חובה), עם הערה שהיעדר השדה פירושו שאין כפתור. עשר השורות `demo: "#",` ו-`repo: "#",` נמחקו. השדות `demoLabel` ו-`repoLabel` לא השתנו. שדה חדש `clientProject?: true` (פרויקט שנבנה ללקוח), עם הערה. הוא מוגדר כ-`clientProject: true,` מיד אחרי השורה `title` בשישה פרויקטים: `myagent`, `fb-leads-scanner`, `leadsflow`, `contentflow`, `offerflow`, `mentoros`. השדה מפורש, ולא נגזר מהיעדר קישורים: AI Business Chatbot, למשל, אינו פרויקט ללקוח. השדה משפיע רק על כפתור Code, לא על כפתור הדמו.
+2. **`ExternalLinkButton.tsx`:** נמחקו ה-prop `unavailableMessage`, הבדיקה `href === "#"` וה-import של `toast`. הרכיב תמיד מחזיר `<Button {...buttonProps} asChild><a href={href} target="_blank" rel="noopener">`.
+3. **`Home.tsx`:** כפתור ה-Demo בכרטיס עטוף ב-`{project.demo && (...)}`, בלי `unavailableMessage`.
+4. **`ProjectPage.tsx`:**
+   - `import { toast } from "sonner";` ו-`type ComponentProps` ב-import מ-react. מעל `ProjectPage`, רכיב קטן שהנוסח שלו במקום אחד: `function ClosedCodeButton(props: Omit<ComponentProps<typeof Button>, "onClick">) { return <Button {...props} onClick={() => toast.info("קוד סגור - פרויקט ללקוח")} />; }`.
+   - אחרי הבדיקה שהפרויקט קיים: `const hasActions = Boolean(project.demo || project.repo || project.clientProject || project.askAi);`. בכותרת ובתחתית העמוד, ה-`div` עם `flex gap-3` עטוף ב-`{hasActions && (...)}`.
+   - כפתור Demo עטוף ב-`{project.demo && (...)}`, בלי `unavailableMessage`.
+   - כפתור Code: `{project.repo ? (<ExternalLinkButton ...> כמו קודם, בלי unavailableMessage) : (project.clientProject && (<ClosedCodeButton ...>))}`. ל-`ClosedCodeButton` אותם `size`, `variant="outline"` ו-`className` של כפתור ה-Code באותו מקום, ובתוכו `<Github className="mr-2 h-3 w-3" />` (למעלה) או `h-4 w-4` (למטה) והטקסט `Code`.
+
+**אימות:** ב-Chromium מול build פרודקשן, עם אותה מדידה על build בלי השינוי: בכרטיסים של ארבעת הפרויקטים בלי דמו אין כפתור (בבקרה: כפתור "Demo" שלא מוביל לשום מקום), ו-Details ברוחב 100% מהשורה במקום 48%. בעמוד myAgent בכותרת יש רק כפתור Code, ובעמודי FB Leads Scanner ו-MentorOS קישור Landing Page וכפתור Code. לחיצה על Code בשלושתם, למעלה ולמטה, מציגה "קוד סגור - פרויקט ללקוח". ב-AI Business Chatbot, ב-CodeKeeper ובשגרה בחוסר שגרה כל הכפתורים קישורים, עם היעדים הנכונים, כמו קודם. השגיאות ב-console זהות לבקרה, ואין שגיאות חדשות. כולן מסקריפט האנליטיקס ב-`index.html`, שהכתובת שלו נשארת `%VITE_ANALYTICS_ENDPOINT%/umami` כשהמשתנה לא מוגדר. זו בעיה קיימת, שלא קשורה לשינוי הזה.
+
+**ליישום מחדש:** לפי סעיפים 1–4. אחרי השינוי לא נשאר `"#"` ב-`projects.ts`, לא נשאר `unavailableMessage` בשום קובץ, ו-`clientProject: true` מופיע בדיוק בשישה פרויקטים.
+
 ## [2026-11-08] הערות ומחרוזות בעברית בתוך קוד נקראות נכון, בבלוג ובצ'אט ה-AI
 
 **קבצים שהשתנו:**

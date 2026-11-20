@@ -18,10 +18,21 @@ export interface ProjectData {
   imagePosition?: string;
   screenshots: string[];
   mermaidDiagram: string;
-  demo: string;
+  /**
+   * קישור הדמו (או דף הנחיתה), שנפתח בלשונית חדשה. פרויקט בלי דמו פשוט בלי השדה,
+   * ואז הכפתור לא מוצג בכלל: כפתור שלא מוביל לשום מקום נראה כמו אתר שלא נגמר.
+   */
+  demo?: string;
   demoLabel?: string;
-  repo: string;
+  /** קישור לקוד, או לדף אחר לפי repoLabel. בלי השדה אין כפתור, כמו ב-demo */
+  repo?: string;
   repoLabel?: string;
+  /**
+   * פרויקט שנבנה ללקוח: הקוד שלו, ולכן אין לו קישור לקוד. בעמוד הפרויקט מוצג לו כפתור Code
+   * שלחיצה עליו מציגה "קוד סגור - פרויקט ללקוח" (ClosedCodeButton ב-ProjectPage.tsx), כדי שמי שמחפש את הקוד
+   * יקבל תשובה ולא כפתור חסר. לכפתור הדמו אין קשר לשדה הזה: הוא מוצג רק כשיש demo.
+   */
+  clientProject?: true;
   challenges: string[];
   features: string[];
   /**
@@ -121,7 +132,7 @@ export const projects: ProjectData[] = [
     AdminPanel --> SQLite
     RAGEngine --> SQLite`,
     demo: "https://t.me/ai_business2U_bot",
-    repo: "https://amirbiron.github.io/Chatbot4U/",
+    repo: "https://amirbiron.github.io/ChatBotLanding/",
     repoLabel: "Landing Page",
     challenges: [
       "מערכת RAG עם 3 שכבות LLM — התנהגות, הקשר, ובקרת איכות",
@@ -141,6 +152,7 @@ export const projects: ProjectData[] = [
   {
     slug: "myagent",
     title: "myAgent",
+    clientProject: true,
     description:
       "סוכן מכירות אישי לוואטסאפ וטלגרם — מנהל בשבילך שיחות התעניינות כשאתה לא זמין",
     subtitle: "סוכן AI אישי לוואטסאפ וטלגרם עם בסיס ידע אישי ודשבורד ניהול",
@@ -205,8 +217,6 @@ export const projects: ProjectData[] = [
     Dashboard --> Backend
     WAListener --> Disks
     TGListener --> Disks`,
-    demo: "#",
-    repo: "#",
     challenges: [
       "האזנה במקביל לשני ערוצים (WhatsApp + Telegram) עם הפרדת context לכל שיחה",
       "החלפת מודלים (Gemini / Claude) דרך משתנה סביבה ללא שינוי קוד",
@@ -226,6 +236,7 @@ export const projects: ProjectData[] = [
   {
     slug: "fb-leads-scanner",
     title: "FB Leads Scanner",
+    clientProject: true,
     description:
       "בוט שסורק קבוצות פייסבוק ושולח לך פוסטים שאתה מחשיב ללידים + פאנל ווב לניהול",
     subtitle: "סורק קבוצות פייסבוק אוטומטי עם סיווג AI + פאנל ניהול",
@@ -297,7 +308,6 @@ export const projects: ProjectData[] = [
     Classifier --> SQLite`,
     demo: "https://amirbiron.github.io/Landing_FB_Lids/",
     demoLabel: "Landing Page",
-    repo: "#",
     challenges: [
       "Scraping של פייסבוק עם Playwright וחסימת משאבים לחיסכון בזיכרון",
       "מערכת Deduplication חוצת-קבוצות (post_id hash + content_hash)",
@@ -315,6 +325,7 @@ export const projects: ProjectData[] = [
   {
     slug: "leadsflow",
     title: "LeadsFlow",
+    clientProject: true,
     description:
       "מערכת ניהול תקשורת ולידים רב-ערוצית — מייל, וואטסאפ, מסנג'ר ואינסטגרם בתיבה אחת עם טיוטות AI",
     subtitle: "Inbox מאוחד לכל ערוצי הלידים עם סיווג AI וטיוטת תשובה אוטומטית",
@@ -386,8 +397,6 @@ export const projects: ProjectData[] = [
     Scheduler --> Postgres
     Scheduler --> TGBot
     Frontend --> Backend`,
-    demo: "#",
-    repo: "#",
     challenges: [
       "Multi-tenant ברמת ה-DB עם הצפנת credentials של ספקים חיצוניים (Fernet)",
       "שכבת Adapter אחידה ל-WhatsApp שמאפשרת מעבר Green API ↔ Meta Cloud API בלי לגעת בקוד העסקי",
@@ -411,6 +420,7 @@ export const projects: ProjectData[] = [
   {
     slug: "contentflow",
     title: "ContentFlow",
+    clientProject: true,
     description:
       "מחולל תוכן שיווקי לעסקים — יוצר פוסטים בעברית בסגנון שלך לפי דוגמאות שסיפקת",
     subtitle: "מחולל פוסטים שיווקיים בעברית עם פרופיל עסק וניתוח דוגמאות סגנון",
@@ -469,8 +479,6 @@ export const projects: ProjectData[] = [
     Cache --> Claude
     Generator --> Posts
     Auth --> Users`,
-    demo: "#",
-    repo: "#",
     challenges: [
       "ניתוח דוגמאות תוכן של הלקוח כדי לזקק את סגנון הכתיבה — לא רק טון, גם מבנה משפט ואורך",
       "Prompt Caching של פרופיל העסק והתבניות עם Claude Sonnet 4.6 — חיסכון דרמטי בעלות וזמן",
@@ -491,6 +499,7 @@ export const projects: ProjectData[] = [
   {
     slug: "offerflow",
     title: "OfferFlow",
+    clientProject: true,
     description:
       "מחולל הצעות מחיר וחוזים ב-AI — מתיאור חופשי ל-PDF ממותג ב-60 שניות, עם חתימה דיגיטלית ו-tracking",
     subtitle: "מחולל הצעות מחיר וחוזים בעברית עם AI, חתימה דיגיטלית ומעקב פתיחה",
@@ -564,8 +573,6 @@ export const projects: ProjectData[] = [
     PublicPage --> Tracker
     Tracker --> Events
     Tracker --> Notifier`,
-    demo: "#",
-    repo: "#",
     challenges: [
       "Quick AI — המרת תיאור חופשי בעברית ל-JSON מובנה עם פרטי לקוח, פריטים, פתיח, סיום ותנאי תשלום",
       "הפקת PDF בעברית עם WeasyPrint — RTL מלא, ערבוב עברית-אנגלית-מספרים נכון (unicode-bidi), web fonts (Heebo / Assistant)",
@@ -594,6 +601,7 @@ export const projects: ProjectData[] = [
   {
     slug: "mentoros",
     title: "MentorOS",
+    clientProject: true,
     description:
       "מנטור אישי מבוסס AI עם זיכרון ארוך טווח — מזהה דפוסים, מנתח החלטות ומלווה צמיחה אישית",
     subtitle:
@@ -652,7 +660,6 @@ export const projects: ProjectData[] = [
     FastAPI --> PromptLab[Prompt Lab<br/>A/B Testing]`,
     demo: "https://mentorai-k5y0.onrender.com/?home=1",
     demoLabel: "Landing Page",
-    repo: "#",
     challenges: [
       "חיפוש סמנטי בזיכרון עם pgvector — embeddings ב-1536 ממדים, cosine distance, fallback לדירוג לפי עדכניות",
       "ניהול מודלים מרובים — ניתוב 3 רמות (strong/fast/summary) עם מעקב עלויות per-call ותקרת הוצאות",
@@ -696,7 +703,7 @@ export const projects: ProjectData[] = [
       "Prometheus",
       "Grafana",
     ],
-    image: "/projects/codekeeper-card.jpg",
+    image: "/projects/codekeeper-card.webp",
     screenshots: [
       "/projects/Screenshot_20260313_202612_Telegram.jpg",
       "/projects/Screenshot_20260313_202856_Telegram.jpg",
