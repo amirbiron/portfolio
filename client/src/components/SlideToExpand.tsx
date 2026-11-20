@@ -7,7 +7,6 @@
  * - הצבעים של האתר (primary), והברק מוגדר ב-index.css (.slide-to-expand-shine).
  * - אורך הדרך נמדד ברגע תחילת הגרירה, ולא בזמן הרינדור (ברכיב המקורי הוא נמדד מ-ref לפני שה-ref קיים).
  * - בהפחתת תנועה אין ברק, והידית חוזרת ומגיעה לסוף בלי אנימציה.
- * - data-no-card-toggle: גרירה או לחיצה על הפס לא מגיעות ללחיצה של הכרטיס עצמו (ראו WorkflowCard).
  * - הידית היא כפתור ולא role="slider": היא מבצעת פעולה אחת (הרחבה), ואין לה ערך שמשנים. slider מבטיח לקורא
  *   המסך ערך (aria-valuenow, aria-valuemin, aria-valuemax) וחצים שמזיזים אותו צעד אחרי צעד, ואין כאן אף אחד מהם.
  *   מקור: תבנית Slider ב-APG, https://www.w3.org/WAI/ARIA/apg/patterns/slider/
@@ -84,7 +83,6 @@ export function SlideToExpand({
     <div
       ref={trackRef}
       dir="rtl"
-      data-no-card-toggle
       onPointerMove={onMove}
       onPointerUp={end}
       onPointerCancel={end}
